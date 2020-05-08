@@ -1,0 +1,47 @@
+/dts-v1/;
+/plugin/;
+/ {
+   compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+   
+   fragment@0 {
+      target-path = "/";
+      __overlay__ {
+         keypad: display_keys {
+            compatible = "gpio-keys";
+            debounce-delay-ms = <10>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            button@4 {
+               label = "display buttons powerdown";
+               linux,code = <116>;
+               gpios = <&gpio 4 1>;
+            };
+            button@17 {
+               label = "display buttons display toggle";
+               linux,code = <431>;
+               gpios = <&gpio 17 1>;
+            };
+            button@23 {
+               label = "display buttons down";
+               linux,code = <108>;
+               gpios = <&gpio 23 1>;
+            };
+            button@22 {
+               label = "display buttons up";
+               linux,code = <103>;
+               gpios = <&gpio 22 1>;
+            };
+            button@24 {
+               label = "display buttons esc";
+               linux,code = <1>;
+               gpios = <&gpio 24 1>;
+            };
+            button@5 {
+               label = "display buttons tab";
+               linux,code = <28>;
+               gpios = <&gpio 5 1>;
+            };
+         };
+      };
+   };
+};

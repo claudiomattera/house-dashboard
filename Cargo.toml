@@ -1,0 +1,60 @@
+[package]
+name = "house-dashboard"
+version = "0.1.0"
+authors = ["Claudio Mattera <claudio@mattera.it>"]
+edition = "2018"
+description = "An application to generate and display charts for a house dashboard"
+readme = "Readme.md"
+homepage = "https://gitlab.com/claudiomattera/house-dashboard"
+repository = "https://gitlab.com/claudiomattera/house-dashboard"
+license = "MIT"
+keywords = [
+    "dashboard",
+]
+categories = [
+    "command-line-utilities",
+]
+publish = false
+
+[dependencies]
+log = "0.4"
+env_logger = "0.7"
+clap = "2.33"
+chrono = "0.4"
+serde_json = "1.0"
+framebuffer = "0.2"
+palette = "0.5"
+toml = "0.5"
+glob = "0.3"
+
+[dependencies.url]
+version = "2.1"
+features = ["serde"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.reqwest]
+version = "0.10"
+default-features = false
+features = ["rustls-tls", "blocking"]
+
+[dependencies.plotters]
+version = "0.2"
+# default-features = false
+# features = ["image_encoder", "line_series", "datetime"]
+
+[profile.release]
+# Necessary for release builds on Raspberry Pi
+# https://github.com/rust-lang/cargo/issues/6489
+# https://github.com/rust-lang/rust/issues/62896
+codegen-units=1
+
+[package.metadata.deb]
+extended-description = """\
+This application generates charts for a house dashboard, and optionally it
+displays them over the framebuffer.
+Charts are dynamically configured through a TOML file, and their data is
+fetched from an InfluxDB instance."""
+section = "utility"
