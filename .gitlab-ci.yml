@@ -80,6 +80,10 @@ release:cargo:linux:raspberry-pi:
   image: claudiomattera/rust-builder:1.41.1
   only:
     - /^v\d+(\.\d+)*$/
+  before_script:
+    # These are necessary for crate servo-fontconfig-sys
+    - export CC=/opt/rpi/tools/arm-bcm2708/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc
+    - ln -s /opt/rpi/tools/arm-bcm2708/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-ar /usr/bin/arm-unknown-linux-gnueabihf-ar
   script:
     - cargo build --release --target=arm-unknown-linux-gnueabihf
     - cp "target/arm-unknown-linux-gnueabihf/release/${CI_PROJECT_NAME}" "${CI_PROJECT_NAME}-${CI_COMMIT_TAG:1}-linux-raspberry-pi"
