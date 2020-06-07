@@ -90,24 +90,6 @@ release:cargo:linux:raspberry-pi:
     expire_in: 1 day
 
 
-package:ebuild:
-  stage: package
-  image: claudiomattera/rust-builder:1.41.1
-  only:
-    - /^v\d+(\.\d+)*$/
-  before_script:
-    - apt-get update
-    - apt-get install -y jq
-  script:
-    - FILTER='.packages | map(select(.name != "${CI_PROJECT_NAME}")) | sort_by(.name + .version) | .[] | (.name + "-" + .version)'
-    - CRATES=`cargo metadata --all-features --format-version=1 | jq -r "${FILTER}"`
-    - echo $CRATES | sed -e '/^{{ crates }}/{r /dev/stdin' -e 'd;}' packaging/gentoo/${CI_PROJECT_NAME}.ebuild > packaging/gentoo/${CI_PROJECT_NAME}-${CI_COMMIT_TAG:1}.ebuild
-  artifacts:
-    paths:
-      - "packaging/gentoo/${CI_PROJECT_NAME}-${CI_COMMIT_TAG:1}.ebuild"
-    expire_in: 1 day
-
-
 package:cargo:debian:x86_64:
   stage: package
   image: claudiomattera/rust-builder:1.41.1
