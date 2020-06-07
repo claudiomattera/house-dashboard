@@ -45,12 +45,6 @@ version = "0.2"
 # default-features = false
 # features = ["image_encoder", "line_series", "datetime"]
 
-[profile.release]
-# Necessary for release builds on Raspberry Pi
-# https://github.com/rust-lang/cargo/issues/6489
-# https://github.com/rust-lang/rust/issues/62896
-codegen-units=1
-
 [package.metadata.deb]
 extended-description = """\
 This application generates charts for a house dashboard, and optionally it
