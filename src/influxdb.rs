@@ -20,6 +20,7 @@ use url::Url;
 
 use anyhow::Result;
 
+use crate::error::DashboardError;
 use crate::types::TimeSeries;
 
 
@@ -62,9 +63,11 @@ impl InfluxdbClient {
 
         let mut time_seriess = HashMap::new();
 
-        debug!("Fetched {} time-series", result.series.len());
+        let series = result.series.ok_or(DashboardError::EmptyTimeSeries)?;
 
-        for raw_series in result.series {
+        debug!("Fetched {} time-series", series.len());
+
+        for raw_series in series {
 
             let time_series: TimeSeries = raw_series.values.iter().map(|vs| {
                 let datetime: DateTime<Utc> = Utc.timestamp(vs[0] as i64, 0);
@@ -141,7 +144,7 @@ struct InfluxdbResults {
 #[derive(Debug, Deserialize, Clone)]
 struct InfluxdbResult {
     pub statement_id: u32,
-    pub series: Vec<Series>,
+    pub series: Option<Vec<Series>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
