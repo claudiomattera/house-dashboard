@@ -9,6 +9,7 @@ use std::env;
 use std::path::Path;
 use std::process::exit;
 use std::fs::remove_file;
+use std::collections::HashMap;
 
 use anyhow::{Context, Result};
 
@@ -19,6 +20,7 @@ use glob::glob;
 
 mod backend;
 mod chart;
+mod colormap;
 mod configuration;
 mod error;
 mod framebuffer;
@@ -26,7 +28,7 @@ mod influxdb;
 mod types;
 
 use crate::backend::OtherBackendType;
-use crate::configuration::{Configuration, ChartConfiguration, TrendConfiguration};
+use crate::configuration::{Configuration, ChartConfiguration, GeographicalMapConfiguration, GeographicalRegionConfiguration, TrendConfiguration};
 use crate::influxdb::InfluxdbClient;
 
 fn main() {
@@ -116,6 +118,7 @@ fn inner_main() -> Result<()> {
 
                 let result = match chart {
                     ChartConfiguration::Trend(chart) => generate_trend_chart(chart, &influxdb_client, backend),
+                    ChartConfiguration::GeographicalMap(chart) => generate_geographical_map_chart(chart, configuration.regions.clone(), &influxdb_client, backend),
                 }.context("Failed to save chart to file");
 
                 match result {
@@ -221,5 +224,39 @@ fn generate_trend_chart(
         chart.tag_values,
         backend,
     ).context("Failed to draw chart")?;
+    Ok(())
+}
+
+fn generate_geographical_map_chart(
+            chart: GeographicalMapConfiguration,
+            regions_configurations: Vec<GeographicalRegionConfiguration>,
+            influxdb_client: &InfluxdbClient,
+            backend: OtherBackendType,
+        ) -> Result<()> {
+    debug!("Generating geographical map chart");
+
+    let mut regions = HashMap::<String, Vec<(f64, f64)>>::new();
+    for region in regions_configurations {
+        regions.insert(region.name, region.coordinates);
+    }
+
+    let time_seriess = influxdb_client.fetch_timeseries_by_tag(
+        &chart.query,
+        &chart.tag,
+    ).context("Failed to fetch data from database")?;
+
+    let values: HashMap<String, Option<f64>> = time_seriess.iter()
+        .map(|(region, time_series)| (region.to_owned(), time_series.first().map(|o| o.1)))
+        .collect();
+
+    chart::draw_geographical_map_chart(
+        values,
+        chart.bounds,
+        &chart.title,
+        &chart.unit,
+        regions,
+        backend,
+    )?;
+
     Ok(())
 }
