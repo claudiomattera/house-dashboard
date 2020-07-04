@@ -106,9 +106,14 @@ fn inner_main() -> Result<()> {
                 let chart_path = directory_path.join(format!("{}.bmp", i));
                 let backend = OtherBackendType::new_from_path(&chart_path, configuration.style.resolution);
 
-                match chart {
+                let result = match chart {
                     ChartConfiguration::Trend(chart) => generate_trend_chart(chart, &influxdb_client, backend),
-                }.context("Failed to save chart to file")?
+                }.context("Failed to save chart to file");
+
+                match result {
+                    Err(error) => error!("Error: {:?}", error),
+                    _ => {},
+                }
             }
         }
         _ => println!("{}", matches.usage()),

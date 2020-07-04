@@ -8,6 +8,8 @@ use plotters::drawing::DrawingAreaErrorKind;
 pub enum DashboardError {
     #[error("Unknown error")]
     Unknown,
+    #[error("Empty time-series")]
+    EmptyTimeSeries,
 }
 
 impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
