@@ -8,6 +8,8 @@ use plotters::drawing::DrawingAreaErrorKind;
 pub enum DashboardError {
     #[error("Unknown error")]
     Unknown,
+    #[error("Unknown palette")]
+    UnknownPalette,
     #[error("Empty time-series")]
     EmptyTimeSeries,
     #[error("Unexpected tag value \"{0}\"")]
