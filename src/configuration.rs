@@ -53,4 +53,5 @@ pub struct TrendConfiguration {
     pub xlabel_format: String,
     pub query: String,
     pub tag: String,
+    pub tag_values: Option<Vec<String>>,
 }

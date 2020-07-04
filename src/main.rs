@@ -81,7 +81,15 @@ fn inner_main() -> Result<()> {
                 "room",
             ).context("Failed to fetch time-series")?;
 
-            chart::draw_chart(time_seriess, "Temperature", &Some("Temperature [C]".to_string()), 50, "%H:%M", OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1)))
+            chart::draw_chart(
+                    time_seriess,
+                    "Temperature",
+                    &Some("Temperature [C]".to_string()),
+                    50,
+                    "%H:%M",
+                    None,
+                    OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
+                )
                 .context("Failed to draw chart to framebuffer")?;
         }
         ("save", Some(subcommand)) => {
@@ -210,6 +218,7 @@ fn generate_trend_chart(
         &chart.ylabel,
         50,
         &chart.xlabel_format,
+        chart.tag_values,
         backend,
     ).context("Failed to draw chart")?;
     Ok(())

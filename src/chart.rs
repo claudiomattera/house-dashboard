@@ -20,6 +20,7 @@ pub fn draw_chart(
             ylabel: &Option<String>,
             ylabel_size: u32,
             xlabel_format: &str,
+            tag_values: Option<Vec<String>>,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
 
@@ -88,7 +89,30 @@ pub fn draw_chart(
         .collect::<Vec<_>>();
     its.sort_by(|a, b| a.partial_cmp(b).expect("Invalid comparison"));
 
-    for (index, (name, time_series)) in (0..).zip(its.iter()) {
+
+    let mut indices = HashMap::<String, usize>::new();
+    match tag_values {
+        Some(tag_values) => {
+            for (index, name) in (0..).zip(tag_values.iter()) {
+                indices.insert(name.to_owned(), index);
+            }
+        },
+        None => {
+            for (index, (name, _)) in (0..).zip(its.iter()) {
+                indices.insert(name.to_owned(), index);
+            }
+        }
+    };
+
+    for (name, time_series) in its.iter() {
+
+        let index = match indices.get(name) {
+            Some(index) => *index,
+            None => {
+                warn!("{}", DashboardError::UnexpectedTagValue(name.to_owned()));
+                continue;
+            }
+        };
 
         chart.draw_series(
             LineSeries::new(
