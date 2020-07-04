@@ -5,17 +5,19 @@
 
 use log::*;
 
+use std::path::Path;
+
 use framebuffer::{Framebuffer, KdMode};
 
 pub fn display_image(
-            fb_device: &str,
+            fb_device: &Path,
             image: &[u8],
             image_width: u32,
             image_height: u32,
         ) -> Result<(), Box<dyn std::error::Error>> {
 
-    info!("Opening framebuffer {}", fb_device);
-    let mut framebuffer = Framebuffer::new(fb_device)?;
+    info!("Opening framebuffer {}", fb_device.display());
+    let mut framebuffer = Framebuffer::new(fb_device.to_str().expect("Invalid path"))?;
     let width = framebuffer.var_screen_info.xres;
     let height = framebuffer.var_screen_info.yres;
     let line_length = framebuffer.fix_screen_info.line_length;

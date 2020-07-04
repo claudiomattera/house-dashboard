@@ -5,23 +5,14 @@
 
 use log::*;
 
-use std::path::Path;
-
 use std::collections::HashMap;
 
 use chrono::{MIN_DATE, MAX_DATE, Datelike, DateTime, Duration, Local, Timelike, TimeZone, Utc};
 
 use plotters::prelude::*;
 
+use crate::error::DashboardError;
 use crate::types::TimeSeries;
-
-
-#[derive(Debug)]
-pub enum BackendType<'a> {
-    FrameBuffer((&'a mut [u8], u32, u32)),
-    File(&'a Path, (u32, u32)),
-}
-
 
 pub fn draw_chart(
             time_seriess: HashMap<String, TimeSeries>,
@@ -29,8 +20,11 @@ pub fn draw_chart(
             ylabel: &Option<String>,
             ylabel_size: u32,
             xlabel_format: &str,
-            backend_type: BackendType,
-        ) -> Result<(), Box<dyn std::error::Error>> {
+            root: impl IntoDrawingArea<ErrorType = DashboardError>,
+        ) -> Result<(), DashboardError> {
+
+    let root = root.into_drawing_area();
+
     let title_font = ("Apple ][", 16).into_font();
     let label_font = ("Apple ][", 8).into_font();
     let legend_font = ("Apple ][", 8).into_font();
@@ -56,20 +50,17 @@ pub fn draw_chart(
 
     let min_x = Utc.ymd(min_x_utc.year(), min_x_utc.month(), min_x_utc.day())
             .and_hms(min_x_utc.time().hour(), 0, 0)
-            .checked_sub_signed(Duration::hours(1)).unwrap()
+            .checked_sub_signed(Duration::hours(1))
+            .expect("Invalid duration")
             .with_timezone(&Local);
     let max_x = Utc.ymd(max_x_utc.year(), max_x_utc.month(), max_x_utc.day())
             .and_hms(max_x_utc.time().hour(), 0, 0)
-            .checked_add_signed(Duration::hours(1)).unwrap()
+            .checked_add_signed(Duration::hours(1))
+            .expect("Invalid duration")
             .with_timezone(&Local);
 
     debug!("Plot X range: [{}, {}]", min_x, max_x);
     debug!("Plot Y range: [{}, {}]", min_y, max_y);
-
-    let root = match backend_type {
-        BackendType::FrameBuffer((buffer, width, height)) => BitMapBackend::with_buffer(buffer, (width, height)),
-        BackendType::File(path, resolution) => BitMapBackend::new(path, resolution),
-    }.into_drawing_area();
 
     root.fill(&BasicPalette::pick(0))?;
 
@@ -95,7 +86,7 @@ pub fn draw_chart(
             time_series_to_local_time(ts.clone()))
         )
         .collect::<Vec<_>>();
-    its.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    its.sort_by(|a, b| a.partial_cmp(b).expect("Invalid comparison"));
 
     for (index, (name, time_series)) in (0..).zip(its.iter()) {
 

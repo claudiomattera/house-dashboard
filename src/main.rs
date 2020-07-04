@@ -10,18 +10,22 @@ use std::path::Path;
 use std::process::exit;
 use std::fs::remove_file;
 
+use anyhow::{Context, Result};
+
 use clap::{Arg, ArgMatches, SubCommand};
 use clap::{app_from_crate, crate_name, crate_version, crate_authors, crate_description};
 
 use glob::glob;
 
+mod backend;
 mod chart;
 mod configuration;
+mod error;
 mod framebuffer;
 mod influxdb;
 mod types;
 
-use crate::chart::BackendType;
+use crate::backend::OtherBackendType;
 use crate::configuration::{Configuration, ChartConfiguration, TrendConfiguration};
 use crate::influxdb::InfluxdbClient;
 
@@ -30,14 +34,14 @@ fn main() {
         match inner_main() {
             Ok(()) => 0,
             Err(error) => {
-                error!("Error: {}", error);
+                error!("Error: {:?}", error);
                 1
             },
         }
     );
 }
 
-fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
+fn inner_main() -> Result<()> {
     let matches = parse_arguments();
     setup_logging(matches.occurrences_of("verbosity"));
 
@@ -47,9 +51,11 @@ fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     debug!("Parsing configuration");
-    let configuration_path = Path::new(matches.value_of("configuration-path").unwrap());
+    let configuration_path = matches.value_of("configuration-path")
+        .map(Path::new)
+        .expect("Missing argument \"configuration\"");
     let configuration = parse_configuration(configuration_path)
-        .map_err(|e| format!("Could not load configuration: {}", e))?;
+        .context("Could not load configuration")?;
 
     debug!("Creating InfluxDB client");
     let influxdb_client = InfluxdbClient::new(
@@ -63,28 +69,31 @@ fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("Matching subcommand");
     match matches.subcommand() {
         ("display", Some(subcommand)) => {
-            let device = subcommand.value_of("device").unwrap();
-            info!("Displaying chart on framebuffer {}", device);
+            let device = subcommand.value_of("device")
+                .map(Path::new)
+                .expect("Missing argument \"device\"");
+            info!("Displaying chart on framebuffer {}", device.display());
 
             let mut buffer = vec![0u8; (3 * configuration.style.resolution.0 * configuration.style.resolution.1) as usize];
 
             let time_seriess = influxdb_client.fetch_timeseries_by_tag(
                 "SELECT mean(\"temperature\") AS \"mean_value\" FROM \"longterm\".\"autogen\".\"indoor_environment\" WHERE time > now() - 1d GROUP BY time(30m),room FILL(none)",
                 "room",
-            )?;
+            ).context("Failed to fetch time-series")?;
 
-            chart::draw_chart(time_seriess, "Temperature", &Some("Temperature [C]".to_string()), 50, "%H:%M", BackendType::FrameBuffer((&mut buffer, configuration.style.resolution.0, configuration.style.resolution.1)))?;
-
-            framebuffer::display_image(device, &buffer, configuration.style.resolution.0, configuration.style.resolution.1)?;
+            chart::draw_chart(time_seriess, "Temperature", &Some("Temperature [C]".to_string()), 50, "%H:%M", OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1)))
+                .context("Failed to draw chart to framebuffer")?;
         }
         ("save", Some(subcommand)) => {
             debug!("Creating directory path");
-            let directory_path = Path::new(subcommand.value_of("path").unwrap());
+            let directory_path = subcommand.value_of("path")
+                .map(Path::new)
+                .expect("Missing argument \"path\"");
             info!("Saving chart to directory {}", directory_path.display());
             if subcommand.is_present("clear") {
                 info!("Removing existing BMP files");
-                for image_path_ in glob(directory_path.join("*.bmp").as_path().to_str().unwrap())? {
-                    let image_path =  image_path_?;
+                for image_path_result in glob(directory_path.join("*.bmp").as_path().to_str().expect("Invalid path"))? {
+                    let image_path =  image_path_result?;
                     debug!("Removing {}", image_path.display());
                     remove_file(image_path)?;
                 }
@@ -95,11 +104,11 @@ fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
                 info!("Generating chart {} of {}", i, n);
 
                 let chart_path = directory_path.join(format!("{}.bmp", i));
-                let backend = BackendType::File(&chart_path, configuration.style.resolution);
+                let backend = OtherBackendType::new_from_path(&chart_path, configuration.style.resolution);
 
                 match chart {
                     ChartConfiguration::Trend(chart) => generate_trend_chart(chart, &influxdb_client, backend),
-                }.map_err(|e| format!("Could not create chart: {}", e))?
+                }.context("Failed to save chart to file")?
             }
         }
         _ => println!("{}", matches.usage()),
@@ -162,7 +171,7 @@ fn setup_logging(verbosity: u64) {
         0 => "warn",
         1 => "info",
         2 => "info,house_dashboard=debug",
-        3 | _ => "debug",
+        _ => "debug",
     };
     let filter = env_logger::Env::default().default_filter_or(default_log_filter);
     env_logger::Builder::from_env(filter).format_timestamp(None).init();
@@ -170,7 +179,7 @@ fn setup_logging(verbosity: u64) {
 
 fn parse_configuration(
             configuration_path: &Path
-        ) -> Result<Configuration, Box<dyn std::error::Error>> {
+        ) -> Result<Configuration> {
     let mut file = std::fs::File::open(configuration_path)?;
     let mut contents = String::new();
     use std::io::Read;
@@ -182,14 +191,14 @@ fn parse_configuration(
 fn generate_trend_chart(
             chart: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
-            backend: BackendType,
-        ) -> Result<(), Box<dyn std::error::Error>> {
+            backend: OtherBackendType,
+        ) -> Result<()> {
     debug!("Generating trend chart");
 
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &chart.query,
         &chart.tag,
-    )?;
+    ).context("Failed to fetch data from database")?;
     chart::draw_chart(
         time_seriess,
         &chart.title,
@@ -197,6 +206,6 @@ fn generate_trend_chart(
         50,
         &chart.xlabel_format,
         backend,
-    )?;
+    ).context("Failed to draw chart")?;
     Ok(())
 }

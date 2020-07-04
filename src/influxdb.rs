@@ -18,6 +18,8 @@ use serde::Deserialize;
 
 use url::Url;
 
+use anyhow::Result;
+
 use crate::types::TimeSeries;
 
 
@@ -51,7 +53,7 @@ impl InfluxdbClient {
                 self: &Self,
                 query: &str,
                 tag_name: &str,
-            ) -> Result<HashMap<String, TimeSeries>, Box<dyn std::error::Error>> {
+            ) -> Result<HashMap<String, TimeSeries>> {
         let raw = self.send_request(query)?;
 
         let p: InfluxdbResults = serde_json::from_str(&raw)?;
@@ -89,7 +91,7 @@ impl InfluxdbClient {
     fn send_request(
                 self: &Self,
                 query: &str
-            ) -> Result<String, Box<dyn std::error::Error>> {
+            ) -> Result<String> {
 
         let mut headers = header::HeaderMap::new();
         headers.insert(header::ACCEPT, header::HeaderValue::from_static("application/json"));
