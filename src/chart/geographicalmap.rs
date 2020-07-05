@@ -52,7 +52,7 @@ pub fn draw_geographical_map_chart(
     debug!("Drawing regions");
     let colormap = Colormap::new_with_bounds("coolwarm", bounds.0, bounds.1)?;
     for (name, path) in normalized_regions {
-        let value: Option<f64> = values.get(&name).map(|v| *v).flatten();
+        let value: Option<f64> = values.get(&name).copied().flatten();
         debug!("Drawing region {}, value: {:?}", name, value);
         draw_region(value, &colormap, path, &parameters.label_font, &mut root)?;
     }
@@ -166,7 +166,7 @@ fn draw_region(
         let (cx, cy) = centroid_of(&path);
         root.draw_text(&format!("{:.0}", value), &label_font.color(&BLACK), (cx, cy))?;
     }
-    let closed_path: Vec<(i32, i32)> = path.last().map(|v| *v).iter().chain(path.iter()).map(|v| *v).collect();
+    let closed_path: Vec<(i32, i32)> = path.last().copied().iter().chain(path.iter()).copied().collect();
     root.draw_path(closed_path, &BasicPalette::pick(3))?;
     Ok(())
 }
