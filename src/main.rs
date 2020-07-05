@@ -83,7 +83,7 @@ fn inner_main() -> Result<()> {
                 "room",
             ).context("Failed to fetch time-series")?;
 
-            chart::draw_chart(
+            chart::draw_trend_chart(
                     time_seriess,
                     "Temperature",
                     &Some("Temperature [C]".to_string()),
@@ -215,7 +215,7 @@ fn generate_trend_chart(
         &chart.query,
         &chart.tag,
     ).context("Failed to fetch data from database")?;
-    chart::draw_chart(
+    chart::draw_trend_chart(
         time_seriess,
         &chart.title,
         &chart.ylabel,
