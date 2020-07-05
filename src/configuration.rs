@@ -43,8 +43,8 @@ pub struct InfluxdbConfiguration {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind")]
 pub enum ChartConfiguration {
-    Trend (TrendConfiguration),
-    GeographicalMap (GeographicalMapConfiguration),
+    Trend(TrendConfiguration),
+    GeographicalMap(GeographicalMapConfiguration),
 }
 
 

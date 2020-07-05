@@ -51,10 +51,10 @@ pub fn display_image(
 
     debug!("Disabling text mode in current tty");
     match Framebuffer::set_kd_mode(KdMode::Graphics) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(error) => {
             warn!("Error disabling text mode in current tty: {:?}", error);
-        },
+        }
     }
 
     debug!("Populating frame");
@@ -83,10 +83,10 @@ pub fn display_image(
 
     debug!("Re-enabling text mode in current tty");
     match Framebuffer::set_kd_mode(KdMode::Text) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(error) => {
             warn!("Error reenabling text mode in current tty: {:?}", error);
-        },
+        }
     }
 
     Ok(())
@@ -97,7 +97,7 @@ fn pixel_to_pixel(
             length: (u32, u32, u32),
             offset: (u32, u32, u32),
         ) -> u32 {
-    let red: u32 = (original.0 as u32) * (1 << length.0 ) / 256;
+    let red: u32 = (original.0 as u32) * (1 << length.0) / 256;
     let green: u32 = (original.1 as u32) * (1 << length.1) / 256;
     let blue: u32 = (original.2 as u32) * (1 << length.2) / 256;
     red * (1 << offset.0) + green * (1 << offset.1) + blue * (1 << offset.2)

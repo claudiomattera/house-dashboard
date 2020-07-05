@@ -5,10 +5,10 @@
 
 use log::*;
 
-use std::collections::HashMap;
 use std::cmp::Ord;
+use std::collections::HashMap;
 
-use chrono::{MIN_DATE, MAX_DATE, Datelike, DateTime, Duration, Local, Timelike, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
 use plotters::drawing::IntoDrawingArea;
@@ -19,7 +19,7 @@ use plotters::style::{Color, IntoFont, Palette};
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
 
-use super::{PaletteDarkTheme, PaletteColorbrewerSet1};
+use super::{PaletteColorbrewerSet1, PaletteDarkTheme};
 
 pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
@@ -56,12 +56,14 @@ pub fn draw_trend_chart(
     // Add 20% more to the top to make space for the legend
     max_y += 2.0 * (max_y - min_y) / 10.0;
 
-    let min_x = Utc.ymd(min_x_utc.year(), min_x_utc.month(), min_x_utc.day())
+    let min_x = Utc
+            .ymd(min_x_utc.year(), min_x_utc.month(), min_x_utc.day())
             .and_hms(min_x_utc.time().hour(), 0, 0)
             .checked_sub_signed(Duration::hours(1))
             .expect("Invalid duration")
             .with_timezone(&Local);
-    let max_x = Utc.ymd(max_x_utc.year(), max_x_utc.month(), max_x_utc.day())
+    let max_x = Utc
+            .ymd(max_x_utc.year(), max_x_utc.month(), max_x_utc.day())
             .and_hms(max_x_utc.time().hour(), 0, 0)
             .checked_add_signed(Duration::hours(1))
             .expect("Invalid duration")
@@ -88,7 +90,8 @@ pub fn draw_trend_chart(
 
     type LocalTimeSeries = Vec<(DateTime<Local>, f64)>;
 
-    let mut its: Vec<(String, LocalTimeSeries)> = time_seriess.iter()
+    let mut its: Vec<(String, LocalTimeSeries)> = time_seriess
+        .iter()
         .map(|(s, ts)| (
             s.clone(),
             time_series_to_local_time(ts.clone()))
@@ -103,7 +106,7 @@ pub fn draw_trend_chart(
             for (index, name) in (0..).zip(tag_values.iter()) {
                 indices.insert(name.to_owned(), index);
             }
-        },
+        }
         None => {
             for (index, (name, _)) in (0..).zip(its.iter()) {
                 indices.insert(name.to_owned(), index);
@@ -112,7 +115,6 @@ pub fn draw_trend_chart(
     };
 
     for (name, time_series) in its.iter() {
-
         let index = match indices.get(name) {
             Some(index) => *index,
             None => {
@@ -121,15 +123,20 @@ pub fn draw_trend_chart(
             }
         };
 
-        chart.draw_series(
-            LineSeries::new(
-                time_series.iter().map(|(dt, value)| (*dt, *value)),
-                SeriesPalette::pick(index).stroke_width(3),
-            )
-        )?
-        .label(name)
-        .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], SeriesPalette::pick(index).stroke_width(2)))
-        ;
+        chart
+            .draw_series(
+                LineSeries::new(
+                    time_series.iter().map(|(dt, value)| (*dt, *value)),
+                    SeriesPalette::pick(index).stroke_width(3),
+                )
+            )?
+            .label(name)
+            .legend(move |(x, y)| {
+                PathElement::new(
+                    vec![(x, y), (x + 20, y)],
+                    SeriesPalette::pick(index).stroke_width(2),
+                )
+            });
 
         // chart.draw_series(
         //     time_series.iter()

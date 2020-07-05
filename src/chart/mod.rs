@@ -10,8 +10,8 @@ use plotters::prelude::*;
 mod geographicalmap;
 mod trend;
 
-pub use trend::draw_trend_chart;
 pub use geographicalmap::draw_geographical_map_chart;
+pub use trend::draw_trend_chart;
 
 pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
     let mut max = T::min_value();
@@ -30,7 +30,11 @@ pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
 pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> (T, T) {
     let mut cx = T::zero();
     let mut cy = T::zero();
-    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().copied()).copied().collect();
+    let closed_elements: Vec<(T, T)> = elements
+        .iter()
+        .chain(elements.first().iter().copied())
+        .copied()
+        .collect();
     let paired = closed_elements.iter().skip(1).zip(elements.iter());
     for ((x1, y1), (x2, y2)) in paired {
         cx = cx + (*x1 + *x2) * (*x1 * *y2 - *x2 * *y1);
@@ -52,7 +56,6 @@ fn area_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> T {
     area / T::from_i64(2).unwrap()
 }
 
-
 pub struct PaletteColorbrewerSet1;
 
 impl Palette for PaletteColorbrewerSet1 {
@@ -69,7 +72,6 @@ impl Palette for PaletteColorbrewerSet1 {
     ];
 }
 
-
 pub struct PaletteDarkTheme;
 
 impl Palette for PaletteDarkTheme {
@@ -80,7 +82,6 @@ impl Palette for PaletteDarkTheme {
         (192, 192, 192),
     ];
 }
-
 
 #[allow(dead_code)]
 pub struct PaletteLightTheme;
@@ -93,7 +94,6 @@ impl Palette for PaletteLightTheme {
         (32, 32, 32),
     ];
 }
-
 
 #[cfg(test)]
 mod tests {

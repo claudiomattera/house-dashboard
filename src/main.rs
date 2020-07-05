@@ -5,16 +5,16 @@
 
 use log::*;
 
+use std::collections::HashMap;
 use std::env;
+use std::fs::remove_file;
 use std::path::Path;
 use std::process::exit;
-use std::fs::remove_file;
-use std::collections::HashMap;
 
 use anyhow::{Context, Result};
 
-use clap::{Arg, ArgMatches, SubCommand};
 use clap::{app_from_crate, crate_name, crate_version, crate_authors, crate_description};
+use clap::{Arg, ArgMatches, SubCommand};
 
 use glob::glob;
 
@@ -32,15 +32,13 @@ use crate::configuration::{Configuration, ChartConfiguration, GeographicalMapCon
 use crate::influxdb::InfluxdbClient;
 
 fn main() {
-    exit(
-        match inner_main() {
-            Ok(()) => 0,
-            Err(error) => {
-                error!("Error: {:?}", error);
-                1
-            },
-        }
-    );
+    exit(match inner_main() {
+        Ok(()) => 0,
+        Err(error) => {
+            error!("Error: {:?}", error);
+            1
+        },
+    });
 }
 
 fn inner_main() -> Result<()> {
@@ -53,7 +51,8 @@ fn inner_main() -> Result<()> {
     }
 
     debug!("Parsing configuration");
-    let configuration_path = matches.value_of("configuration-path")
+    let configuration_path = matches
+        .value_of("configuration-path")
         .map(Path::new)
         .expect("Missing argument \"configuration\"");
     let configuration = parse_configuration(configuration_path)
@@ -71,12 +70,16 @@ fn inner_main() -> Result<()> {
     debug!("Matching subcommand");
     match matches.subcommand() {
         ("display", Some(subcommand)) => {
-            let device = subcommand.value_of("device")
+            let device = subcommand
+                .value_of("device")
                 .map(Path::new)
                 .expect("Missing argument \"device\"");
             info!("Displaying chart on framebuffer {}", device.display());
 
-            let mut buffer = vec![0u8; (3 * configuration.style.resolution.0 * configuration.style.resolution.1) as usize];
+            let mut buffer = vec![
+                0u8;
+                (3 * configuration.style.resolution.0 * configuration.style.resolution.1) as usize
+            ];
 
             let time_seriess = influxdb_client.fetch_timeseries_by_tag(
                 "SELECT mean(\"temperature\") AS \"mean_value\" FROM \"longterm\".\"autogen\".\"indoor_environment\" WHERE time > now() - 1d GROUP BY time(30m),room FILL(none)",
@@ -84,19 +87,20 @@ fn inner_main() -> Result<()> {
             ).context("Failed to fetch time-series")?;
 
             chart::draw_trend_chart(
-                    time_seriess,
-                    "Temperature",
-                    &Some("Temperature [C]".to_string()),
-                    50,
-                    "%H:%M",
-                    None,
-                    OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
-                )
-                .context("Failed to draw chart to framebuffer")?;
+                time_seriess,
+                "Temperature",
+                &Some("Temperature [C]".to_string()),
+                50,
+                "%H:%M",
+                None,
+                OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
+            )
+            .context("Failed to draw chart to framebuffer")?;
         }
         ("save", Some(subcommand)) => {
             debug!("Creating directory path");
-            let directory_path = subcommand.value_of("path")
+            let directory_path = subcommand
+                .value_of("path")
                 .map(Path::new)
                 .expect("Missing argument \"path\"");
             info!("Saving chart to directory {}", directory_path.display());
@@ -117,8 +121,12 @@ fn inner_main() -> Result<()> {
                 let backend = OtherBackendType::new_from_path(&chart_path, configuration.style.resolution);
 
                 let result = match chart {
-                    ChartConfiguration::Trend(chart) => generate_trend_chart(chart, &influxdb_client, backend),
-                    ChartConfiguration::GeographicalMap(chart) => generate_geographical_map_chart(chart, configuration.regions.clone(), &influxdb_client, backend),
+                    ChartConfiguration::Trend(chart) => {
+                        generate_trend_chart(chart, &influxdb_client, backend)
+                    }
+                    ChartConfiguration::GeographicalMap(chart) => {
+                        generate_geographical_map_chart(chart, configuration.regions.clone(), &influxdb_client, backend)
+                    }
                 }.context("Failed to save chart to file");
 
                 if let Err(error) = result {
@@ -136,10 +144,10 @@ fn parse_arguments() -> ArgMatches<'static> {
     app_from_crate!()
         .arg(
             Arg::with_name("verbosity")
-               .short("v")
-               .long("verbose")
-               .multiple(true)
-               .help("Sets the level of verbosity")
+                .short("v")
+                .long("verbose")
+                .multiple(true)
+                .help("Sets the level of verbosity")
         )
         .arg(
             Arg::with_name("configuration-path")
@@ -159,7 +167,7 @@ fn parse_arguments() -> ArgMatches<'static> {
                         .required(true)
                         .help("Path to framebuffer device")
                         .takes_value(true),
-                )
+                ),
         )
         .subcommand(
             SubCommand::with_name("save")
@@ -176,7 +184,7 @@ fn parse_arguments() -> ArgMatches<'static> {
                     Arg::with_name("clear")
                         .long("clear")
                         .help("Clears all .bmp files in charts directory"),
-                )
+                ),
         )
         .get_matches()
 }
@@ -213,7 +221,9 @@ fn generate_trend_chart(
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &chart.query,
         &chart.tag,
-    ).context("Failed to fetch data from database")?;
+    )
+    .context("Failed to fetch data from database")?;
+
     chart::draw_trend_chart(
         time_seriess,
         &chart.title,
@@ -222,7 +232,9 @@ fn generate_trend_chart(
         &chart.xlabel_format,
         chart.tag_values,
         backend,
-    ).context("Failed to draw chart")?;
+    )
+    .context("Failed to draw chart")?;
+
     Ok(())
 }
 
@@ -242,7 +254,8 @@ fn generate_geographical_map_chart(
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &chart.query,
         &chart.tag,
-    ).context("Failed to fetch data from database")?;
+    )
+    .context("Failed to fetch data from database")?;
 
     let values: HashMap<String, Option<f64>> = time_seriess.iter()
         .map(|(region, time_series)| (region.to_owned(), time_series.first().map(|o| o.1)))
@@ -255,7 +268,8 @@ fn generate_geographical_map_chart(
         &chart.unit,
         regions,
         backend,
-    )?;
+    )
+    .context("Failed to draw chart")?;
 
     Ok(())
 }

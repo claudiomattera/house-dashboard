@@ -18,18 +18,18 @@ pub enum DashboardError {
 
 impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
     fn from(error: DrawingAreaErrorKind<DashboardError>) -> Self {
-       match error {
-           DrawingAreaErrorKind::BackendError(error) => std::convert::From::from(error),
-           _ => DashboardError::Unknown,
-       }
+        match error {
+            DrawingAreaErrorKind::BackendError(error) => std::convert::From::from(error),
+            _ => DashboardError::Unknown,
+        }
     }
 }
 
 impl From<DrawingErrorKind<DashboardError>> for DashboardError {
     fn from(error: DrawingErrorKind<DashboardError>) -> Self {
-       match error {
-           DrawingErrorKind::DrawingError(error) => error,
-           _ => DashboardError::Unknown,
-       }
+        match error {
+            DrawingErrorKind::DrawingError(error) => error,
+            _ => DashboardError::Unknown,
+        }
     }
 }
