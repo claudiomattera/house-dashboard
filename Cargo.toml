@@ -59,3 +59,9 @@ displays them over the framebuffer.
 Charts are dynamically configured through a TOML file, and their data is
 fetched from an InfluxDB instance."""
 section = "utility"
+
+[profile.release]
+# Necessary for release builds on Raspberry Pi
+# https://github.com/rust-lang/cargo/issues/6489
+# https://github.com/rust-lang/rust/issues/62896
+codegen-units=1
