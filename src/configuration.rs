@@ -15,7 +15,7 @@ pub struct Configuration {
     pub style: StyleConfiguration,
     pub influxdb: InfluxdbConfiguration,
     pub charts: Vec<ChartConfiguration>,
-    pub regions: Vec<GeographicalRegionConfiguration>,
+    pub regions: Option<Vec<GeographicalRegionConfiguration>>,
 }
 
 #[derive(Debug, Deserialize)]

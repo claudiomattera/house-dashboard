@@ -125,7 +125,7 @@ fn inner_main() -> Result<()> {
                         generate_trend_chart(chart, &influxdb_client, backend)
                     }
                     ChartConfiguration::GeographicalMap(chart) => {
-                        generate_geographical_map_chart(chart, configuration.regions.clone(), &influxdb_client, backend)
+                        generate_geographical_map_chart(chart, configuration.regions.clone().unwrap_or(vec![]), &influxdb_client, backend)
                     }
                 }.context("Failed to save chart to file");
 
