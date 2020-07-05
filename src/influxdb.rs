@@ -69,20 +69,22 @@ impl InfluxdbClient {
 
         for raw_series in series {
 
-            let time_series: TimeSeries = raw_series.values.iter().map(|vs| {
-                let datetime: DateTime<Utc> = Utc.timestamp(vs[0] as i64, 0);
-                let value = vs[1];
-                (datetime, value)
-            }).collect();
+            let time_series: TimeSeries = raw_series.values
+                .iter()
+                .map(|vs| {
+                    let datetime: DateTime<Utc> = Utc.timestamp(vs[0] as i64, 0);
+                    let value = vs[1];
+                    (datetime, value)
+                }).collect();
 
             let tag_value = &raw_series.tags.unwrap()[tag_name];
             debug!(
                 "Fetched {count} readings from {start} to {end} for {tag_name}={tag_value}",
-                count=time_series.len(),
-                start=time_series[0].0,
-                end=time_series[time_series.len() - 1].0,
-                tag_name=tag_name,
-                tag_value=tag_value,
+                count = time_series.len(),
+                start = time_series[0].0,
+                end = time_series[time_series.len() - 1].0,
+                tag_name = tag_name,
+                tag_value = tag_value,
             );
 
             time_seriess.insert(tag_value.to_string(), time_series);
@@ -108,8 +110,8 @@ impl InfluxdbClient {
                 let certificate_data = std::fs::read(ca_cert)?;
                 let certificate = Certificate::from_pem(&certificate_data)?;
                 client_builder = client_builder.add_root_certificate(certificate)
-            },
-            None => {},
+            }
+            None => {}
         }
         let client = client_builder.build()?;
 
@@ -122,10 +124,11 @@ impl InfluxdbClient {
 
         debug!("Sending query {} to {}", query, query_url);
 
-        let response = client.post(query_url)
-                .basic_auth(&self.username, Some(&self.password))
-                .form(&params)
-                .send()?;
+        let response = client
+            .post(query_url)
+            .basic_auth(&self.username, Some(&self.password))
+            .form(&params)
+            .send()?;
 
         response.error_for_status_ref()?;
 
@@ -134,7 +137,6 @@ impl InfluxdbClient {
         Ok(text)
     }
 }
-
 
 #[derive(Debug, Deserialize, Clone)]
 struct InfluxdbResults {

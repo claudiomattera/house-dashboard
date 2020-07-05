@@ -11,7 +11,6 @@ use plotters::style::RGBColor;
 
 use crate::error::DashboardError;
 
-
 #[derive(Debug)]
 pub struct Colormap {
     name: String,
@@ -31,7 +30,12 @@ impl Colormap {
             ).into_linear()
         );
         let gradient = Gradient::new(linear_palette);
-        Ok(Colormap { name: name.to_owned(), gradient, min, max })
+        Ok(Colormap {
+            name: name.to_owned(),
+            gradient,
+            min,
+            max,
+        })
     }
 
     pub fn get_color(self: &Self, value: f64) -> RGBColor {

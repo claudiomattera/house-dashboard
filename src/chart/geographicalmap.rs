@@ -8,14 +8,13 @@ use log::*;
 use std::collections::HashMap;
 
 use plotters::drawing::IntoDrawingArea;
+use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::style::{FontDesc, IntoFont, Palette, RGBColor};
-use plotters::style::text_anchor::{Pos, HPos, VPos};
 
-use crate::error::DashboardError;
 use crate::colormap::Colormap;
+use crate::error::DashboardError;
 
-use super::{bounds_of, centroid_of};
-use super::PaletteDarkTheme;
+use super::{bounds_of, centroid_of, PaletteDarkTheme};
 
 pub fn draw_geographical_map_chart(
             values: HashMap<String, Option<f64>>,
@@ -43,11 +42,18 @@ pub fn draw_geographical_map_chart(
     let normalized_regions = normalize_regions(regions, &parameters);
 
     debug!("Filling background");
-    root.fill_polygon(vec![(0, 0), (parameters.width, 0), (parameters.width, parameters.height), (0, parameters.height)], &BasicPalette::pick(0))?;
+    root.fill_polygon(
+        vec![(0, 0), (parameters.width, 0), (parameters.width, parameters.height), (0, parameters.height)],
+        &BasicPalette::pick(0),
+    )?;
 
     debug!("Drawing title");
     let (title_width, _title_height) = root.estimate_text_size(caption, &title_font)?;
-    root.draw_text(caption, &title_font.color(&BasicPalette::pick(1)), ((320 - title_width as i32) / 2, 10))?;
+    root.draw_text(
+        caption,
+        &title_font.color(&BasicPalette::pick(1)),
+        ((320 - title_width as i32) / 2, 10),
+    )?;
 
     debug!("Drawing regions");
     let colormap = Colormap::new_with_bounds("coolwarm", bounds.0, bounds.1)?;
@@ -77,7 +83,7 @@ struct Parameters<'a> {
     pub label_font: FontDesc<'a>,
 }
 
-impl <'a> Parameters<'a> {
+impl<'a> Parameters<'a> {
     pub fn new(
                 resolution: (u32, u32),
                 top_margin: i32,
@@ -118,15 +124,19 @@ fn normalize_regions(
     let slack_x = parameters.chart_width - (dx * ratio) as i32;
     let slack_y = parameters.chart_height - (dy * ratio) as i32;
 
-    regions.iter()
+    regions
+        .iter()
         .map(|(name, path)| {
-            (name.to_owned(), path.iter().map(
-                |(x, y)| {
-                    (
-                        slack_x / 2 + ((x - min_x) * ratio) as i32,
-                        parameters.top_margin + slack_y / 2 + ((y - min_y) * ratio) as i32,
-                    )
-                }).collect())
+            (
+                name.to_owned(),
+                path.iter().map(
+                    |(x, y)| {
+                        (
+                            slack_x / 2 + ((x - min_x) * ratio) as i32,
+                            parameters.top_margin + slack_y / 2 + ((y - min_y) * ratio) as i32,
+                        )
+                    }).collect(),
+            )
         })
         .collect()
 }
@@ -164,9 +174,19 @@ fn draw_region(
         let color = colormap.get_color(value);
         root.fill_polygon(path.clone(), &color)?;
         let (cx, cy) = centroid_of(&path);
-        root.draw_text(&format!("{:.0}", value), &label_font.color(&BLACK), (cx, cy))?;
+        root.draw_text(
+            &format!("{:.0}", value),
+            &label_font.color(&BLACK),
+            (cx, cy),
+        )?;
     }
-    let closed_path: Vec<(i32, i32)> = path.last().copied().iter().chain(path.iter()).copied().collect();
+    let closed_path: Vec<(i32, i32)> = path
+        .last()
+        .copied()
+        .iter()
+        .chain(path.iter())
+        .copied()
+        .collect();
     root.draw_path(closed_path, &BasicPalette::pick(3))?;
     Ok(())
 }
@@ -179,8 +199,14 @@ fn draw_colorbar(
             root: &mut impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
     root.draw_rect(
-        (parameters.width - parameters.left_margin - 10 - 1, parameters.top_margin - 1),
-        (parameters.width - parameters.left_margin + 1, parameters.height - parameters.bottom_margin + 1),
+        (
+            parameters.width - parameters.left_margin - 10 - 1,
+            parameters.top_margin - 1,
+        ),
+        (
+            parameters.width - parameters.left_margin + 1,
+            parameters.height - parameters.bottom_margin + 1,
+        ),
         &BasicPalette::pick(3),
         false,
     )?;
@@ -189,16 +215,29 @@ fn draw_colorbar(
     let label_step = n / label_count;
     let step = parameters.chart_height as f64 / (n as f64);
     for i in 0..n {
-        let upper_left = (parameters.width - parameters.left_margin - 10, parameters.top_margin + (i as f64 * step) as i32);
-        let bottom_right = (parameters.width - parameters.left_margin, parameters.top_margin + ((i + 1) as f64 * step) as i32);
+        let upper_left = (
+            parameters.width - parameters.left_margin - 10,
+            parameters.top_margin + (i as f64 * step) as i32,
+        );
+        let bottom_right = (
+            parameters.width - parameters.left_margin,
+            parameters.top_margin + ((i + 1) as f64 * step) as i32,
+        );
         let value = bounds.0 + (n - i) as f64 * (bounds.1 - bounds.0) / n as f64;
         let color = colormap.get_color(value);
         root.draw_rect(upper_left, bottom_right, &color, true)?;
 
         if i % label_step == 0 {
             let pos = Pos::new(HPos::Left, VPos::Center);
-            let position = (parameters.width - parameters.left_margin + 5, (upper_left.1 + bottom_right.1) / 2);
-            root.draw_text(&format!("{:.0}{}", value, unit), &parameters.label_font.color(&BasicPalette::pick(1)).pos(pos), position)?;
+            let position = (
+                parameters.width - parameters.left_margin + 5,
+                (upper_left.1 + bottom_right.1) / 2,
+            );
+            root.draw_text(
+                &format!("{:.0}{}", value, unit),
+                &parameters.label_font.color(&BasicPalette::pick(1)).pos(pos),
+                position,
+            )?;
         }
     }
     Ok(())
