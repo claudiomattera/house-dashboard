@@ -121,9 +121,8 @@ fn inner_main() -> Result<()> {
                     ChartConfiguration::GeographicalMap(chart) => generate_geographical_map_chart(chart, configuration.regions.clone(), &influxdb_client, backend),
                 }.context("Failed to save chart to file");
 
-                match result {
-                    Err(error) => error!("Error: {:?}", error),
-                    _ => {},
+                if let Err(error) = result {
+                    error!("Error: {:?}", error);
                 }
             }
         }

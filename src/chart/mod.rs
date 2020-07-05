@@ -30,7 +30,7 @@ pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
 pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> (T, T) {
     let mut cx = T::zero();
     let mut cy = T::zero();
-    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().map(|v| *v)).map(|v| *v).collect();
+    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().copied()).copied().collect();
     let paired = closed_elements.iter().skip(1).zip(elements.iter());
     for ((x1, y1), (x2, y2)) in paired {
         cx = cx + (*x1 + *x2) * (*x1 * *y2 - *x2 * *y1);
@@ -44,7 +44,7 @@ pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) ->
 
 fn area_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> T {
     let mut area = T::zero();
-    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().map(|v| *v)).map(|v| *v).collect();
+    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().copied()).copied().collect();
     let paired = closed_elements.iter().skip(1).zip(elements.iter());
     for ((x1, y1), (x2, y2)) in paired {
         area = area + (*x1 * *y2 - *x2 * *y1);
