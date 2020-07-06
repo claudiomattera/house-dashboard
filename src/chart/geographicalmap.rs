@@ -199,9 +199,10 @@ fn draw_region(
         let color = colormap.get_color(value);
         root.fill_polygon(path.clone(), &color)?;
         let (cx, cy) = centroid_of(&path);
+        let pos = Pos::new(HPos::Center, VPos::Center);
         root.draw_text(
             &format!("{:.0}", value),
-            &label_font.color(&BLACK),
+            &label_font.color(&BLACK).pos(pos),
             (cx, cy),
         )?;
     }
