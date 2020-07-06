@@ -56,6 +56,77 @@ fn area_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> T {
     area / T::from_i64(2).unwrap()
 }
 
+#[allow(dead_code)]
+pub fn project_with_true_isometry(x: f64, y: f64, z: f64) -> (f64, f64, f64) {
+    let size = 1.0 / 2.0_f64.sqrt();
+
+    let origin_x = 0.0;
+    let origin_y = 0.0;
+    let origin_z = 0.0;
+
+    let big_x_x = (size / 2.0) * (3.0_f64.sqrt());
+    let big_x_y = (size / 2.0) * 1.0;
+    let big_x_z = (size / 2.0) * (-1.0 / 2.0_f64.sqrt());
+
+    let big_y_x = (size / 2.0) * -(3.0_f64.sqrt());
+    let big_y_y = (size / 2.0) * 1.0;
+    let big_y_z = (size / 2.0) * (-1.0 / 2.0_f64.sqrt());
+
+    let big_z_x = 0.0;
+    let big_z_y = 2.0;
+    let big_z_z = (size / 2.0) * (-1.0 / 2.0_f64.sqrt());
+
+    project(
+        (x, y, z),
+        (big_x_x, big_x_y, big_x_z),
+        (big_y_x, big_y_y, big_y_z),
+        (big_z_x, big_z_y, big_z_z),
+        (origin_x, origin_y, origin_z),
+    )
+}
+
+pub fn project_with_two_to_one_isometry(x: f64, y: f64, z: f64) -> (f64, f64, f64) {
+    let size = 0.5;
+
+    let origin_x = 0.0;
+    let origin_y = 0.0;
+    let origin_z = 0.0;
+
+    let big_x_x = size * (1.0);
+    let big_x_y = size * (1.0 / 2.0);
+    let big_x_z = size * (-1.0 / (2.0 * 2.0_f64.sqrt()));
+
+    let big_y_x = size * (-1.0);
+    let big_y_y = size * (1.0 / 2.0);
+    let big_y_z = size * (-1.0 / (2.0 * 2.0_f64.sqrt()));
+
+    let big_z_x = size * (0.0);
+    let big_z_y = size * (1.0);
+    let big_z_z = size * (-1.0 / (2.0 * 2.0_f64.sqrt()));
+
+    project(
+        (x, y, z),
+        (big_x_x, big_x_y, big_x_z),
+        (big_y_x, big_y_y, big_y_z),
+        (big_z_x, big_z_y, big_z_z),
+        (origin_x, origin_y, origin_z),
+    )
+}
+
+fn project(
+            point: (f64, f64, f64),
+            big_x: (f64, f64, f64),
+            big_y: (f64, f64, f64),
+            big_z: (f64, f64, f64),
+            origin: (f64, f64, f64),
+        ) -> (f64, f64, f64) {
+    let x = big_x.0 * point.0 + big_y.0 * point.1 + big_z.0 * point.2 + origin.0;
+    let y = big_x.1 * point.0 + big_y.1 * point.1 + big_z.1 * point.2 + origin.1;
+    let z = big_x.2 * point.0 + big_y.2 * point.1 + big_z.2 * point.2 + origin.2;
+
+    (x, y, z)
+}
+
 pub struct PaletteColorbrewerSet1;
 
 impl Palette for PaletteColorbrewerSet1 {
