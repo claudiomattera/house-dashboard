@@ -48,7 +48,7 @@ pub struct InfluxdbConfiguration {
 pub enum ChartConfiguration {
     Trend(TrendConfiguration),
     TemporalHeatMap(TemporalHeatMapConfiguration),
-    GeographicalMap(GeographicalMapConfiguration),
+    GeographicalMap(GeographicalHeatMapConfiguration),
 }
 
 
@@ -63,7 +63,7 @@ pub struct TrendConfiguration {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct GeographicalMapConfiguration {
+pub struct GeographicalHeatMapConfiguration {
     pub title: String,
     pub unit: String,
     pub query: String,

@@ -20,7 +20,7 @@ use super::{bounds_of, centroid_of, project_with_two_to_one_isometry, PaletteDar
 
 type BasicPalette = PaletteDarkTheme;
 
-pub fn draw_geographical_map_chart(
+pub fn draw_geographical_heat_map_chart(
             values: HashMap<String, Option<f64>>,
             bounds: (f64, f64),
             colormap_type: Option<ColormapType>,
@@ -29,7 +29,7 @@ pub fn draw_geographical_map_chart(
             regions: HashMap<String, Vec<(f64, f64)>>,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
-    info!("Drawing geographical map");
+    info!("Drawing geographical heat map");
 
     let title_font = ("Apple ][", 16).into_font();
     let label_font = ("Apple ][", 8).into_font();
