@@ -14,6 +14,8 @@ pub enum DashboardError {
     EmptyTimeSeries,
     #[error("Unexpected tag value \"{0}\"")]
     UnexpectedTagValue(String),
+    #[error("Non-existing tag value \"{0}\"")]
+    NonexistingTagValue(String),
 }
 
 impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
