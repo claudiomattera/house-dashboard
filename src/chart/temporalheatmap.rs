@@ -14,10 +14,10 @@ use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use crate::colormap::{Colormap, ColormapType};
-use crate::configuration::Period;
+use crate::configuration::{Period, StyleConfiguration};
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
-use crate::palette::{SystemColor, SystemPalette};
+use crate::palette::SystemColor;
 
 use super::element::colorbar::Colorbar;
 
@@ -28,17 +28,17 @@ pub fn draw_temporal_heat_map_chart(
             unit: &str,
             bounds: (f64, f64),
             colormap_type: Option<ColormapType>,
-            system_palette: SystemPalette,
+            style: &StyleConfiguration,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
 
-    let title_font = ("Apple ][", 16).into_font();
-    let label_font = ("Apple ][", 8).into_font();
+    let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
+    let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
 
-    root.fill(&system_palette.pick(SystemColor::Background))?;
+    root.fill(&style.system_palette.pick(SystemColor::Background))?;
 
     let mut min_x_utc = MAX_DATE.and_hms(0, 0, 0);
     let mut max_x_utc = MIN_DATE.and_hms(0, 0, 0);
@@ -75,12 +75,12 @@ pub fn draw_temporal_heat_map_chart(
         &Text::new(
             caption,
             (width as i32 / 2, 10),
-            title_font.color(&system_palette.pick(SystemColor::Foreground)).pos(pos)
+            title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
         )
     )?;
 
     let mut chart = ChartBuilder::on(&root)
-        // .caption(caption, title_font.color(&system_palette.pick(SystemColor::Foreground)))
+        // .caption(caption, title_font.color(&style.system_palette.pick(SystemColor::Foreground)))
         .margin(5)
         .margin_top(40)
         .margin_right(70)
@@ -94,14 +94,14 @@ pub fn draw_temporal_heat_map_chart(
     chart
         .configure_mesh()
         .disable_mesh()
-        .axis_style(&system_palette.pick(SystemColor::Foreground))
+        .axis_style(&style.system_palette.pick(SystemColor::Foreground))
         .x_labels(3)
         .x_label_formatter(&|d| d.format(period.xlabel_format()).to_string())
         .y_labels(4)
         .y_label_formatter(&|temperature| format!("{:.0}", temperature))
         .x_desc(period.xlabel())
         .y_desc(period.ylabel())
-        .label_style(label_font.color(&system_palette.pick(SystemColor::Foreground)))
+        .label_style(label_font.color(&style.system_palette.pick(SystemColor::Foreground)))
         .draw()?;
 
     let time_series = time_series_to_local_time(time_series);
@@ -127,7 +127,7 @@ pub fn draw_temporal_heat_map_chart(
         bounds,
         unit.to_owned(),
         label_font,
-        system_palette,
+        style.system_palette,
         colormap,
     );
 
