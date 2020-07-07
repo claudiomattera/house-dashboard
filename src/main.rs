@@ -130,7 +130,8 @@ fn inner_main() -> Result<()> {
                         generate_trend_chart(chart, &influxdb_client, backend)
                     }
                     ChartConfiguration::GeographicalMap(chart) => {
-                        generate_geographical_map_chart(chart, configuration.regions.clone().unwrap_or(vec![]), &influxdb_client, backend)
+                        let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
+                        generate_geographical_map_chart(chart, regions, &influxdb_client, backend)
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
                         generate_temporal_heat_map_chart(chart, &influxdb_client, backend)
@@ -295,7 +296,7 @@ fn generate_temporal_heat_map_chart(
         WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
         GROUP BY time({period}),{tag} FILL(none)",
         scale = chart.scale.unwrap_or(1.0),
-        aggregator = chart.aggregator.unwrap_or("mean".to_owned()),
+        aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
         field = chart.field,
         database = chart.database,
         measurement = chart.measurement,

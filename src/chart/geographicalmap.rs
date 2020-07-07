@@ -72,8 +72,8 @@ pub fn draw_geographical_map_chart(
     let normalized_projected_regions = normalize_regions(
         projected_regions,
         (new_width as f64, new_height as f64),
-        (5 as f64, 5 as f64),
-        (5 as f64, 5 as f64),
+        (5_f64, 5_f64),
+        (5_f64, 5_f64),
     );
 
     debug!("Drawing regions");
