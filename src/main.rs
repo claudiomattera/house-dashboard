@@ -272,6 +272,7 @@ fn generate_geographical_map_chart(
     chart::draw_geographical_map_chart(
         values,
         chart.bounds,
+        chart.colormap,
         &chart.title,
         &chart.unit,
         regions,
@@ -322,6 +323,7 @@ fn generate_temporal_heat_map_chart(
         &chart.title,
         &chart.unit,
         chart.bounds,
+        chart.colormap,
         backend,
     )
     .context("Failed to draw chart")?;

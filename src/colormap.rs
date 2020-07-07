@@ -3,25 +3,33 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use std::fmt;
+use serde::Deserialize;
 
 use palette::{Gradient, LinSrgb, Pixel, Srgb};
 
 use plotters::style::RGBColor;
 
-use crate::error::DashboardError;
+#[derive(Debug, Deserialize)]
+pub enum ColormapType {
+    CoolWarm,
+    Blues,
+    Reds,
+}
 
 #[derive(Debug)]
 pub struct Colormap {
-    name: String,
     gradient: Gradient<LinSrgb<f64>>,
     min: f64,
     max: f64,
 }
 
 impl Colormap {
-    pub fn new_with_bounds(name: &str, min: f64, max: f64) -> Result<Self, DashboardError> {
-        let base_palette = get_base_palette(name)?;
+    pub fn new_with_bounds(colormap_type: Option<ColormapType>, min: f64, max: f64) -> Self {
+        let base_palette = match colormap_type.unwrap_or(ColormapType::Blues) {
+            ColormapType::CoolWarm => PALETTE_COOLWARM,
+            ColormapType::Reds => PALETTE_REDS,
+            ColormapType::Blues => PALETTE_BLUES,
+        };
         let linear_palette = base_palette.iter().map(
             |[r, g, b]| Srgb::new(
                 *r as f64 / 255.0,
@@ -30,12 +38,11 @@ impl Colormap {
             ).into_linear()
         );
         let gradient = Gradient::new(linear_palette);
-        Ok(Colormap {
-            name: name.to_owned(),
+        Colormap {
             gradient,
             min,
             max,
-        })
+        }
     }
 
     pub fn get_color(self: &Self, value: f64) -> RGBColor {
@@ -50,21 +57,6 @@ impl Colormap {
             .into_format()
             .into_raw();
         pixel
-    }
-}
-
-impl fmt::Display for Colormap {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
-
-fn get_base_palette(name: &str) -> Result<&[[u8; 3]], DashboardError> {
-    match name {
-        "blues" => Ok(PALETTE_BLUES),
-        "reds" => Ok(PALETTE_REDS),
-        "coolwarm" => Ok(PALETTE_COOLWARM),
-        _ => Err(DashboardError::UnknownPalette),
     }
 }
 

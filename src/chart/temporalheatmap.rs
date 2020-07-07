@@ -13,7 +13,7 @@ use plotters::element::{Rectangle, Text};
 use plotters::style::{Color, IntoFont, Palette};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
-use crate::colormap::Colormap;
+use crate::colormap::{Colormap, ColormapType};
 use crate::configuration::Period;
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
@@ -29,6 +29,7 @@ pub fn draw_temporal_heat_map_chart(
             caption: &str,
             unit: &str,
             bounds: (f64, f64),
+            colormap_type: Option<ColormapType>,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
 
@@ -106,7 +107,7 @@ pub fn draw_temporal_heat_map_chart(
 
     let time_series = time_series_to_local_time(time_series);
 
-    let colormap = Colormap::new_with_bounds("coolwarm", bounds.0, bounds.1)?;
+    let colormap = Colormap::new_with_bounds(colormap_type, bounds.0, bounds.1);
 
     let fragments: Vec<Rectangle<(DateTime<Local>, f64)>> = time_series
         .iter()

@@ -12,7 +12,7 @@ use plotters::element::{PathElement, Polygon, Text};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::style::{IntoFont, Palette, RGBColor, BLACK};
 
-use crate::colormap::Colormap;
+use crate::colormap::{Colormap, ColormapType};
 use super::element::colorbar::Colorbar;
 use crate::error::DashboardError;
 
@@ -23,6 +23,7 @@ type BasicPalette = PaletteDarkTheme;
 pub fn draw_geographical_map_chart(
             values: HashMap<String, Option<f64>>,
             bounds: (f64, f64),
+            colormap_type: Option<ColormapType>,
             caption: &str,
             unit: &str,
             regions: HashMap<String, Vec<(f64, f64)>>,
@@ -76,7 +77,7 @@ pub fn draw_geographical_map_chart(
     );
 
     debug!("Drawing regions");
-    let colormap = Colormap::new_with_bounds("coolwarm", bounds.0, bounds.1)?;
+    let colormap = Colormap::new_with_bounds(colormap_type, bounds.0, bounds.1);
     for (name, path) in normalized_projected_regions {
         let value: Option<f64> = values.get(&name).copied().flatten();
         debug!("Drawing region {}, value: {:?}", name, value);
