@@ -25,6 +25,7 @@ pub struct Configuration {
 #[derive(Debug, Deserialize)]
 pub struct StyleConfiguration {
     pub font: String,
+    pub font_scale: f64,
     pub system_palette: SystemPalette,
     pub series_palette: SeriesPalette,
     pub resolution: (u32, u32),

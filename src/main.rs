@@ -36,7 +36,6 @@ use crate::configuration::{
 };
 use crate::influxdb::InfluxdbClient;
 use crate::error::DashboardError;
-use crate::palette::{SeriesPalette, SystemPalette};
 
 fn main() {
     exit(match inner_main() {
@@ -100,8 +99,7 @@ fn inner_main() -> Result<()> {
                 50,
                 "%H:%M",
                 None,
-                SeriesPalette::ColorbrewerSet1,
-                SystemPalette::Light,
+                &configuration.style,
                 OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
             )
             .context("Failed to draw chart to framebuffer")?;
@@ -245,8 +243,7 @@ fn generate_trend_chart(
         50,
         &chart.xlabel_format,
         chart.tag_values,
-        style.series_palette,
-        style.system_palette,
+        style,
         backend,
     )
     .context("Failed to draw chart")?;
@@ -285,7 +282,7 @@ fn generate_geographical_map_chart(
         &chart.title,
         &chart.unit,
         regions,
-        style.system_palette,
+        style,
         backend,
     )
     .context("Failed to draw chart")?;
@@ -335,7 +332,7 @@ fn generate_temporal_heat_map_chart(
         &chart.unit,
         chart.bounds,
         chart.colormap,
-        style.system_palette,
+        style,
         backend,
     )
     .context("Failed to draw chart")?;

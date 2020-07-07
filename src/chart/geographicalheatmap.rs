@@ -14,7 +14,8 @@ use plotters::style::{IntoFont, RGBColor, BLACK};
 
 use crate::colormap::{Colormap, ColormapType};
 use crate::error::DashboardError;
-use crate::palette::{SystemColor, SystemPalette};
+use crate::palette::SystemColor;
+use crate::configuration::StyleConfiguration;
 
 use super::element::colorbar::Colorbar;
 use super::{bounds_of, centroid_of, project_with_two_to_one_isometry};
@@ -26,18 +27,18 @@ pub fn draw_geographical_heat_map_chart(
             caption: &str,
             unit: &str,
             regions: HashMap<String, Vec<(f64, f64)>>,
-            system_palette: SystemPalette,
+            style: &StyleConfiguration,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
     info!("Drawing geographical heat map");
 
-    let title_font = ("Apple ][", 16).into_font();
-    let label_font = ("Apple ][", 8).into_font();
+    let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
+    let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
 
-    root.fill(&system_palette.pick(SystemColor::Background))?;
+    root.fill(&style.system_palette.pick(SystemColor::Background))?;
 
     // In order to make room for the colorbar, we need to set `margin_right()`
     // but that would make the title not centred.
@@ -47,7 +48,7 @@ pub fn draw_geographical_heat_map_chart(
         &Text::new(
             caption,
             (width as i32 / 2, 10),
-            title_font.color(&system_palette.pick(SystemColor::Foreground)).pos(pos)
+            title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
         )
     )?;
 
@@ -106,7 +107,7 @@ pub fn draw_geographical_heat_map_chart(
             )?;
         }
 
-        new_root.draw(&PathElement::new(closed_path, &system_palette.pick(SystemColor::LightForeground)))?;
+        new_root.draw(&PathElement::new(closed_path, &style.system_palette.pick(SystemColor::LightForeground)))?;
     }
 
     debug!("Drawing colorbar");
@@ -116,7 +117,7 @@ pub fn draw_geographical_heat_map_chart(
         bounds,
         unit.to_owned(),
         label_font,
-        system_palette,
+        style.system_palette,
         colormap,
     );
 
