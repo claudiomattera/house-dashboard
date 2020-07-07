@@ -14,12 +14,11 @@ use plotters::chart::{ChartBuilder, SeriesLabelPosition};
 use plotters::drawing::IntoDrawingArea;
 use plotters::element::PathElement;
 use plotters::series::LineSeries;
-use plotters::style::{Color, IntoFont, Palette};
+use plotters::style::{Color, IntoFont};
 
 use crate::error::DashboardError;
+use crate::palette::{SeriesPalette, SystemColor, SystemPalette};
 use crate::types::TimeSeries;
-
-use super::{PaletteColorbrewerSet1, PaletteDarkTheme};
 
 pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
@@ -28,6 +27,8 @@ pub fn draw_trend_chart(
             ylabel_size: u32,
             xlabel_format: &str,
             tag_values: Option<Vec<String>>,
+            series_palette: SeriesPalette,
+            system_palette: SystemPalette,
             root: impl IntoDrawingArea<ErrorType = DashboardError>,
         ) -> Result<(), DashboardError> {
 
@@ -36,9 +37,6 @@ pub fn draw_trend_chart(
     let title_font = ("Apple ][", 16).into_font();
     let label_font = ("Apple ][", 8).into_font();
     let legend_font = ("Apple ][", 8).into_font();
-
-    type BasicPalette = PaletteDarkTheme;
-    type SeriesPalette = PaletteColorbrewerSet1;
 
     let mut min_x_utc = MAX_DATE.and_hms(0, 0, 0);
     let mut max_x_utc = MIN_DATE.and_hms(0, 0, 0);
@@ -72,12 +70,12 @@ pub fn draw_trend_chart(
     debug!("Plot X range: [{}, {}]", min_x, max_x);
     debug!("Plot Y range: [{}, {}]", min_y, max_y);
 
-    root.fill(&BasicPalette::pick(0))?;
+    root.fill(&system_palette.pick(SystemColor::Background))?;
 
     debug!("Creating chart");
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(caption, title_font.color(&BasicPalette::pick(1)))
+        .caption(caption, title_font.color(&system_palette.pick(SystemColor::Foreground)))
         .margin(5)
         .x_label_area_size(20)
         .y_label_area_size(ylabel_size)
@@ -127,20 +125,20 @@ pub fn draw_trend_chart(
             .draw_series(
                 LineSeries::new(
                     time_series.iter().map(|(dt, value)| (*dt, *value)),
-                    SeriesPalette::pick(index).stroke_width(3),
+                    series_palette.pick(index).stroke_width(3),
                 )
             )?
             .label(name)
             .legend(move |(x, y)| {
                 PathElement::new(
                     vec![(x, y), (x + 20, y)],
-                    SeriesPalette::pick(index).stroke_width(2),
+                    series_palette.pick(index).stroke_width(2),
                 )
             });
 
         // chart.draw_series(
         //     time_series.iter()
-        //         .map(|(dt, value)| Circle::new((*dt, *value), 2, SeriesPalette::pick(index).filled())),
+        //         .map(|(dt, value)| Circle::new((*dt, *value), 2, series_palette.pick(index).filled())),
         // )?;
     }
 
@@ -148,10 +146,10 @@ pub fn draw_trend_chart(
 
     chart
         .configure_series_labels()
-        .background_style(&BasicPalette::pick(2))
-        .border_style(&BasicPalette::pick(3))
+        .background_style(&system_palette.pick(SystemColor::LightBackground))
+        .border_style(&system_palette.pick(SystemColor::LightForeground))
         .position(SeriesLabelPosition::UpperLeft)
-        .label_font(legend_font.color(&BasicPalette::pick(1)))
+        .label_font(legend_font.color(&system_palette.pick(SystemColor::Foreground)))
         .draw()?;
 
     debug!("Drawing axis");
@@ -159,13 +157,13 @@ pub fn draw_trend_chart(
     chart
         .configure_mesh()
         .disable_mesh()
-        .axis_style(&BasicPalette::pick(1))
+        .axis_style(&system_palette.pick(SystemColor::Foreground))
         .x_labels(4)
         .x_label_formatter(&|d| d.format(xlabel_format).to_string())
         .y_labels(5)
         .y_label_formatter(&|temperature| format!("{:.0}", temperature))
         .y_desc(ylabel.as_ref().unwrap_or(&"".to_string()))
-        .label_style(label_font.color(&BasicPalette::pick(1)))
+        .label_style(label_font.color(&system_palette.pick(SystemColor::Foreground)))
         .draw()?;
 
     Ok(())

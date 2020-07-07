@@ -25,16 +25,18 @@ mod configuration;
 mod error;
 mod framebuffer;
 mod influxdb;
+mod palette;
 mod types;
 
 use crate::backend::OtherBackendType;
 use crate::configuration::{
     Configuration, ChartConfiguration, GeographicalHeatMapConfiguration,
     GeographicalRegionConfiguration, TemporalHeatMapConfiguration,
-    TrendConfiguration
+    TrendConfiguration, StyleConfiguration
 };
 use crate::influxdb::InfluxdbClient;
 use crate::error::DashboardError;
+use crate::palette::{SeriesPalette, SystemPalette};
 
 fn main() {
     exit(match inner_main() {
@@ -98,6 +100,8 @@ fn inner_main() -> Result<()> {
                 50,
                 "%H:%M",
                 None,
+                SeriesPalette::ColorbrewerSet1,
+                SystemPalette::Light,
                 OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
             )
             .context("Failed to draw chart to framebuffer")?;
@@ -127,14 +131,14 @@ fn inner_main() -> Result<()> {
 
                 let result = match chart {
                     ChartConfiguration::Trend(chart) => {
-                        generate_trend_chart(chart, &influxdb_client, backend)
+                        generate_trend_chart(chart, &influxdb_client, &configuration.style, backend)
                     }
                     ChartConfiguration::GeographicalMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
-                        generate_geographical_map_chart(chart, regions, &influxdb_client, backend)
+                        generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, backend)
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
-                        generate_temporal_heat_map_chart(chart, &influxdb_client, backend)
+                        generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, backend)
                     }
                 }.context("Failed to save chart to file");
 
@@ -223,6 +227,7 @@ fn parse_configuration(
 fn generate_trend_chart(
             chart: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
+            style: &StyleConfiguration,
             backend: OtherBackendType,
         ) -> Result<()> {
     debug!("Generating trend chart");
@@ -240,6 +245,8 @@ fn generate_trend_chart(
         50,
         &chart.xlabel_format,
         chart.tag_values,
+        style.series_palette,
+        style.system_palette,
         backend,
     )
     .context("Failed to draw chart")?;
@@ -251,6 +258,7 @@ fn generate_geographical_map_chart(
             chart: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
             influxdb_client: &InfluxdbClient,
+            style: &StyleConfiguration,
             backend: OtherBackendType,
         ) -> Result<()> {
     debug!("Generating geographical map chart");
@@ -277,6 +285,7 @@ fn generate_geographical_map_chart(
         &chart.title,
         &chart.unit,
         regions,
+        style.system_palette,
         backend,
     )
     .context("Failed to draw chart")?;
@@ -287,6 +296,7 @@ fn generate_geographical_map_chart(
 fn generate_temporal_heat_map_chart(
             chart: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
+            style: &StyleConfiguration,
             backend: OtherBackendType,
         ) -> Result<()> {
     debug!("Generating temporal heat map chart");
@@ -325,6 +335,7 @@ fn generate_temporal_heat_map_chart(
         &chart.unit,
         chart.bounds,
         chart.colormap,
+        style.system_palette,
         backend,
     )
     .context("Failed to draw chart")?;
