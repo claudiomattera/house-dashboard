@@ -12,6 +12,7 @@ use url::Url;
 use chrono::{Datelike, DateTime, Duration, Local, Timelike};
 
 use crate::colormap::ColormapType;
+use crate::palette::{SeriesPalette, SystemPalette};
 
 #[derive(Debug, Deserialize)]
 pub struct Configuration {
@@ -24,14 +25,9 @@ pub struct Configuration {
 #[derive(Debug, Deserialize)]
 pub struct StyleConfiguration {
     pub font: String,
-    pub palette: PaletteName,
+    pub system_palette: SystemPalette,
+    pub series_palette: SeriesPalette,
     pub resolution: (u32, u32),
-}
-
-#[derive(Debug, Deserialize)]
-pub enum PaletteName {
-    Dark,
-    Light,
 }
 
 #[derive(Debug, Deserialize)]

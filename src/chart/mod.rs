@@ -5,8 +5,6 @@
 
 use num_traits::{Bounded, FromPrimitive, Num, Zero};
 
-use plotters::prelude::*;
-
 mod geographicalheatmap;
 mod temporalheatmap;
 mod trend;
@@ -129,45 +127,6 @@ fn project(
     let z = big_x.2 * point.0 + big_y.2 * point.1 + big_z.2 * point.2 + origin.2;
 
     (x, y, z)
-}
-
-pub struct PaletteColorbrewerSet1;
-
-impl Palette for PaletteColorbrewerSet1 {
-    const COLORS: &'static [(u8, u8, u8)] = &[
-        (228, 26, 28),
-        (55, 126, 184),
-        (77, 175, 74),
-        (152, 78, 163),
-        (255, 127, 0),
-        (255, 255, 51),
-        (166, 86, 40),
-        (247, 129, 191),
-        (153, 153, 153),
-    ];
-}
-
-pub struct PaletteDarkTheme;
-
-impl Palette for PaletteDarkTheme {
-    const COLORS: &'static [(u8, u8, u8)] = &[
-        (0, 0, 0),
-        (255, 255, 255),
-        (32, 32, 32),
-        (192, 192, 192),
-    ];
-}
-
-#[allow(dead_code)]
-pub struct PaletteLightTheme;
-
-impl Palette for PaletteLightTheme {
-    const COLORS: &'static [(u8, u8, u8)] = &[
-        (255, 255, 255),
-        (0, 0, 0),
-        (192, 192, 192),
-        (32, 32, 32),
-    ];
 }
 
 #[cfg(test)]
