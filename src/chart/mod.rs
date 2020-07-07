@@ -7,13 +7,13 @@ use num_traits::{Bounded, FromPrimitive, Num, Zero};
 
 use plotters::prelude::*;
 
-mod geographicalmap;
+mod geographicalheatmap;
 mod temporalheatmap;
 mod trend;
 
 mod element;
 
-pub use geographicalmap::draw_geographical_map_chart;
+pub use geographicalheatmap::draw_geographical_heat_map_chart;
 pub use temporalheatmap::draw_temporal_heat_map_chart;
 pub use trend::draw_trend_chart;
 

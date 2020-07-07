@@ -29,7 +29,7 @@ mod types;
 
 use crate::backend::OtherBackendType;
 use crate::configuration::{
-    Configuration, ChartConfiguration, GeographicalMapConfiguration,
+    Configuration, ChartConfiguration, GeographicalHeatMapConfiguration,
     GeographicalRegionConfiguration, TemporalHeatMapConfiguration,
     TrendConfiguration
 };
@@ -248,7 +248,7 @@ fn generate_trend_chart(
 }
 
 fn generate_geographical_map_chart(
-            chart: GeographicalMapConfiguration,
+            chart: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
             influxdb_client: &InfluxdbClient,
             backend: OtherBackendType,
@@ -270,7 +270,7 @@ fn generate_geographical_map_chart(
         .map(|(region, time_series)| (region.to_owned(), time_series.first().map(|o| o.1)))
         .collect();
 
-    chart::draw_geographical_map_chart(
+    chart::draw_geographical_heat_map_chart(
         values,
         chart.bounds,
         chart.colormap,
