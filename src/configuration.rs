@@ -11,6 +11,7 @@ use url::Url;
 
 use chrono::{Datelike, DateTime, Duration, Local, Timelike};
 
+use crate::colormap::ColormapType;
 
 #[derive(Debug, Deserialize)]
 pub struct Configuration {
@@ -68,6 +69,7 @@ pub struct GeographicalMapConfiguration {
     pub query: String,
     pub tag: String,
     pub bounds: (f64, f64),
+    pub colormap: Option<ColormapType>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -170,4 +172,5 @@ pub struct TemporalHeatMapConfiguration {
     pub tag_value: String,
     pub period: Period,
     pub bounds: (f64, f64),
+    pub colormap: Option<ColormapType>,
 }
