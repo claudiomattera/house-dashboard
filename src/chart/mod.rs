@@ -11,9 +11,9 @@ mod trend;
 
 mod element;
 
-pub use geographicalheatmap::draw_geographical_heat_map_chart;
-pub use temporalheatmap::draw_temporal_heat_map_chart;
-pub use trend::draw_trend_chart;
+pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
+pub use self::temporalheatmap::draw_temporal_heat_map_chart;
+pub use self::trend::draw_trend_chart;
 
 pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
     let mut max = T::min_value();

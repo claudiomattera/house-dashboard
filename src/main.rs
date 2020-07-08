@@ -18,7 +18,8 @@ use clap::{Arg, ArgMatches, SubCommand};
 
 use glob::glob;
 
-mod backend;
+use plotters::drawing::BitMapBackend;
+
 mod chart;
 mod colormap;
 mod configuration;
@@ -28,7 +29,6 @@ mod influxdb;
 mod palette;
 mod types;
 
-use crate::backend::OtherBackendType;
 use crate::configuration::{
     Configuration, ChartConfiguration, GeographicalHeatMapConfiguration,
     GeographicalRegionConfiguration, TemporalHeatMapConfiguration,
@@ -75,35 +75,6 @@ fn inner_main() -> Result<()> {
 
     debug!("Matching subcommand");
     match matches.subcommand() {
-        ("display", Some(subcommand)) => {
-            let device = subcommand
-                .value_of("device")
-                .map(Path::new)
-                .expect("Missing argument \"device\"");
-            info!("Displaying chart on framebuffer {}", device.display());
-
-            let mut buffer = vec![
-                0u8;
-                (3 * configuration.style.resolution.0 * configuration.style.resolution.1) as usize
-            ];
-
-            let time_seriess = influxdb_client.fetch_timeseries_by_tag(
-                "SELECT mean(\"temperature\") AS \"mean_value\" FROM \"longterm\".\"autogen\".\"indoor_environment\" WHERE time > now() - 1d GROUP BY time(30m),room FILL(none)",
-                "room",
-            ).context("Failed to fetch time-series")?;
-
-            chart::draw_trend_chart(
-                time_seriess,
-                "Temperature",
-                &Some("Temperature [C]".to_string()),
-                50,
-                "%H:%M",
-                None,
-                &configuration.style,
-                OtherBackendType::new_from_frame_buffer(device, &mut buffer, (configuration.style.resolution.0, configuration.style.resolution.1))
-            )
-            .context("Failed to draw chart to framebuffer")?;
-        }
         ("save", Some(subcommand)) => {
             debug!("Creating directory path");
             let directory_path = subcommand
@@ -125,7 +96,7 @@ fn inner_main() -> Result<()> {
                 info!("Generating chart {} of {}", i, n);
 
                 let chart_path = directory_path.join(format!("{}.bmp", i));
-                let backend = OtherBackendType::new_from_path(&chart_path, configuration.style.resolution);
+                let backend = BitMapBackend::new(&chart_path, configuration.style.resolution);
 
                 let result = match chart {
                     ChartConfiguration::Trend(chart) => {
@@ -167,18 +138,6 @@ fn parse_arguments() -> ArgMatches<'static> {
                 .required(true)
                 .help("Path to configuration file")
                 .takes_value(true),
-        )
-        .subcommand(
-            SubCommand::with_name("display")
-                .about("Display charts on the framebuffer")
-                .arg(
-                    Arg::with_name("device")
-                        .short("d")
-                        .long("device")
-                        .required(true)
-                        .help("Path to framebuffer device")
-                        .takes_value(true),
-                ),
         )
         .subcommand(
             SubCommand::with_name("save")
@@ -226,7 +185,7 @@ fn generate_trend_chart(
             chart: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
-            backend: OtherBackendType,
+            backend: BitMapBackend,
         ) -> Result<()> {
     debug!("Generating trend chart");
 
@@ -256,7 +215,7 @@ fn generate_geographical_map_chart(
             regions_configurations: Vec<GeographicalRegionConfiguration>,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
-            backend: OtherBackendType,
+            backend: BitMapBackend,
         ) -> Result<()> {
     debug!("Generating geographical map chart");
 
@@ -294,7 +253,7 @@ fn generate_temporal_heat_map_chart(
             chart: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
-            backend: OtherBackendType,
+            backend: BitMapBackend,
         ) -> Result<()> {
     debug!("Generating temporal heat map chart");
 

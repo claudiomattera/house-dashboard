@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
-use plotters::drawing::IntoDrawingArea;
+use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::element::PathElement;
 use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
@@ -29,7 +29,7 @@ pub fn draw_trend_chart(
             xlabel_format: &str,
             tag_values: Option<Vec<String>>,
             style: &StyleConfiguration,
-            root: impl IntoDrawingArea<ErrorType = DashboardError>,
+            root: BitMapBackend,
         ) -> Result<(), DashboardError> {
 
     let root = root.into_drawing_area();

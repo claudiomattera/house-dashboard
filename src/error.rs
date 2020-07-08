@@ -3,6 +3,7 @@ use thiserror::Error;
 
 use plotters::drawing::backend::DrawingErrorKind;
 use plotters::drawing::DrawingAreaErrorKind;
+use plotters::drawing::backend::DrawingErrorKind;
 
 #[derive(Error, Debug)]
 pub enum DashboardError {
@@ -16,20 +17,14 @@ pub enum DashboardError {
     NonexistingTagValue(String),
 }
 
-impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
-    fn from(error: DrawingAreaErrorKind<DashboardError>) -> Self {
-        match error {
-            DrawingAreaErrorKind::BackendError(error) => std::convert::From::from(error),
-            _ => DashboardError::Unknown,
-        }
+impl <T: std::error::Error + Send + Sync> From<DrawingAreaErrorKind<T>> for DashboardError {
+    fn from(_error: DrawingAreaErrorKind<T>) -> Self {
+        DashboardError::Unknown
     }
 }
 
-impl From<DrawingErrorKind<DashboardError>> for DashboardError {
-    fn from(error: DrawingErrorKind<DashboardError>) -> Self {
-        match error {
-            DrawingErrorKind::DrawingError(error) => error,
-            _ => DashboardError::Unknown,
-        }
+impl <T: std::error::Error + Send + Sync> From<DrawingErrorKind<T>> for DashboardError {
+    fn from(_error: DrawingErrorKind<T>) -> Self {
+        DashboardError::Unknown
     }
 }

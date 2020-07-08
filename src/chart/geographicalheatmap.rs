@@ -7,7 +7,7 @@ use log::*;
 
 use std::collections::HashMap;
 
-use plotters::drawing::IntoDrawingArea;
+use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::element::{PathElement, Polygon, Text};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::style::{IntoFont, RGBColor, BLACK};
@@ -28,7 +28,7 @@ pub fn draw_geographical_heat_map_chart(
             unit: &str,
             regions: HashMap<String, Vec<(f64, f64)>>,
             style: &StyleConfiguration,
-            root: impl IntoDrawingArea<ErrorType = DashboardError>,
+            root: BitMapBackend,
         ) -> Result<(), DashboardError> {
     info!("Drawing geographical heat map");
 
