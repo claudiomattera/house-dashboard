@@ -556,6 +556,7 @@ dependencies = [
  "env_logger",
  "framebuffer",
  "glob",
+ "image",
  "log",
  "num-traits",
  "palette",
