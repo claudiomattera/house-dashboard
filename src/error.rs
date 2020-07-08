@@ -1,7 +1,8 @@
 
 use thiserror::Error;
 
-use plotters::drawing::backend::DrawingErrorKind;
+use image::error::ImageError;
+
 use plotters::drawing::DrawingAreaErrorKind;
 use plotters::drawing::backend::DrawingErrorKind;
 
@@ -15,6 +16,8 @@ pub enum DashboardError {
     UnexpectedTagValue(String),
     #[error("Non-existing tag value \"{0}\"")]
     NonexistingTagValue(String),
+    #[error("Image error \"{0}\"")]
+    ImageError(ImageError),
 }
 
 impl <T: std::error::Error + Send + Sync> From<DrawingAreaErrorKind<T>> for DashboardError {

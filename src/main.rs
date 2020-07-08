@@ -31,7 +31,7 @@ mod types;
 
 use crate::configuration::{
     Configuration, ChartConfiguration, GeographicalHeatMapConfiguration,
-    GeographicalRegionConfiguration, TemporalHeatMapConfiguration,
+    GeographicalRegionConfiguration, ImageConfiguration, TemporalHeatMapConfiguration,
     TrendConfiguration, StyleConfiguration
 };
 use crate::influxdb::InfluxdbClient;
@@ -108,6 +108,9 @@ fn inner_main() -> Result<()> {
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
                         generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, backend)
+                    }
+                    ChartConfiguration::Image(image_configuration) => {
+                        generate_image(image_configuration, backend)
                     }
                 }.context("Failed to save chart to file");
 
@@ -295,6 +298,19 @@ fn generate_temporal_heat_map_chart(
         backend,
     )
     .context("Failed to draw chart")?;
+
+    Ok(())
+}
+
+fn generate_image(
+            image_configuration: ImageConfiguration,
+            backend: BitMapBackend,
+        ) -> Result<()> {
+    chart::draw_image(
+        image_configuration.path,
+        backend,
+    )
+    .context("Failed to draw image")?;
 
     Ok(())
 }

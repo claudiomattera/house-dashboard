@@ -46,6 +46,7 @@ pub enum ChartConfiguration {
     Trend(TrendConfiguration),
     TemporalHeatMap(TemporalHeatMapConfiguration),
     GeographicalMap(GeographicalHeatMapConfiguration),
+    Image(ImageConfiguration),
 }
 
 
@@ -170,4 +171,9 @@ pub struct TemporalHeatMapConfiguration {
     pub period: Period,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ImageConfiguration {
+    pub path: PathBuf,
 }

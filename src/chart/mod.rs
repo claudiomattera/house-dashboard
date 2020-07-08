@@ -8,12 +8,14 @@ use num_traits::{Bounded, FromPrimitive, Num, Zero};
 mod geographicalheatmap;
 mod temporalheatmap;
 mod trend;
+mod image;
 
 mod element;
 
 pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
 pub use self::temporalheatmap::draw_temporal_heat_map_chart;
 pub use self::trend::draw_trend_chart;
+pub use self::image::draw_image;
 
 pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
     let mut max = T::min_value();
