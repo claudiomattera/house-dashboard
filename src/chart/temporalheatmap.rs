@@ -8,7 +8,7 @@ use log::*;
 use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
 use plotters::chart::ChartBuilder;
-use plotters::drawing::IntoDrawingArea;
+use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::element::{Rectangle, Text};
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
@@ -29,7 +29,7 @@ pub fn draw_temporal_heat_map_chart(
             bounds: (f64, f64),
             colormap_type: Option<ColormapType>,
             style: &StyleConfiguration,
-            root: impl IntoDrawingArea<ErrorType = DashboardError>,
+            root: BitMapBackend,
         ) -> Result<(), DashboardError> {
 
     let root = root.into_drawing_area();
