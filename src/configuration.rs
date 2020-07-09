@@ -45,7 +45,7 @@ pub struct InfluxdbConfiguration {
 pub enum ChartConfiguration {
     Trend(TrendConfiguration),
     TemporalHeatMap(TemporalHeatMapConfiguration),
-    GeographicalMap(GeographicalHeatMapConfiguration),
+    GeographicalHeatMap(GeographicalHeatMapConfiguration),
     Image(ImageConfiguration),
 }
 
