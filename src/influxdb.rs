@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 use chrono::{DateTime, TimeZone, Utc};
 
-use reqwest::blocking::Client;
+use reqwest::Client;
 use reqwest::header;
 use reqwest::Certificate;
 
@@ -50,12 +50,12 @@ impl InfluxdbClient {
         }
     }
 
-    pub fn fetch_timeseries_by_tag(
+    pub async fn fetch_timeseries_by_tag(
                 self: &Self,
                 query: &str,
                 tag_name: &str,
             ) -> Result<HashMap<String, TimeSeries>> {
-        let raw = self.send_request(query)?;
+        let raw = self.send_request(query).await?;
 
         let p: InfluxdbResults = serde_json::from_str(&raw)?;
 
@@ -93,7 +93,7 @@ impl InfluxdbClient {
         Ok(time_seriess)
     }
 
-    fn send_request(
+    async fn send_request(
                 self: &Self,
                 query: &str
             ) -> Result<String> {
@@ -128,11 +128,12 @@ impl InfluxdbClient {
             .post(query_url)
             .basic_auth(&self.username, Some(&self.password))
             .form(&params)
-            .send()?;
+            .send()
+            .await?;
 
         response.error_for_status_ref()?;
 
-        let text = response.text()?;
+        let text = response.text().await?;
 
         Ok(text)
     }
