@@ -67,8 +67,7 @@ version = "0.3"
 
 [package.metadata.deb]
 extended-description = """\
-This application generates charts for a house dashboard, and optionally it
-displays them over the framebuffer.
+This application generates charts for a house dashboard.
 Charts are dynamically configured through a TOML file, and their data is
 fetched from an InfluxDB instance."""
 section = "utility"
