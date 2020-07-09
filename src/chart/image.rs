@@ -3,6 +3,8 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
+use log::*;
+
 use std::path::PathBuf;
 
 use plotters::drawing::{BitMapBackend, DrawingBackend, IntoDrawingArea};
@@ -16,6 +18,8 @@ pub fn draw_image(
             path: PathBuf,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
+    info!("Drawing image");
+
     let root = root.into_drawing_area();
 
     let image: RgbImage = open(&path)

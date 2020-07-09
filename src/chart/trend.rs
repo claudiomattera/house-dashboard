@@ -31,6 +31,7 @@ pub fn draw_trend_chart(
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
+    info!("Drawing trend");
 
     let root = root.into_drawing_area();
 
