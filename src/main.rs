@@ -111,7 +111,7 @@ async fn inner_main() -> Result<()> {
                         let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
                         tasks.push(Box::pin(task));
                     }
-                    ChartConfiguration::GeographicalMap(chart) => {
+                    ChartConfiguration::GeographicalHeatMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
                         let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
                         tasks.push(Box::pin(task));
