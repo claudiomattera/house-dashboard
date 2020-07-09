@@ -31,6 +31,7 @@ pub fn draw_temporal_heat_map_chart(
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
+    info!("Drawing temporal heat map");
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
