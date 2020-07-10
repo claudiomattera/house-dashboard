@@ -12,7 +12,7 @@ use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_D
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
-use plotters::element::PathElement;
+use plotters::element::{PathElement, Circle};
 use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
 
@@ -137,10 +137,20 @@ pub fn draw_trend_chart(
                 )
             });
 
-        // chart.draw_series(
-        //     time_series.iter()
-        //         .map(|(dt, value)| Circle::new((*dt, *value), 2, style.series_palette.pick(index).filled())),
-        // )?;
+        if style.draw_markers.unwrap_or(false) {
+            chart.draw_series(
+                time_series
+                    .iter()
+                    .map(
+                        |(dt, value)|
+                        Circle::new(
+                            (*dt, *value),
+                            3,
+                            style.series_palette.pick(index).filled()
+                        )
+                    ),
+            )?;
+        }
     }
 
     debug!("Drawing legend");

@@ -31,6 +31,7 @@ pub struct StyleConfiguration {
     pub font_scale: f64,
     pub system_palette: SystemPalette,
     pub series_palette: SeriesPalette,
+    pub draw_markers: Option<bool>,
     pub resolution: (u32, u32),
 }
 
