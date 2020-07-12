@@ -51,6 +51,7 @@ pub enum ChartConfiguration {
     TemporalHeatMap(TemporalHeatMapConfiguration),
     GeographicalHeatMap(GeographicalHeatMapConfiguration),
     Image(ImageConfiguration),
+    InfrastructureSummary(InfrastructureSummaryConfiguration),
 }
 
 
@@ -334,4 +335,9 @@ mod tests {
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InfrastructureSummaryConfiguration {
+    pub how_long_ago: Iso8601Duration,
 }

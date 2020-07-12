@@ -5,7 +5,7 @@
 
 use log::*;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use chrono::{DateTime, TimeZone, Utc};
@@ -48,6 +48,46 @@ impl InfluxdbClient {
             password,
             ca_cert,
         }
+    }
+
+    pub async fn fetch_tag_values(
+                self: &Self,
+                database: &str,
+                measurement: &str,
+                key: &str,
+                filter_tag_name: &str,
+                filter_tag_value: &str,
+            ) -> Result<HashSet<String>> {
+        let query = format!(
+            "SHOW TAG VALUES ON {database} FROM {measurement}
+            WITH KEY = \"{key}\" WHERE \"{filter_tag_name}\" = '{filter_tag_value}'",
+            database = database,
+            measurement = measurement,
+            key = key,
+            filter_tag_name = filter_tag_name,
+            filter_tag_value = filter_tag_value,
+        );
+
+        let raw = self.send_request(&query).await?;
+
+        let p: InfluxdbTextualResults = serde_json::from_str(&raw)?;
+        let result = p.results[0].clone();
+        let series: Vec<TextualSeries> = result.series.ok_or(DashboardError::EmptyTimeSeries)?;
+        let series = series.first().ok_or(DashboardError::EmptyTimeSeries)?;
+        let values = &series.values;
+
+        let mut tag_values = HashSet::new();
+        for tag_pair in values {
+            let tag_name = tag_pair.get(0).ok_or(DashboardError::EmptyTimeSeries)?;
+            let tag_value = tag_pair.get(1).ok_or(DashboardError::EmptyTimeSeries)?;
+            if tag_name != key {
+                warn!("Unexpected tag {}", tag_name);
+                continue;
+            }
+            tag_values.insert(tag_value.to_owned());
+        }
+
+        Ok(tag_values)
     }
 
     pub async fn fetch_timeseries_by_tag(
@@ -155,5 +195,25 @@ struct Series {
     pub name: String,
     pub columns: Vec<String>,
     pub values: Vec<Vec<f64>>,
+    pub tags: Option<HashMap<String, String>>,
+}
+
+
+#[derive(Debug, Deserialize, Clone)]
+struct InfluxdbTextualResults {
+    pub results: Vec<InfluxdbTextualResult>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct InfluxdbTextualResult {
+    pub statement_id: u32,
+    pub series: Option<Vec<TextualSeries>>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct TextualSeries {
+    pub name: String,
+    pub columns: Vec<String>,
+    pub values: Vec<Vec<String>>,
     pub tags: Option<HashMap<String, String>>,
 }
