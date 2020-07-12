@@ -20,6 +20,7 @@ use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::types::TimeSeries;
 use crate::configuration::StyleConfiguration;
+use super::time_series_to_local_time;
 
 pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
@@ -178,10 +179,4 @@ pub fn draw_trend_chart(
         .draw()?;
 
     Ok(())
-}
-
-fn time_series_to_local_time(
-            time_series: TimeSeries
-        ) -> Vec<(DateTime<Local>, f64)> {
-    time_series.iter().map(|(dt, v)| (dt.with_timezone(&Local), *v)).collect()
 }
