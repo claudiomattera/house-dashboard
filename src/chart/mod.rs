@@ -5,6 +5,8 @@
 
 use num_traits::{Bounded, FromPrimitive, Num, Zero};
 
+use chrono::{DateTime, Local};
+
 mod geographicalheatmap;
 mod temporalheatmap;
 mod trend;
@@ -16,6 +18,14 @@ pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
 pub use self::temporalheatmap::draw_temporal_heat_map_chart;
 pub use self::trend::draw_trend_chart;
 pub use self::image::draw_image;
+
+use crate::types::TimeSeries;
+
+fn time_series_to_local_time(
+            time_series: TimeSeries
+        ) -> Vec<(DateTime<Local>, f64)> {
+    time_series.iter().map(|(dt, v)| (dt.with_timezone(&Local), *v)).collect()
+}
 
 pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
     let mut max = T::min_value();
