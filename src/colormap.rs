@@ -14,6 +14,7 @@ pub enum ColormapType {
     CoolWarm,
     Blues,
     Reds,
+    Status,
 }
 
 #[derive(Debug)]
@@ -29,6 +30,7 @@ impl Colormap {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
             ColormapType::Blues => PALETTE_BLUES,
+            ColormapType::Status => PALETTE_STATUS,
         };
         let linear_palette = base_palette.iter().map(
             |[r, g, b]| Srgb::new(
@@ -103,4 +105,10 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
     [202, 0, 32],
     [178, 24, 43],
     [103, 0, 31],
+];
+
+const PALETTE_STATUS: &[[u8; 3]] = &[
+    [77, 175, 74],
+    [255, 255, 51],
+    [228, 26, 28],
 ];

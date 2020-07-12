@@ -8,6 +8,7 @@ use num_traits::{Bounded, FromPrimitive, Num, Zero};
 use chrono::{DateTime, Local};
 
 mod geographicalheatmap;
+mod infrastructuresummary;
 mod temporalheatmap;
 mod trend;
 mod image;
@@ -18,6 +19,7 @@ pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
 pub use self::temporalheatmap::draw_temporal_heat_map_chart;
 pub use self::trend::draw_trend_chart;
 pub use self::image::draw_image;
+pub use self::infrastructuresummary::draw_infrastructure_summary;
 
 use crate::types::TimeSeries;
 

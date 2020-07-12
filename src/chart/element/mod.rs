@@ -4,3 +4,4 @@
 // https://opensource.org/licenses/MIT
 
 pub mod colorbar;
+pub mod loadbar;
