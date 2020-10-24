@@ -341,4 +341,5 @@ mod tests {
 #[derive(Debug, Deserialize)]
 pub struct InfrastructureSummaryConfiguration {
     pub how_long_ago: Iso8601Duration,
+    pub suffix: Option<String>,
 }
