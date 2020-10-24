@@ -25,14 +25,19 @@ pub struct Colormap {
 }
 
 impl Colormap {
-    pub fn new_with_bounds(colormap_type: Option<ColormapType>, min: f64, max: f64) -> Self {
+    pub fn new_with_bounds_and_direction(colormap_type: Option<ColormapType>, min: f64, max: f64, reversed: Option<bool>) -> Self {
         let base_palette = match colormap_type.unwrap_or(ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
             ColormapType::Blues => PALETTE_BLUES,
             ColormapType::Status => PALETTE_STATUS,
         };
-        let linear_palette = base_palette.iter().map(
+        let palette = if let Some(true) = reversed {
+            base_palette.iter().rev().cloned().collect::<Vec<[u8; 3]>>()
+        } else {
+            base_palette.iter().cloned().collect()
+        };
+        let linear_palette = palette.iter().map(
             |[r, g, b]| Srgb::new(
                 *r as f64 / 255.0,
                 *g as f64 / 255.0,
@@ -45,6 +50,10 @@ impl Colormap {
             min,
             max,
         }
+    }
+
+    pub fn new_with_bounds(colormap_type: Option<ColormapType>, min: f64, max: f64) -> Self {
+        Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
     pub fn get_color(self: &Self, value: f64) -> RGBColor {
