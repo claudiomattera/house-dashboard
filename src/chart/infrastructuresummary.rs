@@ -21,7 +21,7 @@ use crate::types::TimeSeries;
 use super::element::loadbar::Loadbar;
 
 pub fn draw_infrastructure_summary(
-            _infrastructure_summary: InfrastructureSummaryConfiguration,
+            infrastructure_summary: InfrastructureSummaryConfiguration,
             hosts: HashSet<String>,
             loads: HashMap<String, TimeSeries>,
             style: &StyleConfiguration,
@@ -88,7 +88,11 @@ pub fn draw_infrastructure_summary(
         let centered_y = 35 + 22*i;
 
         debug!("Drawing hostname");
-        new_root.draw(&Text::new(host.clone(), (15, centered_y), &host_font))?;
+        let short_hostname = match infrastructure_summary.suffix {
+            Some(ref suffix) => host.strip_suffix(suffix).unwrap_or(host),
+            None => host,
+        };
+        new_root.draw(&Text::new(short_hostname, (15, centered_y), &host_font))?;
 
         debug!("Drawing status");
         let color = if load.is_some() {
