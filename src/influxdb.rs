@@ -31,6 +31,7 @@ pub struct InfluxdbClient {
     username: String,
     password: String,
     ca_cert: Option<PathBuf>,
+    dangerously_accept_invalid_certs: bool,
 }
 
 impl InfluxdbClient {
@@ -39,7 +40,8 @@ impl InfluxdbClient {
                 database: String,
                 username: String,
                 password: String,
-                ca_cert: Option<PathBuf>
+                ca_cert: Option<PathBuf>,
+                dangerously_accept_invalid_certs: bool,
             ) -> Self {
         Self {
             base_url,
@@ -47,6 +49,7 @@ impl InfluxdbClient {
             username,
             password,
             ca_cert,
+            dangerously_accept_invalid_certs,
         }
     }
 
@@ -152,6 +155,10 @@ impl InfluxdbClient {
                 client_builder = client_builder.add_root_certificate(certificate)
             }
             None => {}
+        }
+        if self.dangerously_accept_invalid_certs {
+            warn!("Disabling SSL validation!");
+            client_builder = client_builder.danger_accept_invalid_certs(true);
         }
         let client = client_builder.build()?;
 
