@@ -82,6 +82,7 @@ pub struct GeographicalHeatMapConfiguration {
     pub tag: String,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
+    pub reversed: Option<bool>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

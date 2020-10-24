@@ -293,6 +293,7 @@ async fn generate_geographical_map_chart(
         values,
         chart.bounds,
         chart.colormap,
+        chart.reversed,
         &chart.title,
         &chart.unit,
         regions,
