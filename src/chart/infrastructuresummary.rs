@@ -7,6 +7,8 @@ use log::*;
 
 use std::collections::{HashMap, HashSet};
 
+use chrono::{DateTime, Local};
+
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::style::{Color, IntoFont, ShapeStyle};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
@@ -33,7 +35,7 @@ pub fn draw_infrastructure_summary(
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
 
     let root = root.into_drawing_area();
-    let (width, _height) = root.dim_in_pixel();
+    let (width, height) = root.dim_in_pixel();
 
     root.fill(&style.system_palette.pick(SystemColor::Background))?;
 
@@ -60,6 +62,9 @@ pub fn draw_infrastructure_summary(
 
     let host_pos = Pos::new(HPos::Left, VPos::Center);
     let host_font = label_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(host_pos);
+
+    let footer_pos = Pos::new(HPos::Right, VPos::Bottom);
+    let footer_font = label_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(footer_pos);
 
     const STATUS_X: i32 = 220;
     const LOAD_X: i32 = 280;
@@ -118,6 +123,17 @@ pub fn draw_infrastructure_summary(
             &colormap,
         );
         new_root.draw(&loadbar)?;
+    }
+
+    if let Some(format) = infrastructure_summary.last_update_format {
+        let now: DateTime<Local> = Local::now();
+        new_root.draw(
+            &Text::new(
+                now.format(&format).to_string(),
+                (width as i32 - 10, height as i32 - 30),
+                &footer_font
+            )
+        )?;
     }
 
     Ok(())
