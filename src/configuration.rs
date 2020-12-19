@@ -343,4 +343,5 @@ mod tests {
 pub struct InfrastructureSummaryConfiguration {
     pub how_long_ago: Iso8601Duration,
     pub suffix: Option<String>,
+    pub last_update_format: Option<String>,
 }
