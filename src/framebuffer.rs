@@ -9,6 +9,7 @@ use std::path::Path;
 
 use framebuffer::{Framebuffer, KdMode};
 
+#[allow(dead_code)]
 pub fn display_image(
             fb_device: &Path,
             image: &[u8],

@@ -1,8 +1,10 @@
 
 use thiserror::Error;
 
-use plotters::drawing::backend::DrawingErrorKind;
+use image::error::ImageError;
+
 use plotters::drawing::DrawingAreaErrorKind;
+use plotters::drawing::backend::DrawingErrorKind;
 
 #[derive(Error, Debug)]
 pub enum DashboardError {
@@ -14,22 +16,18 @@ pub enum DashboardError {
     UnexpectedTagValue(String),
     #[error("Non-existing tag value \"{0}\"")]
     NonexistingTagValue(String),
+    #[error("Image error \"{0}\"")]
+    ImageError(ImageError),
 }
 
-impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
-    fn from(error: DrawingAreaErrorKind<DashboardError>) -> Self {
-        match error {
-            DrawingAreaErrorKind::BackendError(error) => std::convert::From::from(error),
-            _ => DashboardError::Unknown,
-        }
+impl <T: std::error::Error + Send + Sync> From<DrawingAreaErrorKind<T>> for DashboardError {
+    fn from(_error: DrawingAreaErrorKind<T>) -> Self {
+        DashboardError::Unknown
     }
 }
 
-impl From<DrawingErrorKind<DashboardError>> for DashboardError {
-    fn from(error: DrawingErrorKind<DashboardError>) -> Self {
-        match error {
-            DrawingErrorKind::DrawingError(error) => error,
-            _ => DashboardError::Unknown,
-        }
+impl <T: std::error::Error + Send + Sync> From<DrawingErrorKind<T>> for DashboardError {
+    fn from(_error: DrawingErrorKind<T>) -> Self {
+        DashboardError::Unknown
     }
 }

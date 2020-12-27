@@ -7,14 +7,12 @@ use std::iter::{Once, once};
 
 use plotters::drawing::backend::{BackendCoord, DrawingBackend, DrawingErrorKind};
 use plotters::element::{Drawable, PointCollection};
-use plotters::style::{FontDesc, Palette};
+use plotters::style::FontDesc;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use crate::colormap::Colormap;
 
-use super::super::PaletteDarkTheme;
-
-type BasicPalette = PaletteDarkTheme;
+use crate::palette::{SystemColor, SystemPalette};
 
 pub struct Colorbar<'a> {
     position: (i32, i32),
@@ -22,6 +20,7 @@ pub struct Colorbar<'a> {
     bounds: (f64, f64),
     unit: String,
     label_font: FontDesc<'a>,
+    system_palette: SystemPalette,
     colormap: Colormap,
     n: i32,
 }
@@ -33,6 +32,7 @@ impl<'a> Colorbar<'a> {
                 bounds: (f64, f64),
                 unit: String,
                 label_font: FontDesc<'a>,
+                system_palette: SystemPalette,
                 colormap: Colormap,
             ) -> Self {
         Self {
@@ -41,6 +41,7 @@ impl<'a> Colorbar<'a> {
             bounds,
             unit,
             label_font,
+            system_palette,
             colormap,
             n: 61,
         }
@@ -71,7 +72,7 @@ impl <'a, DB:DrawingBackend> Drawable<DB> for Colorbar<'a> {
                 self.position.0 + self.size.0 + 1,
                 self.position.1 + self.size.1 + 1,
             ),
-            &BasicPalette::pick(3),
+            &self.system_palette.pick(SystemColor::LightForeground),
             false,
         )?;
 
@@ -101,7 +102,7 @@ impl <'a, DB:DrawingBackend> Drawable<DB> for Colorbar<'a> {
                 );
                 backend.draw_text(
                     &format!("{:.0}{}", value, self.unit),
-                    &self.label_font.color(&BasicPalette::pick(1)).pos(pos),
+                    &self.label_font.color(&self.system_palette.pick(SystemColor::Foreground)).pos(pos),
                     position,
                 )?;
             }

@@ -7,37 +7,38 @@ use log::*;
 
 use std::collections::HashMap;
 
-use plotters::drawing::IntoDrawingArea;
+use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::element::{PathElement, Polygon, Text};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
-use plotters::style::{IntoFont, Palette, RGBColor, BLACK};
+use plotters::style::{IntoFont, RGBColor, BLACK};
 
 use crate::colormap::{Colormap, ColormapType};
-use super::element::colorbar::Colorbar;
 use crate::error::DashboardError;
+use crate::palette::SystemColor;
+use crate::configuration::StyleConfiguration;
 
-use super::{bounds_of, centroid_of, project_with_two_to_one_isometry, PaletteDarkTheme};
+use super::element::colorbar::Colorbar;
+use super::{bounds_of, centroid_of, project_with_two_to_one_isometry};
 
-type BasicPalette = PaletteDarkTheme;
-
-pub fn draw_geographical_map_chart(
+pub fn draw_geographical_heat_map_chart(
             values: HashMap<String, Option<f64>>,
             bounds: (f64, f64),
             colormap_type: Option<ColormapType>,
             caption: &str,
             unit: &str,
             regions: HashMap<String, Vec<(f64, f64)>>,
-            root: impl IntoDrawingArea<ErrorType = DashboardError>,
+            style: &StyleConfiguration,
+            root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing geographical map");
+    info!("Drawing geographical heat map");
 
-    let title_font = ("Apple ][", 16).into_font();
-    let label_font = ("Apple ][", 8).into_font();
+    let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
+    let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
 
-    root.fill(&BasicPalette::pick(0))?;
+    root.fill(&style.system_palette.pick(SystemColor::Background))?;
 
     // In order to make room for the colorbar, we need to set `margin_right()`
     // but that would make the title not centred.
@@ -47,7 +48,7 @@ pub fn draw_geographical_map_chart(
         &Text::new(
             caption,
             (width as i32 / 2, 10),
-            title_font.color(&BasicPalette::pick(1)).pos(pos)
+            title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
         )
     )?;
 
@@ -106,7 +107,7 @@ pub fn draw_geographical_map_chart(
             )?;
         }
 
-        new_root.draw(&PathElement::new(closed_path, &BasicPalette::pick(3)))?;
+        new_root.draw(&PathElement::new(closed_path, &style.system_palette.pick(SystemColor::LightForeground)))?;
     }
 
     debug!("Drawing colorbar");
@@ -116,6 +117,7 @@ pub fn draw_geographical_map_chart(
         bounds,
         unit.to_owned(),
         label_font,
+        style.system_palette,
         colormap,
     );
 

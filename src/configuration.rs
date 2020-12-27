@@ -12,6 +12,7 @@ use url::Url;
 use chrono::{Datelike, DateTime, Duration, Local, Timelike};
 
 use crate::colormap::ColormapType;
+use crate::palette::{SeriesPalette, SystemPalette};
 
 #[derive(Debug, Deserialize)]
 pub struct Configuration {
@@ -24,14 +25,10 @@ pub struct Configuration {
 #[derive(Debug, Deserialize)]
 pub struct StyleConfiguration {
     pub font: String,
-    pub palette: PaletteName,
+    pub font_scale: f64,
+    pub system_palette: SystemPalette,
+    pub series_palette: SeriesPalette,
     pub resolution: (u32, u32),
-}
-
-#[derive(Debug, Deserialize)]
-pub enum PaletteName {
-    Dark,
-    Light,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,7 +45,8 @@ pub struct InfluxdbConfiguration {
 pub enum ChartConfiguration {
     Trend(TrendConfiguration),
     TemporalHeatMap(TemporalHeatMapConfiguration),
-    GeographicalMap(GeographicalMapConfiguration),
+    GeographicalHeatMap(GeographicalHeatMapConfiguration),
+    Image(ImageConfiguration),
 }
 
 
@@ -63,7 +61,7 @@ pub struct TrendConfiguration {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct GeographicalMapConfiguration {
+pub struct GeographicalHeatMapConfiguration {
     pub title: String,
     pub unit: String,
     pub query: String,
@@ -173,4 +171,9 @@ pub struct TemporalHeatMapConfiguration {
     pub period: Period,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ImageConfiguration {
+    pub path: PathBuf,
 }
