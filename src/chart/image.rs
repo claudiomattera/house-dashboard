@@ -24,7 +24,7 @@ pub fn draw_image(
 
     let image: RgbImage = open(&path)
         .map_err(|error| DashboardError::ImageError(error))?
-        .to_rgb();
+        .to_rgb8();
 
     let width = image.width();
     let height = image.height();
