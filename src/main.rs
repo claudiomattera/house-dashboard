@@ -43,8 +43,6 @@ use crate::configuration::{
 use crate::influxdb::InfluxdbClient;
 use crate::error::DashboardError;
 
-use tokio;
-
 #[tokio::main]
 async fn main() {
     exit(match inner_main().await {
@@ -101,7 +99,8 @@ async fn inner_main() -> Result<()> {
                 }
             }
 
-            let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), anyhow::Error>>>>> = Vec::new();
+            type Out = Result<(), anyhow::Error>;
+            let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = Out>>>> = Vec::new();
 
             info!("Generating {} charts...", configuration.charts.len());
 
@@ -225,7 +224,7 @@ async fn generate_trend_chart(
         tag = chart.tag,
         period = chart.how_often
             .map(|d| duration_to_query(&d.duration))
-            .unwrap_or("1h".to_owned()),
+            .unwrap_or_else(|| "1h".to_owned()),
         how_long_ago = duration_to_query(&chart.how_long_ago.duration),
     );
 

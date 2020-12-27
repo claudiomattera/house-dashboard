@@ -87,7 +87,7 @@ pub fn draw_infrastructure_summary(
             "Processing host {} ({}, relative load: {})",
             i + 1,
             host,
-            load.map(|l| l.to_string()).unwrap_or("None".to_owned())
+            load.map(|l| l.to_string()).unwrap_or_else(|| "None".to_owned())
         );
 
         let centered_y = 35 + 22*i;

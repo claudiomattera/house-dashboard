@@ -54,7 +54,7 @@ impl InfluxdbClient {
     }
 
     pub async fn fetch_tag_values(
-                self: &Self,
+                &self,
                 database: &str,
                 measurement: &str,
                 key: &str,
@@ -94,7 +94,7 @@ impl InfluxdbClient {
     }
 
     pub async fn fetch_timeseries_by_tag(
-                self: &Self,
+                &self,
                 query: &str,
                 tag_name: &str,
             ) -> Result<HashMap<String, TimeSeries>> {
@@ -143,7 +143,7 @@ impl InfluxdbClient {
     }
 
     async fn send_request(
-                self: &Self,
+                &self,
                 query: &str
             ) -> Result<String> {
 

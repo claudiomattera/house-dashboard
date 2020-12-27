@@ -24,7 +24,7 @@ pub enum SystemColor {
 }
 
 impl SystemColor {
-    pub fn index(self: &Self) -> usize {
+    pub fn index(&self) -> usize {
         match self {
             SystemColor::Background => 0,
             SystemColor::Foreground => 1,
@@ -35,7 +35,7 @@ impl SystemColor {
 }
 
 impl SystemPalette {
-    pub fn pick(self: &Self, color: SystemColor) -> RGBColor {
+    pub fn pick(&self, color: SystemColor) -> RGBColor {
         match self {
             SystemPalette::Dark => {
                 let index = color.index();
@@ -59,7 +59,7 @@ pub enum SeriesPalette {
 }
 
 impl SeriesPalette {
-    pub fn pick(self: &Self, index: usize) -> RGBColor {
+    pub fn pick(&self, index: usize) -> RGBColor {
         match self {
             SeriesPalette::ColorbrewerSet1 => {
                 let (r, g, b) = PaletteColorbrewerSet1::pick(index).rgb();
