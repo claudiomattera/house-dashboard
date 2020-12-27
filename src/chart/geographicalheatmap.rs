@@ -24,6 +24,7 @@ pub fn draw_geographical_heat_map_chart(
             values: HashMap<String, Option<f64>>,
             bounds: (f64, f64),
             colormap_type: Option<ColormapType>,
+            reversed: Option<bool>,
             caption: &str,
             unit: &str,
             regions: HashMap<String, Vec<(f64, f64)>>,
@@ -78,7 +79,7 @@ pub fn draw_geographical_heat_map_chart(
     );
 
     debug!("Drawing regions");
-    let colormap = Colormap::new_with_bounds(colormap_type, bounds.0, bounds.1);
+    let colormap = Colormap::new_with_bounds_and_direction(colormap_type, bounds.0, bounds.1, reversed);
     for (name, path) in normalized_projected_regions {
         let value: Option<f64> = values.get(&name).copied().flatten();
         debug!("Drawing region {}, value: {:?}", name, value);

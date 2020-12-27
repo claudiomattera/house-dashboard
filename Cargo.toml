@@ -1,6 +1,6 @@
 [package]
 name = "house-dashboard"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Claudio Mattera <claudio@mattera.it>"]
 edition = "2018"
 description = "An application to generate and display charts for a house dashboard"

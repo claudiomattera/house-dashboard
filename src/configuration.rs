@@ -42,6 +42,7 @@ pub struct InfluxdbConfiguration {
     pub username: String,
     pub password: String,
     pub cacert: Option<PathBuf>,
+    pub dangerously_accept_invalid_certs: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,6 +83,7 @@ pub struct GeographicalHeatMapConfiguration {
     pub tag: String,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
+    pub reversed: Option<bool>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -340,4 +342,5 @@ mod tests {
 #[derive(Debug, Deserialize)]
 pub struct InfrastructureSummaryConfiguration {
     pub how_long_ago: Iso8601Duration,
+    pub suffix: Option<String>,
 }
