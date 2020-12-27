@@ -28,8 +28,13 @@ mod influxdb;
 mod types;
 
 use crate::backend::OtherBackendType;
-use crate::configuration::{Configuration, ChartConfiguration, GeographicalMapConfiguration, GeographicalRegionConfiguration, TrendConfiguration};
+use crate::configuration::{
+    Configuration, ChartConfiguration, GeographicalMapConfiguration,
+    GeographicalRegionConfiguration, TemporalHeatMapConfiguration,
+    TrendConfiguration
+};
 use crate::influxdb::InfluxdbClient;
+use crate::error::DashboardError;
 
 fn main() {
     exit(match inner_main() {
@@ -125,7 +130,11 @@ fn inner_main() -> Result<()> {
                         generate_trend_chart(chart, &influxdb_client, backend)
                     }
                     ChartConfiguration::GeographicalMap(chart) => {
-                        generate_geographical_map_chart(chart, configuration.regions.clone().unwrap_or(vec![]), &influxdb_client, backend)
+                        let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
+                        generate_geographical_map_chart(chart, regions, &influxdb_client, backend)
+                    }
+                    ChartConfiguration::TemporalHeatMap(chart) => {
+                        generate_temporal_heat_map_chart(chart, &influxdb_client, backend)
                     }
                 }.context("Failed to save chart to file");
 
@@ -264,9 +273,58 @@ fn generate_geographical_map_chart(
     chart::draw_geographical_map_chart(
         values,
         chart.bounds,
+        chart.colormap,
         &chart.title,
         &chart.unit,
         regions,
+        backend,
+    )
+    .context("Failed to draw chart")?;
+
+    Ok(())
+}
+
+fn generate_temporal_heat_map_chart(
+            chart: TemporalHeatMapConfiguration,
+            influxdb_client: &InfluxdbClient,
+            backend: OtherBackendType,
+        ) -> Result<()> {
+    debug!("Generating temporal heat map chart");
+
+    let query = format!(
+        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
+        GROUP BY time({period}),{tag} FILL(none)",
+        scale = chart.scale.unwrap_or(1.0),
+        aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
+        field = chart.field,
+        database = chart.database,
+        measurement = chart.measurement,
+        tag = chart.tag,
+        tag_value = chart.tag_value,
+        period = chart.period.to_query_group(),
+        how_long_ago = chart.period.how_long_ago(),
+    );
+
+    debug!("Query: {}", query);
+
+    let time_seriess = influxdb_client.fetch_timeseries_by_tag(
+        &query,
+        &chart.tag,
+    )
+    .context("Failed to fetch data from database")?;
+
+    let time_series = time_seriess
+        .get(&chart.tag_value)
+        .ok_or(DashboardError::NonexistingTagValue(chart.tag_value))?;
+
+    chart::draw_temporal_heat_map_chart(
+        time_series.to_owned(),
+        chart.period,
+        &chart.title,
+        &chart.unit,
+        chart.bounds,
+        chart.colormap,
         backend,
     )
     .context("Failed to draw chart")?;

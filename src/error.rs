@@ -8,12 +8,12 @@ use plotters::drawing::DrawingAreaErrorKind;
 pub enum DashboardError {
     #[error("Unknown error")]
     Unknown,
-    #[error("Unknown palette")]
-    UnknownPalette,
     #[error("Empty time-series")]
     EmptyTimeSeries,
     #[error("Unexpected tag value \"{0}\"")]
     UnexpectedTagValue(String),
+    #[error("Non-existing tag value \"{0}\"")]
+    NonexistingTagValue(String),
 }
 
 impl From<DrawingAreaErrorKind<DashboardError>> for DashboardError {
