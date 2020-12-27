@@ -241,6 +241,7 @@ async fn generate_trend_chart(
         &chart.ylabel,
         50,
         &chart.xlabel_format,
+        chart.draw_last_value.unwrap_or(false),
         chart.tag_values,
         style,
         backend,

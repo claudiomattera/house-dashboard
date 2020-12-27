@@ -61,6 +61,7 @@ pub struct TrendConfiguration {
     pub title: String,
     pub ylabel: Option<String>,
     pub xlabel_format: String,
+    pub draw_last_value: Option<bool>,
     pub database: String,
     pub measurement: String,
     pub field: String,
