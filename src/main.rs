@@ -14,6 +14,8 @@ use std::process::exit;
 
 use anyhow::{Context, Result};
 
+use chrono::Duration;
+
 use clap::{app_from_crate, crate_name, crate_version, crate_authors, crate_description};
 use clap::{Arg, ArgMatches, SubCommand};
 
@@ -34,7 +36,8 @@ mod types;
 
 use crate::configuration::{
     Configuration, ChartConfiguration, GeographicalHeatMapConfiguration,
-    GeographicalRegionConfiguration, ImageConfiguration, TemporalHeatMapConfiguration,
+    GeographicalRegionConfiguration, ImageConfiguration,
+    InfrastructureSummaryConfiguration, TemporalHeatMapConfiguration,
     TrendConfiguration, StyleConfiguration
 };
 use crate::influxdb::InfluxdbClient;
@@ -124,6 +127,10 @@ async fn inner_main() -> Result<()> {
                         let task = generate_image(image_configuration, chart_path, configuration.style.resolution);
                         tasks.push(Box::pin(task));
                     }
+                    ChartConfiguration::InfrastructureSummary(infrastructure_summary_configuration) => {
+                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        tasks.push(Box::pin(task));
+                    }
                 }
             };
 
@@ -205,8 +212,24 @@ async fn generate_trend_chart(
 
     debug!("Generating trend chart");
 
+    let query = format!(
+        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago}
+        GROUP BY time({period}),{tag} FILL(none)",
+        scale = chart.scale.unwrap_or(1.0),
+        aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
+        field = chart.field,
+        database = chart.database,
+        measurement = chart.measurement,
+        tag = chart.tag,
+        period = chart.how_often
+            .map(|d| duration_to_query(&d.duration))
+            .unwrap_or("1h".to_owned()),
+        how_long_ago = duration_to_query(&chart.how_long_ago.duration),
+    );
+
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
-        &chart.query,
+        &query,
         &chart.tag,
     )
     .await
@@ -244,8 +267,19 @@ async fn generate_geographical_map_chart(
         regions.insert(region.name, region.coordinates);
     }
 
+    let query = format!(
+        "SELECT {scale} * last({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now()
+        GROUP BY {tag} FILL(none)",
+        scale = chart.scale.unwrap_or(1.0),
+        field = chart.field,
+        database = chart.database,
+        measurement = chart.measurement,
+        tag = chart.tag,
+    );
+
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
-        &chart.query,
+        &query,
         &chart.tag,
     )
     .await
@@ -338,4 +372,77 @@ async fn generate_image(
     .context("Failed to draw image")?;
 
     Ok(())
+}
+
+async fn generate_infrastructure_summary(
+            infrastructure_summary: InfrastructureSummaryConfiguration,
+            influxdb_client: &InfluxdbClient,
+            style: &StyleConfiguration,
+            path: PathBuf,
+            resolution: (u32, u32),
+        ) -> Result<()> {
+    let backend = BitMapBackend::new(&path, resolution);
+
+    let load_field = "load15";
+    let n_cpus_field = "n_cpus";
+    let database = "telegraf";
+    let measurement = "system";
+    let tag = "host";
+    let filter_tag_name = "always-on";
+    let filter_tag_value = "true";
+
+    let hosts = influxdb_client.fetch_tag_values(
+        database,
+        measurement,
+        tag,
+        filter_tag_name,
+        filter_tag_value,
+    )
+    .await
+    .context("Failed to fetch data from database")?;
+
+    debug!("Found {} hosts: {}", hosts.len(), hosts.iter().cloned().collect::<Vec<String>>().join(", "));
+
+    let query = format!(
+        "SELECT last({load_field}) / last({n_cpus_field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        load_field = load_field,
+        n_cpus_field = n_cpus_field,
+        database = database,
+        measurement = measurement,
+        tag = tag,
+        filter_tag_name = filter_tag_name,
+        filter_tag_value = filter_tag_value,
+        how_long_ago = duration_to_query(&infrastructure_summary.how_long_ago.duration),
+    );
+
+    let loads = influxdb_client.fetch_timeseries_by_tag(
+        &query,
+        &tag,
+    )
+    .await
+    .context("Failed to fetch data from database")?;
+
+    chart::draw_infrastructure_summary(
+        infrastructure_summary,
+        hosts,
+        loads,
+        style,
+        backend,
+    )
+    .context("Failed to draw image")?;
+
+    Ok(())
+}
+
+fn duration_to_query(duration: &Duration) -> String {
+    let mut string = String::new();
+
+    let seconds = duration.num_seconds();
+    if seconds > 0 {
+        string.push_str(&format!("{}s", seconds));
+    }
+
+    string
 }

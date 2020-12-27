@@ -12,7 +12,7 @@ use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_D
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
-use plotters::element::PathElement;
+use plotters::element::{PathElement, Circle};
 use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
 
@@ -20,6 +20,7 @@ use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::types::TimeSeries;
 use crate::configuration::StyleConfiguration;
+use super::time_series_to_local_time;
 
 pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
@@ -137,10 +138,20 @@ pub fn draw_trend_chart(
                 )
             });
 
-        // chart.draw_series(
-        //     time_series.iter()
-        //         .map(|(dt, value)| Circle::new((*dt, *value), 2, style.series_palette.pick(index).filled())),
-        // )?;
+        if style.draw_markers.unwrap_or(false) {
+            chart.draw_series(
+                time_series
+                    .iter()
+                    .map(
+                        |(dt, value)|
+                        Circle::new(
+                            (*dt, *value),
+                            3,
+                            style.series_palette.pick(index).filled()
+                        )
+                    ),
+            )?;
+        }
     }
 
     debug!("Drawing legend");
@@ -168,10 +179,4 @@ pub fn draw_trend_chart(
         .draw()?;
 
     Ok(())
-}
-
-fn time_series_to_local_time(
-            time_series: TimeSeries
-        ) -> Vec<(DateTime<Local>, f64)> {
-    time_series.iter().map(|(dt, v)| (dt.with_timezone(&Local), *v)).collect()
 }

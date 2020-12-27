@@ -19,6 +19,7 @@ use crate::error::DashboardError;
 use crate::types::TimeSeries;
 use crate::palette::SystemColor;
 
+use super::time_series_to_local_time;
 use super::element::colorbar::Colorbar;
 
 pub fn draw_temporal_heat_map_chart(
@@ -135,10 +136,4 @@ pub fn draw_temporal_heat_map_chart(
     root.draw(&colorbar)?;
 
     Ok(())
-}
-
-fn time_series_to_local_time(
-            time_series: TimeSeries
-        ) -> Vec<(DateTime<Local>, f64)> {
-    time_series.iter().map(|(dt, v)| (dt.with_timezone(&Local), *v)).collect()
 }
