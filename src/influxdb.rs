@@ -18,7 +18,7 @@ use serde::Deserialize;
 
 use url::Url;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
@@ -100,7 +100,8 @@ impl InfluxdbClient {
             ) -> Result<HashMap<String, TimeSeries>> {
         let raw = self.send_request(query).await?;
 
-        let p: InfluxdbResults = serde_json::from_str(&raw)?;
+        let p: InfluxdbResults = serde_json::from_str(&raw)
+            .context("Failed to parse JSON returned from InfluxDB")?;
 
         let result = p.results[0].clone();
 
