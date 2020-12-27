@@ -43,7 +43,7 @@ impl Colormap {
         let palette = if let Some(true) = reversed {
             base_palette.iter().rev().cloned().collect::<Vec<[u8; 3]>>()
         } else {
-            base_palette.iter().cloned().collect()
+            base_palette.to_vec()
         };
         let linear_palette = palette.iter().map(
             |[r, g, b]| Srgb::new(
@@ -64,12 +64,12 @@ impl Colormap {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
-    pub fn get_color(self: &Self, value: f64) -> RGBColor {
+    pub fn get_color(&self, value: f64) -> RGBColor {
         let [r, g, b] = self.get_color_array(value);
         RGBColor(r, g, b)
     }
 
-    pub fn get_color_array(self: &Self, value: f64) -> [u8; 3] {
+    pub fn get_color_array(&self, value: f64) -> [u8; 3] {
         let value = (value - self.min) / (self.max - self.min);
         let color = self.gradient.get(value);
         let pixel: [u8; 3] = Srgb::from_linear(color)
