@@ -320,7 +320,7 @@ async fn generate_temporal_heat_map_chart(
     let query = format!(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
         WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
-        GROUP BY time({period}),{tag} FILL(none)",
+        GROUP BY time({period}),{tag} FILL(previous)",
         scale = chart.scale.unwrap_or(1.0),
         aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
         field = chart.field,
