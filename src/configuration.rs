@@ -15,6 +15,7 @@ pub struct Configuration {
     pub style: StyleConfiguration,
     pub influxdb: InfluxdbConfiguration,
     pub charts: Vec<ChartConfiguration>,
+    pub regions: Vec<GeographicalRegionConfiguration>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,7 +43,8 @@ pub struct InfluxdbConfiguration {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind")]
 pub enum ChartConfiguration {
-    Trend (TrendConfiguration),
+    Trend(TrendConfiguration),
+    GeographicalMap(GeographicalMapConfiguration),
 }
 
 
@@ -53,4 +55,20 @@ pub struct TrendConfiguration {
     pub xlabel_format: String,
     pub query: String,
     pub tag: String,
+    pub tag_values: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GeographicalMapConfiguration {
+    pub title: String,
+    pub unit: String,
+    pub query: String,
+    pub tag: String,
+    pub bounds: (f64, f64),
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct GeographicalRegionConfiguration {
+    pub name: String,
+    pub coordinates: Vec<(f64, f64)>,
 }
