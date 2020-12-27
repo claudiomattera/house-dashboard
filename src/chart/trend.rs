@@ -38,10 +38,19 @@ pub fn draw_trend_chart(
 
     let root = root.into_drawing_area();
 
-    let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
-    let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
-    let legend_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
-    let value_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
+    let title_font = (style.font.as_str(), 16.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let label_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let legend_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let value_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground))
+        .pos(Pos::new(HPos::Right, VPos::Bottom));
 
     let mut min_x_utc = MAX_DATE.and_hms(0, 0, 0);
     let mut max_x_utc = MIN_DATE.and_hms(0, 0, 0);
@@ -80,7 +89,7 @@ pub fn draw_trend_chart(
     debug!("Creating chart");
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(caption, title_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .caption(caption, title_font)
         .margin(5)
         .x_label_area_size(20)
         .y_label_area_size(ylabel_size)
@@ -163,13 +172,11 @@ pub fn draw_trend_chart(
 
             let last_value_coordinates = chart.backend_coord(&last_reading);
 
-            let pos = Pos::new(HPos::Right, VPos::Bottom);
-
             root.draw(
                 &Text::new(
                     last_value_text,
                     last_value_coordinates,
-                    value_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
+                    &value_font
                 )
             )?;
         }
@@ -182,7 +189,7 @@ pub fn draw_trend_chart(
         .background_style(&style.system_palette.pick(SystemColor::LightBackground))
         .border_style(&style.system_palette.pick(SystemColor::LightForeground))
         .position(SeriesLabelPosition::UpperLeft)
-        .label_font(legend_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .label_font(legend_font)
         .draw()?;
 
     debug!("Drawing axis");
@@ -196,7 +203,7 @@ pub fn draw_trend_chart(
         .y_labels(5)
         .y_label_formatter(&|temperature| format!("{:.0}", temperature))
         .y_desc(ylabel.as_ref().unwrap_or(&"".to_string()))
-        .label_style(label_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .label_style(label_font)
         .draw()?;
 
     Ok(())
