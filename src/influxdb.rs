@@ -115,11 +115,16 @@ impl InfluxdbClient {
 
             let time_series: TimeSeries = raw_series.values
                 .iter()
-                .map(|vs| {
-                    let datetime: DateTime<Utc> = Utc.timestamp(vs[0] as i64, 0);
-                    let value = vs[1];
-                    (datetime, value)
-                }).collect();
+                .map(|(timestamp, value): &(i64, Option<f64>)| {
+                    if let Some(value) = value {
+                        let datetime: DateTime<Utc> = Utc.timestamp(*timestamp as i64, 0);
+                        Some((datetime, *value))
+                    } else {
+                        None
+                    }
+                })
+                .flatten()
+                .collect();
 
             let tag_value = &raw_series.tags.unwrap()[tag_name];
             debug!(
@@ -202,7 +207,7 @@ struct InfluxdbResult {
 struct Series {
     pub name: String,
     pub columns: Vec<String>,
-    pub values: Vec<Vec<f64>>,
+    pub values: Vec<(i64, Option<f64>)>,
     pub tags: Option<HashMap<String, String>>,
 }
 
