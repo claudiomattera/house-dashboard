@@ -1,15 +1,16 @@
 House Dashboard
 ====
 
-This is an application that displasy various kinds of charts on a house dashboard.
+An application to display various kinds of charts on a house dashboard.
 
 <https://gitlab.com/claudiomattera/house-dashboard/>
 
-![Temperature Chart](./docs/temperature.png)
+![Trend Chart](./docs/trend.png)
+![Geographical Map Chart](./docs/geographicalmap.png)
 
 This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; and any other kinds of data available.
 
-It is designed to run on a [Raspberry Pi 0 W] equipped with a TFT 320×240 display and running [Raspbian Buster], but it should possible to run it on most platforms.
+It is designed to run on a [Raspberry Pi 0 W] equipped with a TFT 320×240 display and running [Raspbian Buster], but it should be possible to run it on most platforms.
 The dashboard is implemented in [Rust] and it fetches data from an [InfluxDB]
 database, which are displayed using [Plotters], a Rust crate for creating charts.
 
@@ -41,11 +42,12 @@ Usage
 ----
 
 This is a command-line application.
-Charts can be either saved as BMP file or displayed directly on the framebuffer, depending on which subcommand is used.
-The charts are defined in a configuration file, which is passed to the application through a command-line argument.
+Charts can be either be saved as BMP file or displayed directly on the framebuffer, depending on which command is used.
+The charts are defined in a configuration file which is passed to the application through a command-line argument.
 
 ~~~~plain
-house-dashboard -v --c /path/to/conf.toml save --path /path/to/generated/charts
+house-dashboard -v --configuration /path/to/conf.toml \
+    save --path /path/to/generated/charts
 ~~~~
 
 The `--help` argument describes the command-line interface in details.
@@ -78,7 +80,7 @@ SUBCOMMANDS:
 ### Saving Charts
 
 Charts can be saved as BMP images using the subcommand `save`.
-They can be displayed on the framebuffer using an application such as [FBI], be included in webpages, be sent by email...
+They can be displayed on the framebuffer using an application such as [FBI], included in webpages, sent by email...
 
 ~~~~plain
 > house-dashboard save --help
