@@ -93,7 +93,7 @@ impl <'a, DB:DrawingBackend> Drawable<DB> for Colorbar<'a> {
                 self.position.0 + 10,
                 self.position.1 + ((i + 1) as f64 * step) as i32,
             );
-            let value = self.bounds.0 + (self.n - i) as f64 * (self.bounds.1 - self.bounds.0) / self.n as f64;
+            let value = self.bounds.0 + (self.n - i - 1) as f64 * (self.bounds.1 - self.bounds.0) / (self.n - 1) as f64;
             let color = self.colormap.get_color(value);
             backend.draw_rect(upper_left, bottom_right, &color, true)?;
 
