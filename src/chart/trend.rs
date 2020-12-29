@@ -31,6 +31,7 @@ pub fn draw_trend_chart(
             xlabel_format: &str,
             precision: usize,
             draw_last_value: bool,
+            hide_legend: bool,
             tag_values: Option<Vec<String>>,
             style: &StyleConfiguration,
             root: BitMapBackend,
@@ -183,15 +184,17 @@ pub fn draw_trend_chart(
         }
     }
 
-    debug!("Drawing legend");
+    if !hide_legend {
+        debug!("Drawing legend");
 
-    chart
-        .configure_series_labels()
-        .background_style(&style.system_palette.pick(SystemColor::LightBackground))
-        .border_style(&style.system_palette.pick(SystemColor::LightForeground))
-        .position(SeriesLabelPosition::UpperLeft)
-        .label_font(legend_font)
-        .draw()?;
+        chart
+            .configure_series_labels()
+            .background_style(&style.system_palette.pick(SystemColor::LightBackground))
+            .border_style(&style.system_palette.pick(SystemColor::LightForeground))
+            .position(SeriesLabelPosition::UpperLeft)
+            .label_font(legend_font)
+            .draw()?;
+    }
 
     debug!("Drawing axis");
 

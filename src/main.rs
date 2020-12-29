@@ -243,6 +243,7 @@ async fn generate_trend_chart(
         &chart.xlabel_format,
         chart.precision.unwrap_or(0),
         chart.draw_last_value.unwrap_or(false),
+        chart.hide_legend.unwrap_or(false),
         chart.tag_values,
         style,
         backend,
