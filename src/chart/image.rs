@@ -18,7 +18,7 @@ pub fn draw_image(
             path: PathBuf,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing image");
+    info!("Drawing image \"{}\"", path.display());
 
     let root = root.into_drawing_area();
 
