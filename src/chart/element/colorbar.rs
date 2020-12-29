@@ -18,6 +18,7 @@ pub struct Colorbar<'a> {
     position: (i32, i32),
     size: (i32, i32),
     bounds: (f64, f64),
+    precision: usize,
     unit: String,
     label_font: FontDesc<'a>,
     system_palette: SystemPalette,
@@ -30,6 +31,7 @@ impl<'a> Colorbar<'a> {
                 position: (i32, i32),
                 size: (i32, i32),
                 bounds: (f64, f64),
+                precision: usize,
                 unit: String,
                 label_font: FontDesc<'a>,
                 system_palette: SystemPalette,
@@ -39,6 +41,7 @@ impl<'a> Colorbar<'a> {
             position,
             size,
             bounds,
+            precision,
             unit,
             label_font,
             system_palette,
@@ -90,7 +93,7 @@ impl <'a, DB:DrawingBackend> Drawable<DB> for Colorbar<'a> {
                 self.position.0 + 10,
                 self.position.1 + ((i + 1) as f64 * step) as i32,
             );
-            let value = self.bounds.0 + (self.n - i) as f64 * (self.bounds.1 - self.bounds.0) / self.n as f64;
+            let value = self.bounds.0 + (self.n - i - 1) as f64 * (self.bounds.1 - self.bounds.0) / (self.n - 1) as f64;
             let color = self.colormap.get_color(value);
             backend.draw_rect(upper_left, bottom_right, &color, true)?;
 
@@ -101,7 +104,7 @@ impl <'a, DB:DrawingBackend> Drawable<DB> for Colorbar<'a> {
                     (upper_left.1 + bottom_right.1) / 2,
                 );
                 backend.draw_text(
-                    &format!("{:.0}{}", value, self.unit),
+                    &format!("{0:.1$}{2}", value, self.precision, self.unit),
                     &self.label_font.color(&self.system_palette.pick(SystemColor::Foreground)).pos(pos),
                     position,
                 )?;

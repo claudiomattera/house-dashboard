@@ -28,11 +28,12 @@ pub fn draw_temporal_heat_map_chart(
             caption: &str,
             unit: &str,
             bounds: (f64, f64),
+            precision: usize,
             colormap_type: Option<ColormapType>,
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing temporal heat map");
+    info!("Drawing temporal heat map \"{}\"", caption.to_lowercase());
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
@@ -100,7 +101,7 @@ pub fn draw_temporal_heat_map_chart(
         .x_labels(3)
         .x_label_formatter(&|d| d.format(period.xlabel_format()).to_string())
         .y_labels(4)
-        .y_label_formatter(&|temperature| format!("{:.0}", temperature))
+        .y_label_formatter(&|value| format!("{0:.1$}", value, precision))
         .x_desc(period.xlabel())
         .y_desc(period.ylabel())
         .label_style(label_font.color(&style.system_palette.pick(SystemColor::Foreground)))
@@ -127,6 +128,7 @@ pub fn draw_temporal_heat_map_chart(
         (width as i32 - 55, 40),
         (10, height as i32 - 60),
         bounds,
+        precision,
         unit.to_owned(),
         label_font,
         style.system_palette,

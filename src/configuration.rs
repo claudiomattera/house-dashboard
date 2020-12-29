@@ -60,8 +60,11 @@ pub enum ChartConfiguration {
 pub struct TrendConfiguration {
     pub title: String,
     pub ylabel: Option<String>,
+    pub yunit: Option<String>,
     pub xlabel_format: String,
+    pub precision: Option<usize>,
     pub draw_last_value: Option<bool>,
+    pub hide_legend: Option<bool>,
     pub database: String,
     pub measurement: String,
     pub field: String,
@@ -76,12 +79,14 @@ pub struct TrendConfiguration {
 #[derive(Debug, Deserialize)]
 pub struct GeographicalHeatMapConfiguration {
     pub title: String,
+    pub precision: Option<usize>,
     pub unit: String,
     pub database: String,
     pub measurement: String,
     pub field: String,
     pub scale: Option<f64>,
     pub tag: String,
+    pub how_long_ago: Iso8601Duration,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
     pub reversed: Option<bool>,
@@ -187,6 +192,7 @@ pub struct TemporalHeatMapConfiguration {
     pub tag_value: String,
     pub period: Period,
     pub bounds: (f64, f64),
+    pub precision: Option<usize>,
     pub colormap: Option<ColormapType>,
 }
 
