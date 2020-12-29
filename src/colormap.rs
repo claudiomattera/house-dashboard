@@ -14,6 +14,10 @@ pub enum ColormapType {
     CoolWarm,
     Blues,
     Reds,
+    Greens,
+    Oranges,
+    Violets,
+    Grays,
     Status,
 }
 
@@ -30,12 +34,16 @@ impl Colormap {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
             ColormapType::Blues => PALETTE_BLUES,
+            ColormapType::Greens => PALETTE_GREENS,
+            ColormapType::Oranges => PALETTE_ORANGES,
+            ColormapType::Violets => PALETTE_VIOLETS,
+            ColormapType::Grays => PALETTE_GRAYS,
             ColormapType::Status => PALETTE_STATUS,
         };
         let palette = if let Some(true) = reversed {
             base_palette.iter().rev().cloned().collect::<Vec<[u8; 3]>>()
         } else {
-            base_palette.iter().cloned().collect()
+            base_palette.to_vec()
         };
         let linear_palette = palette.iter().map(
             |[r, g, b]| Srgb::new(
@@ -56,12 +64,12 @@ impl Colormap {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
-    pub fn get_color(self: &Self, value: f64) -> RGBColor {
+    pub fn get_color(&self, value: f64) -> RGBColor {
         let [r, g, b] = self.get_color_array(value);
         RGBColor(r, g, b)
     }
 
-    pub fn get_color_array(self: &Self, value: f64) -> [u8; 3] {
+    pub fn get_color_array(&self, value: f64) -> [u8; 3] {
         let value = (value - self.min) / (self.max - self.min);
         let color = self.gradient.get(value);
         let pixel: [u8; 3] = Srgb::from_linear(color)
@@ -95,6 +103,58 @@ const PALETTE_BLUES: &[[u8; 3]] = &[
     [33, 113, 181],
     [8, 81, 156],
     [8, 48, 107],
+];
+
+// Palette from https://colorbrewer2.org/
+const PALETTE_GREENS: &[[u8; 3]] = &[
+    [247, 252, 245],
+    [229, 245, 224],
+    [199, 233, 192],
+    [161, 217, 155],
+    [116, 196, 118],
+    [65, 171, 93],
+    [35, 139, 69],
+    [0, 109, 44],
+    [0, 68, 27],
+];
+
+// Palette from https://colorbrewer2.org/
+const PALETTE_GRAYS: &[[u8; 3]] = &[
+    [255, 255, 255],
+    [240, 240, 240],
+    [217, 217, 217],
+    [189, 189, 189],
+    [150, 150, 150],
+    [115, 115, 115],
+    [82, 82, 82],
+    [37, 37, 37],
+    [0, 0, 0],
+];
+
+// Palette from https://colorbrewer2.org/
+const PALETTE_ORANGES: &[[u8; 3]] = &[
+    [255, 245, 235],
+    [254, 230, 206],
+    [253, 208, 162],
+    [253, 174, 107],
+    [253, 141, 60],
+    [241, 105, 19],
+    [217, 72, 1],
+    [166, 54, 3],
+    [127, 39, 4],
+];
+
+// Palette from https://colorbrewer2.org/
+const PALETTE_VIOLETS: &[[u8; 3]] = &[
+    [252, 251, 253],
+    [239, 237, 245],
+    [218, 218, 235],
+    [188, 189, 220],
+    [158, 154, 200],
+    [128, 125, 186],
+    [106, 81, 163],
+    [84, 39, 143],
+    [63, 0, 125],
 ];
 
 // Palette from https://colorbrewer2.org/

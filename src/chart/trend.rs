@@ -12,9 +12,10 @@ use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_D
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
-use plotters::element::{PathElement, Circle};
+use plotters::element::{PathElement, Circle, Text};
 use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
+use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
@@ -28,6 +29,7 @@ pub fn draw_trend_chart(
             ylabel: &Option<String>,
             ylabel_size: u32,
             xlabel_format: &str,
+            draw_last_value: bool,
             tag_values: Option<Vec<String>>,
             style: &StyleConfiguration,
             root: BitMapBackend,
@@ -36,9 +38,19 @@ pub fn draw_trend_chart(
 
     let root = root.into_drawing_area();
 
-    let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
-    let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
-    let legend_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
+    let title_font = (style.font.as_str(), 16.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let label_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let legend_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground));
+    let value_font = (style.font.as_str(), 8.0 * style.font_scale)
+        .into_font()
+        .color(&style.system_palette.pick(SystemColor::Foreground))
+        .pos(Pos::new(HPos::Right, VPos::Bottom));
 
     let mut min_x_utc = MAX_DATE.and_hms(0, 0, 0);
     let mut max_x_utc = MIN_DATE.and_hms(0, 0, 0);
@@ -77,7 +89,7 @@ pub fn draw_trend_chart(
     debug!("Creating chart");
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(caption, title_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .caption(caption, title_font)
         .margin(5)
         .x_label_area_size(20)
         .y_label_area_size(ylabel_size)
@@ -152,6 +164,22 @@ pub fn draw_trend_chart(
                     ),
             )?;
         }
+
+        if draw_last_value {
+            let last_reading = time_series.last().unwrap();
+            let last_value = last_reading.1;
+            let last_value_text = format!("{:.0}", last_value);
+
+            let last_value_coordinates = chart.backend_coord(&last_reading);
+
+            root.draw(
+                &Text::new(
+                    last_value_text,
+                    last_value_coordinates,
+                    &value_font
+                )
+            )?;
+        }
     }
 
     debug!("Drawing legend");
@@ -161,7 +189,7 @@ pub fn draw_trend_chart(
         .background_style(&style.system_palette.pick(SystemColor::LightBackground))
         .border_style(&style.system_palette.pick(SystemColor::LightForeground))
         .position(SeriesLabelPosition::UpperLeft)
-        .label_font(legend_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .label_font(legend_font)
         .draw()?;
 
     debug!("Drawing axis");
@@ -175,7 +203,7 @@ pub fn draw_trend_chart(
         .y_labels(5)
         .y_label_formatter(&|temperature| format!("{:.0}", temperature))
         .y_desc(ylabel.as_ref().unwrap_or(&"".to_string()))
-        .label_style(label_font.color(&style.system_palette.pick(SystemColor::Foreground)))
+        .label_style(label_font)
         .draw()?;
 
     Ok(())

@@ -18,7 +18,7 @@ use serde::Deserialize;
 
 use url::Url;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
@@ -54,7 +54,7 @@ impl InfluxdbClient {
     }
 
     pub async fn fetch_tag_values(
-                self: &Self,
+                &self,
                 database: &str,
                 measurement: &str,
                 key: &str,
@@ -94,13 +94,14 @@ impl InfluxdbClient {
     }
 
     pub async fn fetch_timeseries_by_tag(
-                self: &Self,
+                &self,
                 query: &str,
                 tag_name: &str,
             ) -> Result<HashMap<String, TimeSeries>> {
         let raw = self.send_request(query).await?;
 
-        let p: InfluxdbResults = serde_json::from_str(&raw)?;
+        let p: InfluxdbResults = serde_json::from_str(&raw)
+            .context("Failed to parse JSON returned from InfluxDB")?;
 
         let result = p.results[0].clone();
 
@@ -114,11 +115,16 @@ impl InfluxdbClient {
 
             let time_series: TimeSeries = raw_series.values
                 .iter()
-                .map(|vs| {
-                    let datetime: DateTime<Utc> = Utc.timestamp(vs[0] as i64, 0);
-                    let value = vs[1];
-                    (datetime, value)
-                }).collect();
+                .map(|(timestamp, value): &(i64, Option<f64>)| {
+                    if let Some(value) = value {
+                        let datetime: DateTime<Utc> = Utc.timestamp(*timestamp as i64, 0);
+                        Some((datetime, *value))
+                    } else {
+                        None
+                    }
+                })
+                .flatten()
+                .collect();
 
             let tag_value = &raw_series.tags.unwrap()[tag_name];
             debug!(
@@ -137,7 +143,7 @@ impl InfluxdbClient {
     }
 
     async fn send_request(
-                self: &Self,
+                &self,
                 query: &str
             ) -> Result<String> {
 
@@ -201,7 +207,7 @@ struct InfluxdbResult {
 struct Series {
     pub name: String,
     pub columns: Vec<String>,
-    pub values: Vec<Vec<f64>>,
+    pub values: Vec<(i64, Option<f64>)>,
     pub tags: Option<HashMap<String, String>>,
 }
 

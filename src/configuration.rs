@@ -61,6 +61,7 @@ pub struct TrendConfiguration {
     pub title: String,
     pub ylabel: Option<String>,
     pub xlabel_format: String,
+    pub draw_last_value: Option<bool>,
     pub database: String,
     pub measurement: String,
     pub field: String,
@@ -99,42 +100,42 @@ pub enum Period {
 }
 
 impl<'a> Period {
-    pub fn to_query_group(self: &Self) -> &'a str {
+    pub fn to_query_group(&self) -> &'a str {
         match self {
             Period::HourOverDay => "1h",
             Period::DayOverMonth => "1d",
         }
     }
 
-    pub fn max_y(self: &Self) -> f64 {
+    pub fn max_y(&self) -> f64 {
         match self {
             Period::HourOverDay => (24 + 1) as f64,
             Period::DayOverMonth => (31 + 1) as f64,
         }
     }
 
-    pub fn xlabel(self: &Self) -> &'a str {
+    pub fn xlabel(&self) -> &'a str {
         match self {
             Period::HourOverDay => "Day",
             Period::DayOverMonth => "Month",
         }
     }
 
-    pub fn xlabel_format(self: &Self) -> &'a str {
+    pub fn xlabel_format(&self) -> &'a str {
         match self {
             Period::HourOverDay => "%d %b",
             Period::DayOverMonth => "%b",
         }
     }
 
-    pub fn ylabel(self: &Self) -> &'a str {
+    pub fn ylabel(&self) -> &'a str {
         match self {
             Period::HourOverDay => "Hour",
             Period::DayOverMonth => "Day",
         }
     }
 
-    pub fn how_long_ago(self: &Self) -> &'a str {
+    pub fn how_long_ago(&self) -> &'a str {
         match self {
             Period::HourOverDay => "30d",
             Period::DayOverMonth => "365d",
@@ -142,7 +143,7 @@ impl<'a> Period {
     }
 
     pub fn instant_to_rectangle(
-                self: &Self, instant: DateTime<Local>,
+                &self, instant: DateTime<Local>,
             ) -> ((DateTime<Local>, DateTime<Local>), (u32, u32)) {
         match self {
             Period::HourOverDay => {
@@ -205,7 +206,7 @@ impl<'de> Deserialize<'de> for Iso8601Duration {
         D: Deserializer<'de> {
             let string = String::deserialize(deserializer)?;
             let duration = string_to_duration(&string)
-                .ok_or(D::Error::custom("Not a ISO8601 duration".to_owned()))?;
+                .ok_or_else(|| D::Error::custom("Not a ISO8601 duration".to_owned()))?;
             Ok(Iso8601Duration{duration})
         }
 }

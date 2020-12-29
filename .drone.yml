@@ -1,0 +1,158 @@
+---
+kind: pipeline
+type: docker
+name: build and test
+platform:
+  os: linux
+  arch: arm
+trigger:
+  event:
+    exclude:
+    - tag
+
+steps:
+- name: check format
+  failure: ignore
+  image: rust:latest
+  commands:
+  - rustup component add rustfmt
+  - cargo fmt --all -- --check
+
+- name: run linter
+  failure: ignore
+  image: claudiomattera/rust-builder:1.41.1
+  commands:
+  - rustup component add clippy
+  - cargo clippy --all-targets --all-features
+
+- name: build
+  image: claudiomattera/rust-builder:1.41.1
+  commands:
+  - cargo build --all-targets --all-features
+
+- name: test
+  image: claudiomattera/rust-builder:1.41.1
+  commands:
+  - cargo test
+
+---
+kind: pipeline
+type: docker
+name: build release
+platform:
+  os: linux
+  arch: arm
+trigger:
+  event:
+  - tag
+
+steps:
+- name: build
+  image: claudiomattera/rust-builder:1.41.1
+  commands:
+  - cargo build --release
+
+steps:
+- name: package
+  image: rust:latest
+  commands:
+  - cargo install cargo-deb
+  - cargo deb --no-build
+
+- name: release on gitea
+  image: plugins/gitea-release
+  settings:
+    base_url:
+      from_secret: gitea_host
+    api_key:
+      from_secret: gitea_token
+    files:
+      - target/release/${DRONE_REPO_NAME}
+      - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_armhf.deb
+    checksum:
+      - sha512
+---
+kind: pipeline
+type: docker
+name: notification
+
+depends_on:
+- build and test
+
+trigger:
+  event:
+    exclude:
+    - tag
+  status:
+  - failure
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: notification
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:0.1.0
+  settings:
+    host:
+      from_secret: gotify_host
+    token:
+      from_secret: gotify_token
+    title: >
+        ✗ Build {{build_number}} failed for {{repo_name}}
+    message: >
+        Commit *{{commit_message | trim}}* pushed by {{commit_author}} on {{commit_branch}}
+
+        Failed stages:
+
+        {% for stage in failed_stages | split(pat=",") %}
+        - {{ stage }}
+        {% endfor %}
+
+        See complete build log at [{{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}]({{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}).
+
+---
+kind: pipeline
+type: docker
+name: notification release
+
+depends_on:
+- build release
+
+trigger:
+  event:
+  - tag
+  status:
+  - success
+  - failure
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: notification
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:0.1.0
+  settings:
+    host:
+      from_secret: gotify_host
+    token:
+      from_secret: gotify_token
+    title: >
+        {% if build_status == "success" %}
+        ✓ Release build succeeded for {{repo_name}}-{{tag}}
+        {% else %}
+        ✗ Release build failed for {{repo_name}}-{{tag}}
+        {% endif %}
+    message: >
+
+        {% if build_status == "success" %}
+        {% else %}
+        Failed steps:
+
+          {% for stage in failed_stages | split(pat=",") %}
+          - {{ stage }}
+          {% endfor %}
+        {% endif %}
+
+        See complete build log at [{{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}]({{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}).
