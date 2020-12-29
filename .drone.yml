@@ -94,24 +94,25 @@ platform:
 
 steps:
 - name: notification
-  image: docker.claudiomattera.it/claudiomattera/drone-gotify:0.1.0
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
   settings:
     host:
       from_secret: gotify_host
     token:
       from_secret: gotify_token
     title: >
-        ✗ Build {{build_number}} failed for {{repo_name}}
+        ✗ Build {{drone.build.number}} failed for {{drone.repo.name}}
     message: >
-        Commit *{{commit_message | trim}}* pushed by {{commit_author}} on {{commit_branch}}
+        Commit *{{drone.commit.message | trim}}* pushed by {{drone.commit.author}} on {{drone.commit.branch}}
 
         Failed stages:
 
-        {% for stage in failed_stages | split(pat=",") %}
+        {% for stage in drone.failed.stages | split(pat=",") %}
         - {{ stage }}
         {% endfor %}
 
-        See complete build log at [{{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}]({{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}).
+        {% set build_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
+        See the complete report at <{{ build_link }}>.
 
 ---
 kind: pipeline
@@ -134,27 +135,27 @@ platform:
 
 steps:
 - name: notification
-  image: docker.claudiomattera.it/claudiomattera/drone-gotify:0.1.0
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
   settings:
     host:
       from_secret: gotify_host
     token:
       from_secret: gotify_token
     title: >
-        {% if build_status == "success" %}
-        ✓ Release build succeeded for {{repo_name}}-{{tag}}
+        {% if drone.build.status == "success" %}
+        ✓ Release build succeeded for {{drone.repo.name}}-{{drone.tag}}
         {% else %}
-        ✗ Release build failed for {{repo_name}}-{{tag}}
+        ✗ Release build failed for {{drone.repo.name}}-{{drone.tag}}
         {% endif %}
     message: >
-
-        {% if build_status == "success" %}
+        {% if drone.build.status == "success" %}
         {% else %}
         Failed steps:
 
-          {% for stage in failed_stages | split(pat=",") %}
+          {% for stage in drone.failed.stages | split(pat=",") %}
           - {{ stage }}
           {% endfor %}
         {% endif %}
 
-        See complete build log at [{{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}]({{system_proto}}://{{system_host}}/{{repo_owner}}/{{repo_name}}/{{build_number}}).
+        {% set build_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
+        See the complete report at <{{ build_link }}>.
