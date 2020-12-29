@@ -271,13 +271,14 @@ async fn generate_geographical_map_chart(
 
     let query = format!(
         "SELECT {scale} * last({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now()
+        WHERE time < now() AND time > now() - {how_long_ago}
         GROUP BY {tag} FILL(none)",
         scale = chart.scale.unwrap_or(1.0),
         field = chart.field,
         database = chart.database,
         measurement = chart.measurement,
         tag = chart.tag,
+        how_long_ago = duration_to_query(&chart.how_long_ago.duration),
     );
 
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(

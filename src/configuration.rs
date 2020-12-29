@@ -84,6 +84,7 @@ pub struct GeographicalHeatMapConfiguration {
     pub field: String,
     pub scale: Option<f64>,
     pub tag: String,
+    pub how_long_ago: Iso8601Duration,
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
     pub reversed: Option<bool>,
