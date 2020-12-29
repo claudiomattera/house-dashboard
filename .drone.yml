@@ -55,13 +55,13 @@ steps:
   - cargo build --release
 
 steps:
-- name: package
+- name: package deb
   image: rust:latest
   commands:
   - cargo install cargo-deb
   - cargo deb --no-build
 
-- name: release on gitea
+- name: create release on gitea
   image: plugins/gitea-release
   settings:
     base_url:
