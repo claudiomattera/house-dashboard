@@ -239,6 +239,7 @@ async fn generate_trend_chart(
         time_seriess,
         &chart.title,
         &chart.ylabel,
+        &chart.yunit,
         50,
         &chart.xlabel_format,
         chart.precision.unwrap_or(0),

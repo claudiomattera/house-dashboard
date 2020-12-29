@@ -60,6 +60,7 @@ pub enum ChartConfiguration {
 pub struct TrendConfiguration {
     pub title: String,
     pub ylabel: Option<String>,
+    pub yunit: Option<String>,
     pub xlabel_format: String,
     pub precision: Option<usize>,
     pub draw_last_value: Option<bool>,

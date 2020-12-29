@@ -27,6 +27,7 @@ pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
             caption: &str,
             ylabel: &Option<String>,
+            yunit: &Option<String>,
             ylabel_size: u32,
             xlabel_format: &str,
             precision: usize,
@@ -198,6 +199,12 @@ pub fn draw_trend_chart(
 
     debug!("Drawing axis");
 
+    let ylabel = match (ylabel, yunit) {
+        (Some(ylabel), Some(yunit)) => format!("{} [{}]", ylabel, yunit),
+        (Some(ylabel), None) => ylabel.to_owned(),
+        (None, _) => "".to_owned(),
+    };
+
     chart
         .configure_mesh()
         .disable_mesh()
@@ -206,7 +213,7 @@ pub fn draw_trend_chart(
         .x_label_formatter(&|d| d.format(xlabel_format).to_string())
         .y_labels(5)
         .y_label_formatter(&|value| format!("{0:.1$}", value, precision))
-        .y_desc(ylabel.as_ref().unwrap_or(&"".to_string()))
+        .y_desc(ylabel)
         .label_style(label_font)
         .draw()?;
 
