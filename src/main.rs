@@ -241,6 +241,7 @@ async fn generate_trend_chart(
         &chart.ylabel,
         50,
         &chart.xlabel_format,
+        chart.precision.unwrap_or(0),
         chart.draw_last_value.unwrap_or(false),
         chart.tag_values,
         style,
@@ -293,6 +294,7 @@ async fn generate_geographical_map_chart(
     chart::draw_geographical_heat_map_chart(
         values,
         chart.bounds,
+        chart.precision.unwrap_or(0),
         chart.colormap,
         chart.reversed,
         &chart.title,
@@ -351,6 +353,7 @@ async fn generate_temporal_heat_map_chart(
         &chart.title,
         &chart.unit,
         chart.bounds,
+        chart.precision.unwrap_or(0),
         chart.colormap,
         style,
         backend,

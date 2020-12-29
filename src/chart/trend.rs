@@ -29,6 +29,7 @@ pub fn draw_trend_chart(
             ylabel: &Option<String>,
             ylabel_size: u32,
             xlabel_format: &str,
+            precision: usize,
             draw_last_value: bool,
             tag_values: Option<Vec<String>>,
             style: &StyleConfiguration,
@@ -168,7 +169,7 @@ pub fn draw_trend_chart(
         if draw_last_value {
             let last_reading = time_series.last().unwrap();
             let last_value = last_reading.1;
-            let last_value_text = format!("{:.0}", last_value);
+            let last_value_text = format!("{0:.1$}", last_value, precision);
 
             let last_value_coordinates = chart.backend_coord(&last_reading);
 
@@ -201,7 +202,7 @@ pub fn draw_trend_chart(
         .x_labels(4)
         .x_label_formatter(&|d| d.format(xlabel_format).to_string())
         .y_labels(5)
-        .y_label_formatter(&|temperature| format!("{:.0}", temperature))
+        .y_label_formatter(&|value| format!("{0:.1$}", value, precision))
         .y_desc(ylabel.as_ref().unwrap_or(&"".to_string()))
         .label_style(label_font)
         .draw()?;

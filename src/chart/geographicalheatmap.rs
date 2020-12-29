@@ -23,6 +23,7 @@ use super::{bounds_of, centroid_of, project_with_two_to_one_isometry};
 pub fn draw_geographical_heat_map_chart(
             values: HashMap<String, Option<f64>>,
             bounds: (f64, f64),
+            precision: usize,
             colormap_type: Option<ColormapType>,
             reversed: Option<bool>,
             caption: &str,
@@ -101,7 +102,7 @@ pub fn draw_geographical_heat_map_chart(
             let pos = Pos::new(HPos::Center, VPos::Center);
             new_root.draw(
                 &Text::new(
-                    format!("{:.0}", value),
+                    format!("{0:.1$}", value, precision),
                     (cx, cy),
                     &label_font.color(&BLACK).pos(pos),
                 ),
@@ -116,6 +117,7 @@ pub fn draw_geographical_heat_map_chart(
         (width as i32 - 55, 40),
         (10, height as i32 - 60),
         bounds,
+        precision,
         unit.to_owned(),
         label_font,
         style.system_palette,
