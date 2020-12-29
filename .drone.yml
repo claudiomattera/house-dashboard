@@ -9,6 +9,8 @@ trigger:
   event:
     exclude:
     - tag
+    include:
+    - push
 
 steps:
 - name: check format
