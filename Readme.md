@@ -7,7 +7,8 @@ An application to display various kinds of charts on a house dashboard.
 
 ![Infrastructure Chart](./docs/infrastructure.png)
 ![Trend Chart](./docs/trend.png)
-![Geographical Map Chart](./docs/geographicalmap.png)
+![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
 
 This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; and any other kinds of data available.
 
