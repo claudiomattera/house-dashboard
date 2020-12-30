@@ -5,6 +5,7 @@ An application to display various kinds of charts on a house dashboard.
 
 <https://gitlab.com/claudiomattera/house-dashboard/>
 
+![Infrastructure Chart](./docs/infrastructure.png)
 ![Trend Chart](./docs/trend.png)
 ![Geographical Map Chart](./docs/geographicalmap.png)
 
