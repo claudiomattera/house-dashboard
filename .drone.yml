@@ -15,16 +15,14 @@ trigger:
 steps:
 - name: check format
   failure: ignore
-  image: rust:latest
+  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
   commands:
-  - rustup component add rustfmt
   - cargo fmt --all -- --check
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
   commands:
-  - rustup component add clippy
   - cargo clippy --all-targets --all-features
 
 - name: build
@@ -54,11 +52,9 @@ steps:
   commands:
   - cargo build --release
 
-steps:
 - name: package deb
   image: rust:latest
   commands:
-  - cargo install cargo-deb
   - cargo deb --no-build
 
 - name: create release on gitea
@@ -73,6 +69,7 @@ steps:
       - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_armhf.deb
     checksum:
       - sha512
+
 ---
 kind: pipeline
 type: docker
