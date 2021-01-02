@@ -156,3 +156,42 @@ steps:
 
         {% set build_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
         See the complete report at <{{ build_link }}>.
+
+---
+kind: pipeline
+type: docker
+name: daily security report
+platform:
+  os: linux
+  arch: arm
+trigger:
+  event:
+  - cron
+  cron:
+  - daily
+
+steps:
+- name: check security advisories
+  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  commands:
+  - cargo audit --deny unsound --deny yanked
+
+- name: notification
+  depends_on:
+  - check security advisories
+  when:
+    status:
+      - failure
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
+  settings:
+    host:
+      from_secret: gotify_host
+    token:
+      from_secret: gotify_token
+    title: >
+        ✗ Security audit failed for {{drone.repo.name}}
+    message: >
+        Dependencies of {{ drone.repo.name }} were flagged in the RustSec Advisory Database.
+
+        {% set report_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
+        See the complete report at <{{ report_link }}>.
