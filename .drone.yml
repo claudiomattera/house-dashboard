@@ -122,6 +122,8 @@ trigger:
   event:
     exclude:
     - tag
+    include:
+    - push
   status:
   - failure
 
