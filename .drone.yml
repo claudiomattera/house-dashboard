@@ -60,7 +60,6 @@ steps:
     rebuild: true
     mount:
       - ./target
-      - /usr/local/cargo
 
 - name: flush cache
   image: plugins/s3-cache:1
