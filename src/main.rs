@@ -25,6 +25,8 @@ use plotters::drawing::BitMapBackend;
 
 use futures::future::try_join_all;
 
+use indicatif::ProgressBar;
+
 mod chart;
 mod colormap;
 mod configuration;
@@ -99,6 +101,8 @@ async fn inner_main() -> Result<()> {
                 }
             }
 
+            let bar = ProgressBar::new(configuration.charts.len() as u64);
+
             type Out = Result<(), anyhow::Error>;
             let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = Out>>>> = Vec::new();
 
@@ -111,24 +115,24 @@ async fn inner_main() -> Result<()> {
 
                 match chart {
                     ChartConfiguration::Trend(chart) => {
-                        let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::GeographicalHeatMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
-                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
-                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::Image(image_configuration) => {
-                        let task = generate_image(image_configuration, chart_path, configuration.style.resolution);
+                        let task = generate_image(image_configuration, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::InfrastructureSummary(infrastructure_summary_configuration) => {
-                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                 }
@@ -207,6 +211,7 @@ async fn generate_trend_chart(
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -251,6 +256,8 @@ async fn generate_trend_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
@@ -261,6 +268,7 @@ async fn generate_geographical_map_chart(
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -308,6 +316,8 @@ async fn generate_geographical_map_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
@@ -317,6 +327,7 @@ async fn generate_temporal_heat_map_chart(
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -363,6 +374,8 @@ async fn generate_temporal_heat_map_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
@@ -370,6 +383,7 @@ async fn generate_image(
             image_configuration: ImageConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -378,6 +392,8 @@ async fn generate_image(
         backend,
     )
     .context("Failed to draw image")?;
+
+    progress_bar.inc(1);
 
     Ok(())
 }
@@ -388,6 +404,7 @@ async fn generate_infrastructure_summary(
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -440,6 +457,8 @@ async fn generate_infrastructure_summary(
         backend,
     )
     .context("Failed to draw image")?;
+
+    progress_bar.inc(1);
 
     Ok(())
 }
