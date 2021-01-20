@@ -81,7 +81,7 @@ async fn inner_main() -> Result<()> {
         configuration.influxdb.password,
         configuration.influxdb.cacert,
         configuration.influxdb.dangerously_accept_invalid_certs.unwrap_or(false),
-    );
+    )?;
 
     debug!("Matching subcommand");
     match matches.subcommand() {
