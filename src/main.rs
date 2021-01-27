@@ -101,7 +101,11 @@ async fn inner_main() -> Result<()> {
                 }
             }
 
-            let bar = ProgressBar::new(configuration.charts.len() as u64);
+            let bar = if false {
+                ProgressBar::new(configuration.charts.len() as u64)
+            } else {
+                ProgressBar::hidden()
+            };
 
             type Out = Result<(), anyhow::Error>;
             let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = Out>>>> = Vec::new();
