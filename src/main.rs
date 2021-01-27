@@ -204,7 +204,8 @@ fn setup_logging(verbosity: u64) {
         .unwrap_or_else(|_| EnvFilter::new(default_log_filter));
 
     let formatting_layer = subscriber_fmt::layer()
-        .with_target(false);
+        .with_target(false)
+        .without_time();
 
     let subscriber = Registry::default()
         .with(env_filter)
