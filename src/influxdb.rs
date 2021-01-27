@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
@@ -72,6 +72,10 @@ impl InfluxdbClient {
         })
     }
 
+    #[tracing::instrument(
+        name = "Fetching tag values",
+        skip(self, filter_tag_name, filter_tag_value),
+    )]
     pub async fn fetch_tag_values(
                 &self,
                 database: &str,
@@ -112,6 +116,10 @@ impl InfluxdbClient {
         Ok(tag_values)
     }
 
+    #[tracing::instrument(
+        name = "Fetching timeseries by tag",
+        skip(self, query),
+    )]
     pub async fn fetch_timeseries_by_tag(
                 &self,
                 query: &str,

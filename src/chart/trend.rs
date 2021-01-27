@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use std::cmp::Ord;
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ pub fn draw_trend_chart(
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing trend \"{}\"", caption.to_lowercase());
+    info!("Drawing trend '{}'", caption.to_lowercase());
 
     let root = root.into_drawing_area();
 

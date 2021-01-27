@@ -12,11 +12,11 @@ pub enum DashboardError {
     Unknown,
     #[error("Empty time-series")]
     EmptyTimeSeries,
-    #[error("Unexpected tag value \"{0}\"")]
+    #[error("Unexpected tag value '{0}'")]
     UnexpectedTagValue(String),
-    #[error("Non-existing tag value \"{0}\"")]
+    #[error("Non-existing tag value '{0}'")]
     NonexistingTagValue(String),
-    #[error("Image error \"{0}\"")]
+    #[error("Image error '{0}'")]
     ImageError(ImageError),
 }
 

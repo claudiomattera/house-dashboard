@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
@@ -33,7 +33,7 @@ pub fn draw_temporal_heat_map_chart(
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing temporal heat map \"{}\"", caption.to_lowercase());
+    info!("Drawing temporal heat map '{}'", caption.to_lowercase());
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();

@@ -3,7 +3,11 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
+use tracing::subscriber::set_global_default;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+use tracing_subscriber::fmt as subscriber_fmt;
+use tracing_log::LogTracer;
 
 use std::collections::HashMap;
 use std::env;
@@ -188,14 +192,26 @@ fn parse_arguments() -> ArgMatches<'static> {
 }
 
 fn setup_logging(verbosity: u64) {
+    // Redirect all `log`'s events to our subscriber
+    LogTracer::init().expect("Failed to set logger");
+
     let default_log_filter = match verbosity {
         0 => "warn",
         1 => "info",
         2 => "info,house_dashboard=debug",
         _ => "debug",
     };
-    let filter = env_logger::Env::default().default_filter_or(default_log_filter);
-    env_logger::Builder::from_env(filter).format_timestamp(None).init();
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new(default_log_filter));
+
+    let formatting_layer = subscriber_fmt::layer()
+        .with_target(false);
+
+    let subscriber = Registry::default()
+        .with(env_filter)
+        .with(formatting_layer);
+
+    set_global_default(subscriber).expect("Failed to set subscriber");
 }
 
 fn parse_configuration(
@@ -209,6 +225,13 @@ fn parse_configuration(
     Ok(configuration)
 }
 
+#[tracing::instrument(
+    name = "Generating a trend chart",
+    skip(chart, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_trend_chart(
             chart: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
@@ -265,6 +288,13 @@ async fn generate_trend_chart(
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating a geographical map chart",
+    skip(chart, regions_configurations, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_geographical_map_chart(
             chart: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
@@ -325,6 +355,13 @@ async fn generate_geographical_map_chart(
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating a temporal heatmap chart",
+    skip(chart, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_temporal_heat_map_chart(
             chart: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
@@ -383,6 +420,13 @@ async fn generate_temporal_heat_map_chart(
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating an image chart",
+    skip(image_configuration, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_image(
             image_configuration: ImageConfiguration,
             path: PathBuf,
@@ -402,6 +446,13 @@ async fn generate_image(
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating an infrastructure summary chart",
+    skip(infrastructure_summary, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_infrastructure_summary(
             infrastructure_summary: InfrastructureSummaryConfiguration,
             influxdb_client: &InfluxdbClient,
