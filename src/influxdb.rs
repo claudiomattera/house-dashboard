@@ -48,14 +48,11 @@ impl InfluxdbClient {
         let mut client_builder = Client::builder()
                 .default_headers(headers);
 
-        match ca_cert {
-            Some(ca_cert) => {
-                debug!("Adding certificate authority {}", ca_cert.display());
-                let certificate_data = std::fs::read(ca_cert)?;
-                let certificate = Certificate::from_pem(&certificate_data)?;
-                client_builder = client_builder.add_root_certificate(certificate)
-            }
-            None => {}
+        if let Some(ca_cert) = ca_cert {
+            debug!("Adding certificate authority {}", ca_cert.display());
+            let certificate_data = std::fs::read(ca_cert)?;
+            let certificate = Certificate::from_pem(&certificate_data)?;
+            client_builder = client_builder.add_root_certificate(certificate)
         }
         if dangerously_accept_invalid_certs {
             warn!("Disabling SSL validation!");

@@ -10,7 +10,6 @@ use tracing_subscriber::fmt as subscriber_fmt;
 use tracing_log::LogTracer;
 
 use std::collections::HashMap;
-use std::env;
 use std::fs::remove_file;
 use std::path::Path;
 use std::path::PathBuf;
