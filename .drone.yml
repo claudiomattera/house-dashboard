@@ -124,6 +124,7 @@ steps:
       from_secret: gitea_host
     api_key:
       from_secret: gitea_token
+    title: "Version ${DRONE_TAG}"
     files:
       - target/release/${DRONE_REPO_NAME}
       - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_armhf.deb
