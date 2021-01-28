@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
@@ -26,12 +26,11 @@ use crate::types::TimeSeries;
 
 #[derive(Debug)]
 pub struct InfluxdbClient {
+    http_client: Client,
     base_url: Url,
     database: String,
     username: String,
     password: String,
-    ca_cert: Option<PathBuf>,
-    dangerously_accept_invalid_certs: bool,
 }
 
 impl InfluxdbClient {
@@ -42,17 +41,38 @@ impl InfluxdbClient {
                 password: String,
                 ca_cert: Option<PathBuf>,
                 dangerously_accept_invalid_certs: bool,
-            ) -> Self {
-        Self {
+            ) -> Result<Self> {
+        let mut headers = header::HeaderMap::new();
+        headers.insert(header::ACCEPT, header::HeaderValue::from_static("application/json"));
+
+        let mut client_builder = Client::builder()
+                .default_headers(headers);
+
+        if let Some(ca_cert) = ca_cert {
+            debug!("Adding certificate authority {}", ca_cert.display());
+            let certificate_data = std::fs::read(ca_cert)?;
+            let certificate = Certificate::from_pem(&certificate_data)?;
+            client_builder = client_builder.add_root_certificate(certificate)
+        }
+        if dangerously_accept_invalid_certs {
+            warn!("Disabling SSL validation!");
+            client_builder = client_builder.danger_accept_invalid_certs(true);
+        }
+        let http_client = client_builder.build()?;
+
+        Ok(Self {
+            http_client,
             base_url,
             database,
             username,
             password,
-            ca_cert,
-            dangerously_accept_invalid_certs,
-        }
+        })
     }
 
+    #[tracing::instrument(
+        name = "Fetching tag values",
+        skip(self, filter_tag_name, filter_tag_value),
+    )]
     pub async fn fetch_tag_values(
                 &self,
                 database: &str,
@@ -93,6 +113,10 @@ impl InfluxdbClient {
         Ok(tag_values)
     }
 
+    #[tracing::instrument(
+        name = "Fetching timeseries by tag",
+        skip(self, query),
+    )]
     pub async fn fetch_timeseries_by_tag(
                 &self,
                 query: &str,
@@ -147,27 +171,6 @@ impl InfluxdbClient {
                 query: &str
             ) -> Result<String> {
 
-        let mut headers = header::HeaderMap::new();
-        headers.insert(header::ACCEPT, header::HeaderValue::from_static("application/json"));
-
-        let mut client_builder = Client::builder()
-                .default_headers(headers);
-
-        match &self.ca_cert {
-            Some(ca_cert) => {
-                debug!("Adding certificate authority {}", ca_cert.display());
-                let certificate_data = std::fs::read(ca_cert)?;
-                let certificate = Certificate::from_pem(&certificate_data)?;
-                client_builder = client_builder.add_root_certificate(certificate)
-            }
-            None => {}
-        }
-        if self.dangerously_accept_invalid_certs {
-            warn!("Disabling SSL validation!");
-            client_builder = client_builder.danger_accept_invalid_certs(true);
-        }
-        let client = client_builder.build()?;
-
         let mut params = HashMap::new();
         params.insert("q", query);
         params.insert("db", &self.database);
@@ -177,7 +180,7 @@ impl InfluxdbClient {
 
         debug!("Sending query {} to {}", query, query_url);
 
-        let response = client
+        let response = self.http_client
             .post(query_url)
             .basic_auth(&self.username, Some(&self.password))
             .form(&params)

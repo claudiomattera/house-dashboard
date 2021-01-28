@@ -5,8 +5,10 @@ An application to display various kinds of charts on a house dashboard.
 
 <https://gitlab.com/claudiomattera/house-dashboard/>
 
+![Infrastructure Chart](./docs/infrastructure.png)
 ![Trend Chart](./docs/trend.png)
-![Geographical Map Chart](./docs/geographicalmap.png)
+![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
 
 This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; and any other kinds of data available.
 
@@ -130,11 +132,13 @@ A [TOML] configuration file is used to define what charts to generate, how to fe
 ~~~~toml
 # Options related to all charts style
 [style]
-# Font name (must be available as system font)
+# Font settings (must be available as system font)
 font = "Apple ]["
+font_scale = 1
 
 # Colour palette for charts (Dark/Light)
-palette = "Dark"
+system_palette = "Dark"
+series_palette = "ColorbrewerSet1"
 
 # Resolution of generated images (should be the same as the screen)
 resolution = [320, 240]
@@ -148,6 +152,9 @@ url = "https://influxdb_hostname:8086"
 # Optional path to certificate (necessary if using HTTPS with a self-signed certificate)
 cacert = "/path/to/certificate.pem"
 
+# Optional flag to accept invalid certificates
+dangerously_accept_invalid_certs = false
+
 # Database name
 database = "longterm"
 
@@ -159,38 +166,59 @@ password = "[REDACTED]"
 
 
 # Multiple [[charts]] sections, each generates a chart
-
 [[charts]]
-# Chart type (so far only Trend is supported)
+# Chart type
 kind = "Trend"
 
 # Optional chart title
 title = "TEMPERATURE"
 
 # Optional chart Y label
-ylabel = "Temperature [C]"
+ylabel = "Temperature"
 
-# InfluxDB query to fetch data related for this chart
-query = """
-SELECT mean(\"temperature\") AS \"mean_value\" FROM \"indoor_environment\"
-WHERE time > now() - 1d GROUP BY time(30m),room FILL(none)"""
+# Optional chart Y label
+yunit = "C"
+
+# InfluxDB database
+database = "house"
+
+# InfluxDB measurement
+measurement = "indoor_environment"
+
+# InfluxDB field
+field = "temperature"
 
 # Tag used in the GROUP BY $TAG clause
 tag = "room"
 
-# Optional X label format
+# Optional maximal age of readings
+how_long_ago = "P1D"
+
+# Expected tag values
+tag_values = ["living room", "bedroom", "bathroom", "entrance", "kitchen"]
+
+# Format for x label
 xlabel_format = "%H:%M"
 
 
-[[charts]]
-kind = "Trend"
-title = "HUMIDITY"
-ylabel = "Humidity [%]"
-query = """
-SELECT mean(\"humidity\") AS \"mean_value\" FROM \"indoor_environment\"
-WHERE time > now() - 1d GROUP BY time(30m),room FILL(none)"""
-tag = "room"
-xlabel_format = "%H:%M"
+# Multiple [[regions]] sections, each defines a region in geographical
+# heatmap charts
+[[regions]]
+name = "living room"
+coordinates = [
+  [2.0, 1.0],
+  [4.75, 1.0],
+  [4.75, 1.8],
+  [5.5, 1.8],
+  [5.5, 5.8],
+  [4.75, 5.8],
+  [4.75, 6.5],
+  [1.9, 6.5],
+  [1.9, 8.4],
+  [0.8, 8.4],
+  [0.8, 4.1],
+  [2.0, 4.1],
+]
 ~~~~
 
 [TOML]: https://github.com/toml-lang/toml

@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use std::collections::HashMap;
 
@@ -32,7 +32,7 @@ pub fn draw_geographical_heat_map_chart(
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing geographical heat map \"{}\"", caption.to_lowercase());
+    info!("Drawing geographical heat map '{}'", caption.to_lowercase());
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();

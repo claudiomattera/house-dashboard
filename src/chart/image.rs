@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
 
 use std::path::PathBuf;
 
@@ -18,7 +18,7 @@ pub fn draw_image(
             path: PathBuf,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing image \"{}\"", path.display());
+    info!("Drawing image '{}'", path.display());
 
     let root = root.into_drawing_area();
 

@@ -13,29 +13,75 @@ trigger:
     - push
 
 steps:
+- name: restore cache
+  image: plugins/s3-cache
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    restore: true
+
 - name: check format
   failure: ignore
-  image: rust:latest
+  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
-  - rustup component add rustfmt
   - cargo fmt --all -- --check
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
-  - rustup component add clippy
-  - cargo clippy --all-targets --all-features
+  - cargo clippy --all-targets --all-features -- -D warnings
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo build --all-targets --all-features
 
 - name: test
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo test
+
+- name: rebuild cache
+  image: plugins/s3-cache
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    rebuild: true
+    mount:
+      - ./target
+      - ./.cargo_home/registry/
+
+- name: flush cache
+  image: plugins/s3-cache:1
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    flush: true
+    flush_age: 7
 
 ---
 kind: pipeline
@@ -49,16 +95,26 @@ trigger:
   - tag
 
 steps:
+- name: restore cache
+  image: plugins/s3-cache
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    restore: true
+
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
   commands:
   - cargo build --release
 
-steps:
 - name: package deb
-  image: rust:latest
+  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
   commands:
-  - cargo install cargo-deb
   - cargo deb --no-build
 
 - name: create release on gitea
@@ -68,11 +124,13 @@ steps:
       from_secret: gitea_host
     api_key:
       from_secret: gitea_token
+    title: "Version ${DRONE_TAG}"
     files:
       - target/release/${DRONE_REPO_NAME}
       - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_armhf.deb
     checksum:
       - sha512
+
 ---
 kind: pipeline
 type: docker
@@ -85,6 +143,8 @@ trigger:
   event:
     exclude:
     - tag
+    include:
+    - push
   status:
   - failure
 
@@ -159,3 +219,89 @@ steps:
 
         {% set build_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
         See the complete report at <{{ build_link }}>.
+
+---
+kind: pipeline
+type: docker
+name: daily security report
+platform:
+  os: linux
+  arch: arm
+trigger:
+  event:
+  - cron
+  cron:
+  - daily
+
+steps:
+- name: check security advisories
+  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  commands:
+  - cargo audit --deny unsound --deny yanked
+
+- name: notification
+  depends_on:
+  - check security advisories
+  when:
+    status:
+      - failure
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
+  settings:
+    host:
+      from_secret: gotify_host
+    token:
+      from_secret: gotify_token
+    title: >
+        ✗ Security audit failed for {{drone.repo.name}}
+    message: >
+        Dependencies of {{ drone.repo.name }} were flagged in the RustSec Advisory Database.
+
+        {% set report_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
+        See the complete report at <{{ report_link }}>.
+
+---
+kind: pipeline
+type: docker
+name: weekly cache flush
+platform:
+  os: linux
+  arch: arm
+trigger:
+  event:
+  - cron
+  cron:
+  - weekly
+
+steps:
+- name: flush cache
+  image: plugins/s3-cache:1
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    flush: true
+    flush_age: 7
+
+- name: notification
+  depends_on:
+  - flush cache
+  when:
+    status:
+      - failure
+  image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
+  settings:
+    host:
+      from_secret: gotify_host
+    token:
+      from_secret: gotify_token
+    title: >
+        ✗ S3 cache flush failed for {{drone.repo.name}}
+    message: >
+        It was not possible to cache the S3 cache of {{ drone.repo.name }}.
+
+        {% set report_link = drone.system.proto ~ "://" ~ drone.system.host ~ "/" ~ drone.repo.owner ~ "/" ~ drone.repo.name ~ "/" ~ drone.build.number -%}
+        See the complete report at <{{ report_link }}>.

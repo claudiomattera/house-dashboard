@@ -3,10 +3,13 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use log::*;
+use tracing::*;
+use tracing::subscriber::set_global_default;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+use tracing_subscriber::fmt as subscriber_fmt;
+use tracing_log::LogTracer;
 
 use std::collections::HashMap;
-use std::env;
 use std::fs::remove_file;
 use std::path::Path;
 use std::path::PathBuf;
@@ -24,6 +27,8 @@ use glob::glob;
 use plotters::drawing::BitMapBackend;
 
 use futures::future::try_join_all;
+
+use indicatif::ProgressBar;
 
 mod chart;
 mod colormap;
@@ -78,8 +83,8 @@ async fn inner_main() -> Result<()> {
         configuration.influxdb.username,
         configuration.influxdb.password,
         configuration.influxdb.cacert,
-        configuration.influxdb.dangerously_accept_invalid_certs,
-    );
+        configuration.influxdb.dangerously_accept_invalid_certs.unwrap_or(false),
+    )?;
 
     debug!("Matching subcommand");
     match matches.subcommand() {
@@ -99,6 +104,12 @@ async fn inner_main() -> Result<()> {
                 }
             }
 
+            let bar = if false {
+                ProgressBar::new(configuration.charts.len() as u64)
+            } else {
+                ProgressBar::hidden()
+            };
+
             type Out = Result<(), anyhow::Error>;
             let mut tasks: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = Out>>>> = Vec::new();
 
@@ -111,24 +122,24 @@ async fn inner_main() -> Result<()> {
 
                 match chart {
                     ChartConfiguration::Trend(chart) => {
-                        let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::GeographicalHeatMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
-                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
-                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::Image(image_configuration) => {
-                        let task = generate_image(image_configuration, chart_path, configuration.style.resolution);
+                        let task = generate_image(image_configuration, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::InfrastructureSummary(infrastructure_summary_configuration) => {
-                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution);
+                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                 }
@@ -180,14 +191,27 @@ fn parse_arguments() -> ArgMatches<'static> {
 }
 
 fn setup_logging(verbosity: u64) {
+    // Redirect all `log`'s events to our subscriber
+    LogTracer::init().expect("Failed to set logger");
+
     let default_log_filter = match verbosity {
         0 => "warn",
         1 => "info",
         2 => "info,house_dashboard=debug",
         _ => "debug",
     };
-    let filter = env_logger::Env::default().default_filter_or(default_log_filter);
-    env_logger::Builder::from_env(filter).format_timestamp(None).init();
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new(default_log_filter));
+
+    let formatting_layer = subscriber_fmt::layer()
+        .with_target(false)
+        .without_time();
+
+    let subscriber = Registry::default()
+        .with(env_filter)
+        .with(formatting_layer);
+
+    set_global_default(subscriber).expect("Failed to set subscriber");
 }
 
 fn parse_configuration(
@@ -201,12 +225,20 @@ fn parse_configuration(
     Ok(configuration)
 }
 
+#[tracing::instrument(
+    name = "Generating a trend chart",
+    skip(chart, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_trend_chart(
             chart: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -251,9 +283,18 @@ async fn generate_trend_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating a geographical map chart",
+    skip(chart, regions_configurations, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_geographical_map_chart(
             chart: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
@@ -261,6 +302,7 @@ async fn generate_geographical_map_chart(
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -308,15 +350,25 @@ async fn generate_geographical_map_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating a temporal heatmap chart",
+    skip(chart, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_temporal_heat_map_chart(
             chart: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -363,13 +415,23 @@ async fn generate_temporal_heat_map_chart(
     )
     .context("Failed to draw chart")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating an image chart",
+    skip(image_configuration, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_image(
             image_configuration: ImageConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -379,15 +441,25 @@ async fn generate_image(
     )
     .context("Failed to draw image")?;
 
+    progress_bar.inc(1);
+
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "Generating an infrastructure summary chart",
+    skip(infrastructure_summary, influxdb_client, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
 async fn generate_infrastructure_summary(
             infrastructure_summary: InfrastructureSummaryConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
+            progress_bar: &ProgressBar,
         ) -> Result<()> {
     let backend = BitMapBackend::new(&path, resolution);
 
@@ -440,6 +512,8 @@ async fn generate_infrastructure_summary(
         backend,
     )
     .context("Failed to draw image")?;
+
+    progress_bar.inc(1);
 
     Ok(())
 }

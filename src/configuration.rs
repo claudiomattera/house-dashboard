@@ -42,7 +42,7 @@ pub struct InfluxdbConfiguration {
     pub username: String,
     pub password: String,
     pub cacert: Option<PathBuf>,
-    pub dangerously_accept_invalid_certs: bool,
+    pub dangerously_accept_invalid_certs: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
