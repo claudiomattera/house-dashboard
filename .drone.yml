@@ -28,22 +28,30 @@ steps:
 - name: check format
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo fmt --all -- --check
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo clippy --all-targets --all-features -- -D warnings
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo build --all-targets --all-features
 
 - name: test
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  environment:
+    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo test
 
@@ -60,7 +68,7 @@ steps:
     rebuild: true
     mount:
       - ./target
-      - /usr/local/cargo/registry/
+      - ./.cargo_home/registry/
 
 - name: flush cache
   image: plugins/s3-cache:1
