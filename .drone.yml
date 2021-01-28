@@ -95,6 +95,18 @@ trigger:
   - tag
 
 steps:
+- name: restore cache
+  image: plugins/s3-cache
+  settings:
+    endpoint:
+      from_secret: s3_endpoint
+    access_key:
+      from_secret: s3_access_key
+    secret_key:
+      from_secret: s3_secret_key
+    root: drone
+    restore: true
+
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
   commands:
