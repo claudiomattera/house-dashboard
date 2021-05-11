@@ -2,9 +2,6 @@
 kind: pipeline
 type: docker
 name: build and test
-platform:
-  os: linux
-  arch: arm
 trigger:
   event:
     exclude:
@@ -27,7 +24,7 @@ steps:
 
 - name: check format
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   environment:
     CARGO_HOME: "./.cargo_home/"
   commands:
@@ -35,21 +32,21 @@ steps:
 
 - name: run linter
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   environment:
     CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo clippy --all-targets --all-features -- -D warnings
 
 - name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   environment:
     CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo build --all-targets --all-features
 
 - name: test
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   environment:
     CARGO_HOME: "./.cargo_home/"
   commands:
@@ -70,26 +67,10 @@ steps:
       - ./target
       - ./.cargo_home/registry/
 
-- name: flush cache
-  image: plugins/s3-cache:1
-  settings:
-    endpoint:
-      from_secret: s3_endpoint
-    access_key:
-      from_secret: s3_access_key
-    secret_key:
-      from_secret: s3_secret_key
-    root: drone
-    flush: true
-    flush_age: 7
-
 ---
 kind: pipeline
 type: docker
 name: build release
-platform:
-  os: linux
-  arch: arm
 trigger:
   event:
   - tag
@@ -108,12 +89,12 @@ steps:
     restore: true
 
 - name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   commands:
   - cargo build --release
 
 - name: package deb
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   commands:
   - cargo deb --no-build
 
@@ -127,7 +108,7 @@ steps:
     title: "Version ${DRONE_TAG}"
     files:
       - target/release/${DRONE_REPO_NAME}
-      - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_armhf.deb
+      - target/debian/${DRONE_REPO_NAME}_${DRONE_TAG}_amd64.deb
     checksum:
       - sha512
 
@@ -147,10 +128,6 @@ trigger:
     - push
   status:
   - failure
-
-platform:
-  os: linux
-  arch: arm
 
 steps:
 - name: notification
@@ -189,10 +166,6 @@ trigger:
   - success
   - failure
 
-platform:
-  os: linux
-  arch: arm
-
 steps:
 - name: notification
   image: docker.claudiomattera.it/claudiomattera/drone-gotify:1
@@ -224,9 +197,6 @@ steps:
 kind: pipeline
 type: docker
 name: daily security report
-platform:
-  os: linux
-  arch: arm
 trigger:
   event:
   - cron
@@ -235,7 +205,7 @@ trigger:
 
 steps:
 - name: check security advisories
-  image: docker.claudiomattera.it/claudiomattera/rust:1.48.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
   commands:
   - cargo audit --deny unsound --deny yanked
 
@@ -263,9 +233,6 @@ steps:
 kind: pipeline
 type: docker
 name: weekly cache flush
-platform:
-  os: linux
-  arch: arm
 trigger:
   event:
   - cron
