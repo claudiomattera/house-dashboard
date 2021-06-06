@@ -12,7 +12,8 @@ use plotters::element::{PathElement, Polygon, Text};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::style::{IntoFont, RGBColor, BLACK};
 
-use crate::colormap::{Colormap, ColormapType};
+use crate::colormap::Colormap;
+use crate::configuration::GeographicalHeatMapConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::configuration::StyleConfiguration;
@@ -22,17 +23,12 @@ use super::{bounds_of, centroid_of, project_with_two_to_one_isometry};
 
 pub fn draw_geographical_heat_map_chart(
             values: HashMap<String, Option<f64>>,
-            bounds: (f64, f64),
-            precision: usize,
-            colormap_type: Option<ColormapType>,
-            reversed: Option<bool>,
-            caption: &str,
-            unit: &str,
+            geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
             regions: HashMap<String, Vec<(f64, f64)>>,
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing geographical heat map '{}'", caption.to_lowercase());
+    info!("Drawing geographical heat map '{}'", geographical_heatmap_configuration.title.to_lowercase());
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
@@ -48,7 +44,7 @@ pub fn draw_geographical_heat_map_chart(
     let pos = Pos::new(HPos::Center, VPos::Top);
     root.draw(
         &Text::new(
-            caption,
+            geographical_heatmap_configuration.title,
             (width as i32 / 2, 10),
             title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
         )
@@ -79,8 +75,15 @@ pub fn draw_geographical_heat_map_chart(
         (5_f64, 5_f64),
     );
 
+    let bounds = geographical_heatmap_configuration.bounds;
+
     debug!("Drawing regions");
-    let colormap = Colormap::new_with_bounds_and_direction(colormap_type, bounds.0, bounds.1, reversed);
+    let colormap = Colormap::new_with_bounds_and_direction(
+        geographical_heatmap_configuration.colormap,
+        bounds.0,
+        bounds.1,
+        geographical_heatmap_configuration.reversed,
+    );
     for (name, path) in normalized_projected_regions {
         let value: Option<f64> = values.get(&name).copied().flatten();
         debug!("Drawing region {}, value: {:?}", name, value);
@@ -102,7 +105,7 @@ pub fn draw_geographical_heat_map_chart(
             let pos = Pos::new(HPos::Center, VPos::Center);
             new_root.draw(
                 &Text::new(
-                    format!("{0:.1$}", value, precision),
+                    format!("{0:.1$}", value, geographical_heatmap_configuration.precision.unwrap_or(0)),
                     (cx, cy),
                     &label_font.color(&BLACK).pos(pos),
                 ),
@@ -117,8 +120,8 @@ pub fn draw_geographical_heat_map_chart(
         (width as i32 - 55, 40),
         (10, height as i32 - 60),
         bounds,
-        precision,
-        unit.to_owned(),
+        geographical_heatmap_configuration.precision.unwrap_or(0),
+        geographical_heatmap_configuration.unit,
         label_font,
         style.system_palette,
         colormap,

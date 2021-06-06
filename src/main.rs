@@ -285,13 +285,13 @@ async fn generate_trend_chart(
 
 #[tracing::instrument(
     name = "Generating a geographical map chart",
-    skip(chart, regions_configurations, influxdb_client, style, resolution, progress_bar),
+    skip(geographical_heatmap_configuration, regions_configurations, influxdb_client, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
 )]
 async fn generate_geographical_map_chart(
-            chart: GeographicalHeatMapConfiguration,
+            geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
@@ -312,17 +312,17 @@ async fn generate_geographical_map_chart(
         "SELECT {scale} * last({field}) FROM {database}.autogen.{measurement}
         WHERE time < now() AND time > now() - {how_long_ago}
         GROUP BY {tag} FILL(none)",
-        scale = chart.scale.unwrap_or(1.0),
-        field = chart.field,
-        database = chart.database,
-        measurement = chart.measurement,
-        tag = chart.tag,
-        how_long_ago = duration_to_query(&chart.how_long_ago.duration),
+        scale = geographical_heatmap_configuration.scale.unwrap_or(1.0),
+        field = geographical_heatmap_configuration.field,
+        database = geographical_heatmap_configuration.database,
+        measurement = geographical_heatmap_configuration.measurement,
+        tag = geographical_heatmap_configuration.tag,
+        how_long_ago = duration_to_query(&geographical_heatmap_configuration.how_long_ago.duration),
     );
 
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &query,
-        &chart.tag,
+        &geographical_heatmap_configuration.tag,
     )
     .await
     .context("Failed to fetch data from database")?;
@@ -333,12 +333,7 @@ async fn generate_geographical_map_chart(
 
     chart::draw_geographical_heat_map_chart(
         values,
-        chart.bounds,
-        chart.precision.unwrap_or(0),
-        chart.colormap,
-        chart.reversed,
-        &chart.title,
-        &chart.unit,
+        geographical_heatmap_configuration,
         regions,
         style,
         backend,
