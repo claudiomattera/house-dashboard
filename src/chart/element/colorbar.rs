@@ -27,6 +27,7 @@ pub struct Colorbar<'a> {
 }
 
 impl<'a> Colorbar<'a> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
                 position: (i32, i32),
                 size: (i32, i32),

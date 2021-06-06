@@ -136,8 +136,13 @@ fn project(
             big_z: (f64, f64, f64),
             origin: (f64, f64, f64),
         ) -> (f64, f64, f64) {
+    #[allow(clippy::suspicious_operation_groupings)]
     let x = big_x.0 * point.0 + big_y.0 * point.1 + big_z.0 * point.2 + origin.0;
+
+    #[allow(clippy::suspicious_operation_groupings)]
     let y = big_x.1 * point.0 + big_y.1 * point.1 + big_z.1 * point.2 + origin.1;
+
+    #[allow(clippy::suspicious_operation_groupings)]
     let z = big_x.2 * point.0 + big_y.2 * point.1 + big_z.2 * point.2 + origin.2;
 
     (x, y, z)
