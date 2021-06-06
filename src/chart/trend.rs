@@ -48,11 +48,29 @@ pub fn draw_trend_chart(
         .color(&style.system_palette.pick(SystemColor::Foreground))
         .pos(Pos::new(HPos::Right, VPos::Bottom));
 
+    let mut indices = HashMap::<String, usize>::new();
+    match trend_configuration.tag_values {
+        Some(ref tag_values) => {
+            for (index, name) in (0..).zip(tag_values.iter()) {
+                indices.insert(name.to_owned(), index);
+            }
+        }
+        None => {
+            for (index, (name, _)) in (0..).zip(time_seriess.iter()) {
+                indices.insert(name.to_owned(), index);
+            }
+        }
+    };
+
     let mut min_x_utc = MAX_DATE.and_hms(0, 0, 0);
     let mut max_x_utc = MIN_DATE.and_hms(0, 0, 0);
     let mut min_y = std::f64::MAX;
     let mut max_y = std::f64::MIN;
-    for time_series in time_seriess.values() {
+    for (name, time_series) in time_seriess.iter() {
+        if !indices.contains_key(name) {
+            debug!("Skipping unexpected time-series {} for range computation", name);
+            continue;
+        }
         for (date, value) in time_series {
             min_x_utc = min_x_utc.min(*date);
             max_x_utc = max_x_utc.max(*date);
@@ -106,21 +124,6 @@ pub fn draw_trend_chart(
         )
         .collect::<Vec<_>>();
     its.sort_by(|a, b| a.partial_cmp(b).expect("Invalid comparison"));
-
-
-    let mut indices = HashMap::<String, usize>::new();
-    match trend_configuration.tag_values {
-        Some(ref tag_values) => {
-            for (index, name) in (0..).zip(tag_values.iter()) {
-                indices.insert(name.to_owned(), index);
-            }
-        }
-        None => {
-            for (index, (name, _)) in (0..).zip(its.iter()) {
-                indices.insert(name.to_owned(), index);
-            }
-        }
-    };
 
     for (name, time_series) in its.iter() {
         let index = match indices.get(name) {
