@@ -90,7 +90,8 @@ pub fn draw_infrastructure_summary(
             load.map(|l| l.to_string()).unwrap_or_else(|| "None".to_owned())
         );
 
-        let centered_y = 35 + 22*i;
+        let vertical_step = infrastructure_summary.vertical_step.unwrap_or(20);
+        let centered_y = 35 + vertical_step * i;
 
         debug!("Drawing hostname");
         let short_hostname = match infrastructure_summary.suffix {
