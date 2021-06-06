@@ -74,7 +74,7 @@ pub fn draw_infrastructure_summary(
     new_root.draw(&Text::new("LOAD", (LOAD_X, 10), &header_font))?;
 
     const MAX_LOAD: f64 = 1.0;
-    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status), 0.0, MAX_LOAD);
+    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD);
 
     for (i, host) in (0..).zip(hosts) {
         let load: Option<f64> = loads
@@ -90,7 +90,8 @@ pub fn draw_infrastructure_summary(
             load.map(|l| l.to_string()).unwrap_or_else(|| "None".to_owned())
         );
 
-        let centered_y = 35 + 22*i;
+        let vertical_step = infrastructure_summary.vertical_step.unwrap_or(20);
+        let centered_y = 35 + vertical_step * i;
 
         debug!("Drawing hostname");
         let short_hostname = match infrastructure_summary.suffix {

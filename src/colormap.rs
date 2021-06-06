@@ -29,8 +29,8 @@ pub struct Colormap {
 }
 
 impl Colormap {
-    pub fn new_with_bounds_and_direction(colormap_type: Option<ColormapType>, min: f64, max: f64, reversed: Option<bool>) -> Self {
-        let base_palette = match colormap_type.unwrap_or(ColormapType::Blues) {
+    pub fn new_with_bounds_and_direction(colormap_type: Option<&ColormapType>, min: f64, max: f64, reversed: Option<bool>) -> Self {
+        let base_palette = match colormap_type.unwrap_or(&ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
             ColormapType::Blues => PALETTE_BLUES,
@@ -60,7 +60,7 @@ impl Colormap {
         }
     }
 
-    pub fn new_with_bounds(colormap_type: Option<ColormapType>, min: f64, max: f64) -> Self {
+    pub fn new_with_bounds(colormap_type: Option<&ColormapType>, min: f64, max: f64) -> Self {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 

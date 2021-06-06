@@ -65,6 +65,7 @@ pub struct TrendConfiguration {
     pub precision: Option<usize>,
     pub draw_last_value: Option<bool>,
     pub hide_legend: Option<bool>,
+    pub top_padding: Option<f64>,
     pub database: String,
     pub measurement: String,
     pub field: String,
@@ -351,4 +352,5 @@ pub struct InfrastructureSummaryConfiguration {
     pub how_long_ago: Iso8601Duration,
     pub suffix: Option<String>,
     pub last_update_format: Option<String>,
+    pub vertical_step: Option<i32>,
 }
