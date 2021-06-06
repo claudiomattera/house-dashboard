@@ -65,6 +65,7 @@ pub struct TrendConfiguration {
     pub precision: Option<usize>,
     pub draw_last_value: Option<bool>,
     pub hide_legend: Option<bool>,
+    pub top_padding: Option<f64>,
     pub database: String,
     pub measurement: String,
     pub field: String,

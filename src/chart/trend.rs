@@ -79,8 +79,9 @@ pub fn draw_trend_chart(
         }
     }
 
-    // Add 20% more to the top to make space for the legend
-    max_y += 2.0 * (max_y - min_y) / 10.0;
+    // Increase maximal Y range to make space for the legend
+    let top_padding = trend_configuration.top_padding.unwrap_or(0.0);
+    max_y += top_padding * (max_y - min_y);
 
     let min_x = Utc
             .ymd(min_x_utc.year(), min_x_utc.month(), min_x_utc.day())
