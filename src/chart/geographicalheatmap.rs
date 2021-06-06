@@ -79,7 +79,7 @@ pub fn draw_geographical_heat_map_chart(
 
     debug!("Drawing regions");
     let colormap = Colormap::new_with_bounds_and_direction(
-        geographical_heatmap_configuration.colormap,
+        geographical_heatmap_configuration.colormap.as_ref(),
         bounds.0,
         bounds.1,
         geographical_heatmap_configuration.reversed,

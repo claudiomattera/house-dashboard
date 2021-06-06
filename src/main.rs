@@ -347,13 +347,13 @@ async fn generate_geographical_map_chart(
 
 #[tracing::instrument(
     name = "Generating a temporal heatmap chart",
-    skip(chart, influxdb_client, style, resolution, progress_bar),
+    skip(temporal_heatmap_configuration, influxdb_client, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
 )]
 async fn generate_temporal_heat_map_chart(
-            chart: TemporalHeatMapConfiguration,
+            temporal_heatmap_configuration: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
             path: PathBuf,
@@ -368,38 +368,33 @@ async fn generate_temporal_heat_map_chart(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
         WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
         GROUP BY time({period}),{tag} FILL(previous)",
-        scale = chart.scale.unwrap_or(1.0),
-        aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
-        field = chart.field,
-        database = chart.database,
-        measurement = chart.measurement,
-        tag = chart.tag,
-        tag_value = chart.tag_value,
-        period = chart.period.to_query_group(),
-        how_long_ago = chart.period.how_long_ago(),
+        scale = temporal_heatmap_configuration.scale.unwrap_or(1.0),
+        aggregator = temporal_heatmap_configuration.aggregator.clone().unwrap_or_else(|| "mean".to_owned()),
+        field = temporal_heatmap_configuration.field,
+        database = temporal_heatmap_configuration.database,
+        measurement = temporal_heatmap_configuration.measurement,
+        tag = temporal_heatmap_configuration.tag,
+        tag_value = &temporal_heatmap_configuration.tag_value,
+        period = temporal_heatmap_configuration.period.to_query_group(),
+        how_long_ago = temporal_heatmap_configuration.period.how_long_ago(),
     );
 
     debug!("Query: {}", query);
 
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &query,
-        &chart.tag,
+        &temporal_heatmap_configuration.tag,
     )
     .await
     .context("Failed to fetch data from database")?;
 
     let time_series = time_seriess
-        .get(&chart.tag_value)
-        .ok_or(DashboardError::NonexistingTagValue(chart.tag_value))?;
+        .get(&temporal_heatmap_configuration.tag_value)
+        .ok_or_else(|| DashboardError::NonexistingTagValue(temporal_heatmap_configuration.tag_value.clone()))?;
 
     chart::draw_temporal_heat_map_chart(
         time_series.to_owned(),
-        chart.period,
-        &chart.title,
-        &chart.unit,
-        chart.bounds,
-        chart.precision.unwrap_or(0),
-        chart.colormap,
+        temporal_heatmap_configuration,
         style,
         backend,
     )

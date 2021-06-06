@@ -13,8 +13,8 @@ use plotters::element::{Rectangle, Text};
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
-use crate::colormap::{Colormap, ColormapType};
-use crate::configuration::{Period, StyleConfiguration};
+use crate::colormap::Colormap;
+use crate::configuration::{StyleConfiguration, TemporalHeatMapConfiguration};
 use crate::error::DashboardError;
 use crate::types::TimeSeries;
 use crate::palette::SystemColor;
@@ -24,16 +24,11 @@ use super::element::colorbar::Colorbar;
 
 pub fn draw_temporal_heat_map_chart(
             time_series: TimeSeries,
-            period: Period,
-            caption: &str,
-            unit: &str,
-            bounds: (f64, f64),
-            precision: usize,
-            colormap_type: Option<ColormapType>,
+            temporal_heatmap_configuration: TemporalHeatMapConfiguration,
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing temporal heat map '{}'", caption.to_lowercase());
+    info!("Drawing temporal heat map '{}'", temporal_heatmap_configuration.title.to_lowercase());
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
@@ -51,7 +46,7 @@ pub fn draw_temporal_heat_map_chart(
     }
 
     let min_y = 0.0;
-    let max_y = period.max_y();
+    let max_y = temporal_heatmap_configuration.period.max_y();
 
     let min_x = Utc
             .ymd(min_x_utc.year(), min_x_utc.month(), min_x_utc.day())
@@ -76,7 +71,7 @@ pub fn draw_temporal_heat_map_chart(
     let pos = Pos::new(HPos::Center, VPos::Top);
     root.draw(
         &Text::new(
-            caption,
+            temporal_heatmap_configuration.title.clone(),
             (width as i32 / 2, 10),
             title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
         )
@@ -99,22 +94,26 @@ pub fn draw_temporal_heat_map_chart(
         .disable_mesh()
         .axis_style(&style.system_palette.pick(SystemColor::Foreground))
         .x_labels(3)
-        .x_label_formatter(&|d| d.format(period.xlabel_format()).to_string())
+        .x_label_formatter(&|d| d.format(temporal_heatmap_configuration.period.xlabel_format()).to_string())
         .y_labels(4)
-        .y_label_formatter(&|value| format!("{0:.1$}", value, precision))
-        .x_desc(period.xlabel())
-        .y_desc(period.ylabel())
+        .y_label_formatter(&|value| format!("{0:.1$}", value, temporal_heatmap_configuration.precision.unwrap_or(0)))
+        .x_desc(temporal_heatmap_configuration.period.xlabel())
+        .y_desc(temporal_heatmap_configuration.period.ylabel())
         .label_style(label_font.color(&style.system_palette.pick(SystemColor::Foreground)))
         .draw()?;
 
     let time_series = time_series_to_local_time(time_series);
 
-    let colormap = Colormap::new_with_bounds(colormap_type, bounds.0, bounds.1);
+    let colormap = Colormap::new_with_bounds(
+        temporal_heatmap_configuration.colormap.as_ref(),
+        temporal_heatmap_configuration.bounds.0,
+        temporal_heatmap_configuration.bounds.1,
+    );
 
     let fragments: Vec<Rectangle<(DateTime<Local>, f64)>> = time_series
         .iter()
         .map(|(instant, value)| {
-            let ((x1, x2), (y1, y2)) = period.instant_to_rectangle(*instant);
+            let ((x1, x2), (y1, y2)) = temporal_heatmap_configuration.period.instant_to_rectangle(*instant);
             Rectangle::new(
                 [(x1, y1 as f64), (x2, y2 as f64)],
                 colormap.get_color(*value).filled(),
@@ -127,9 +126,9 @@ pub fn draw_temporal_heat_map_chart(
     let colorbar = Colorbar::new(
         (width as i32 - 55, 40),
         (10, height as i32 - 60),
-        bounds,
-        precision,
-        unit.to_owned(),
+        temporal_heatmap_configuration.bounds,
+        temporal_heatmap_configuration.precision.unwrap_or(0),
+        temporal_heatmap_configuration.unit,
         label_font,
         style.system_palette,
         colormap,
