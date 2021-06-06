@@ -17,6 +17,7 @@ use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
+use crate::configuration::TrendConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::types::TimeSeries;
@@ -25,19 +26,11 @@ use super::time_series_to_local_time;
 
 pub fn draw_trend_chart(
             time_seriess: HashMap<String, TimeSeries>,
-            caption: &str,
-            ylabel: &Option<String>,
-            yunit: &Option<String>,
-            ylabel_size: u32,
-            xlabel_format: &str,
-            precision: usize,
-            draw_last_value: bool,
-            hide_legend: bool,
-            tag_values: Option<Vec<String>>,
+            trend_configuration: TrendConfiguration,
             style: &StyleConfiguration,
             root: BitMapBackend,
         ) -> Result<(), DashboardError> {
-    info!("Drawing trend '{}'", caption.to_lowercase());
+    info!("Drawing trend '{}'", trend_configuration.title.to_lowercase());
 
     let root = root.into_drawing_area();
 
@@ -92,10 +85,10 @@ pub fn draw_trend_chart(
     debug!("Creating chart");
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(caption, title_font)
+        .caption(&trend_configuration.title, title_font)
         .margin(5)
         .x_label_area_size(20)
-        .y_label_area_size(ylabel_size)
+        .y_label_area_size(50)
         .build_ranged(
             min_x..max_x,
             min_y..max_y,
@@ -116,8 +109,8 @@ pub fn draw_trend_chart(
 
 
     let mut indices = HashMap::<String, usize>::new();
-    match tag_values {
-        Some(tag_values) => {
+    match trend_configuration.tag_values {
+        Some(ref tag_values) => {
             for (index, name) in (0..).zip(tag_values.iter()) {
                 indices.insert(name.to_owned(), index);
             }
@@ -168,10 +161,10 @@ pub fn draw_trend_chart(
             )?;
         }
 
-        if draw_last_value {
+        if trend_configuration.draw_last_value.unwrap_or(false) {
             let last_reading = time_series.last().unwrap();
             let last_value = last_reading.1;
-            let last_value_text = format!("{0:.1$}", last_value, precision);
+            let last_value_text = format!("{0:.1$}", last_value, trend_configuration.precision.unwrap_or(0));
 
             let last_value_coordinates = chart.backend_coord(&last_reading);
 
@@ -185,7 +178,7 @@ pub fn draw_trend_chart(
         }
     }
 
-    if !hide_legend {
+    if !trend_configuration.hide_legend.unwrap_or(false) {
         debug!("Drawing legend");
 
         chart
@@ -199,7 +192,7 @@ pub fn draw_trend_chart(
 
     debug!("Drawing axis");
 
-    let ylabel = match (ylabel, yunit) {
+    let ylabel = match (&trend_configuration.ylabel, &trend_configuration.yunit) {
         (Some(ylabel), Some(yunit)) => format!("{} [{}]", ylabel, yunit),
         (Some(ylabel), None) => ylabel.to_owned(),
         (None, _) => "".to_owned(),
@@ -210,9 +203,9 @@ pub fn draw_trend_chart(
         .disable_mesh()
         .axis_style(&style.system_palette.pick(SystemColor::Foreground))
         .x_labels(4)
-        .x_label_formatter(&|d| d.format(xlabel_format).to_string())
+        .x_label_formatter(&|d| d.format(&trend_configuration.xlabel_format).to_string())
         .y_labels(5)
-        .y_label_formatter(&|value| format!("{0:.1$}", value, precision))
+        .y_label_formatter(&|value| format!("{0:.1$}", value, trend_configuration.precision.unwrap_or(0)))
         .y_desc(ylabel)
         .label_style(label_font)
         .draw()?;

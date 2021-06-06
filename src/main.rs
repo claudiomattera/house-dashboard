@@ -227,13 +227,13 @@ fn parse_configuration(
 
 #[tracing::instrument(
     name = "Generating a trend chart",
-    skip(chart, influxdb_client, style, resolution, progress_bar),
+    skip(trend_configuration, influxdb_client, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
 )]
 async fn generate_trend_chart(
-            chart: TrendConfiguration,
+            trend_configuration: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
             style: &StyleConfiguration,
             path: PathBuf,
@@ -248,36 +248,29 @@ async fn generate_trend_chart(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
         WHERE time < now() AND time > now() - {how_long_ago}
         GROUP BY time({period}),{tag} FILL(none)",
-        scale = chart.scale.unwrap_or(1.0),
-        aggregator = chart.aggregator.unwrap_or_else(|| "mean".to_owned()),
-        field = chart.field,
-        database = chart.database,
-        measurement = chart.measurement,
-        tag = chart.tag,
-        period = chart.how_often
+        scale = trend_configuration.scale.unwrap_or(1.0),
+        aggregator = trend_configuration.aggregator.clone().unwrap_or_else(|| "mean".to_owned()),
+        field = trend_configuration.field,
+        database = trend_configuration.database,
+        measurement = trend_configuration.measurement,
+        tag = trend_configuration.tag,
+        period = trend_configuration.how_often
+            .as_ref()
             .map(|d| duration_to_query(&d.duration))
             .unwrap_or_else(|| "1h".to_owned()),
-        how_long_ago = duration_to_query(&chart.how_long_ago.duration),
+        how_long_ago = duration_to_query(&trend_configuration.how_long_ago.duration),
     );
 
     let time_seriess = influxdb_client.fetch_timeseries_by_tag(
         &query,
-        &chart.tag,
+        &trend_configuration.tag,
     )
     .await
     .context("Failed to fetch data from database")?;
 
     chart::draw_trend_chart(
         time_seriess,
-        &chart.title,
-        &chart.ylabel,
-        &chart.yunit,
-        50,
-        &chart.xlabel_format,
-        chart.precision.unwrap_or(0),
-        chart.draw_last_value.unwrap_or(false),
-        chart.hide_legend.unwrap_or(false),
-        chart.tag_values,
+        trend_configuration,
         style,
         backend,
     )
