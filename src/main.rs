@@ -198,7 +198,9 @@ fn setup_logging(verbosity: u64) {
         0 => "warn",
         1 => "info",
         2 => "info,house_dashboard=debug",
-        _ => "debug",
+        3 => "debug",
+        4 => "debug,house_dashboard=trace",
+        _ => "trace",
     };
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(default_log_filter));
