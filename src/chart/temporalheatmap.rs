@@ -8,8 +8,9 @@ use tracing::*;
 use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
 use plotters::chart::ChartBuilder;
-use plotters::drawing::{BitMapBackend, IntoDrawingArea};
+use plotters::drawing::IntoDrawingArea;
 use plotters::element::{Rectangle, Text};
+use plotters::prelude::BitMapBackend;
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
@@ -84,7 +85,7 @@ pub fn draw_temporal_heat_map_chart(
         .margin_right(70)
         .x_label_area_size(35)
         .y_label_area_size(40)
-        .build_ranged(
+        .build_cartesian_2d(
             min_x..max_x,
             min_y..max_y,
         )?;

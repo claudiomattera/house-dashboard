@@ -9,10 +9,11 @@ use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Local};
 
-use plotters::drawing::{BitMapBackend, IntoDrawingArea};
+use plotters::drawing::IntoDrawingArea;
 use plotters::style::{Color, IntoFont, ShapeStyle};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::element::{Circle, Text};
+use plotters::prelude::BitMapBackend;
 
 use crate::colormap::{Colormap, ColormapType};
 use crate::configuration::InfrastructureSummaryConfiguration;

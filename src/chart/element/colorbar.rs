@@ -5,8 +5,9 @@
 
 use std::iter::{Once, once};
 
-use plotters::drawing::backend::{BackendCoord, DrawingBackend, DrawingErrorKind};
+use plotters_backend::{BackendCoord, DrawingErrorKind};
 use plotters::element::{Drawable, PointCollection};
+use plotters::prelude::DrawingBackend;
 use plotters::style::FontDesc;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
@@ -53,7 +54,7 @@ impl<'a> Colorbar<'a> {
 }
 
 impl <'a> PointCollection<'a, (i32, i32)> for &'a Colorbar<'a> {
-    type Borrow = &'a (i32, i32);
+    type Point = &'a (i32, i32);
     type IntoIter = Once<&'a (i32, i32)>;
     fn point_iter(self) -> Self::IntoIter {
         once(&self.position)

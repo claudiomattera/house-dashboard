@@ -7,8 +7,9 @@ use tracing::*;
 
 use std::path::PathBuf;
 
-use plotters::drawing::{BitMapBackend, DrawingBackend, IntoDrawingArea};
+use plotters::drawing::IntoDrawingArea;
 use plotters::element::BitMapElement;
+use plotters::prelude::{BitMapBackend, DrawingBackend};
 
 use image::{open, RgbImage};
 

@@ -7,8 +7,9 @@ use tracing::*;
 
 use std::collections::HashMap;
 
-use plotters::drawing::{BitMapBackend, IntoDrawingArea};
+use plotters::drawing::IntoDrawingArea;
 use plotters::element::{PathElement, Polygon, Text};
+use plotters::prelude::BitMapBackend;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::style::{IntoFont, RGBColor, BLACK};
 

@@ -11,8 +11,9 @@ use std::collections::HashMap;
 use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc, MAX_DATE, MIN_DATE};
 
 use plotters::chart::{ChartBuilder, SeriesLabelPosition};
-use plotters::drawing::{BitMapBackend, IntoDrawingArea};
+use plotters::drawing::IntoDrawingArea;
 use plotters::element::{PathElement, Circle, Text};
+use plotters::prelude::BitMapBackend;
 use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
@@ -108,7 +109,7 @@ pub fn draw_trend_chart(
         .margin(5)
         .x_label_area_size(20)
         .y_label_area_size(50)
-        .build_ranged(
+        .build_cartesian_2d(
             min_x..max_x,
             min_y..max_y,
         )?;

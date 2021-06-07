@@ -4,7 +4,7 @@ use thiserror::Error;
 use image::error::ImageError;
 
 use plotters::drawing::DrawingAreaErrorKind;
-use plotters::drawing::backend::DrawingErrorKind;
+use plotters_backend::DrawingErrorKind;
 
 #[derive(Error, Debug)]
 pub enum DashboardError {

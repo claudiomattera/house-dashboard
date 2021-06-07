@@ -24,7 +24,7 @@ use clap::{Arg, ArgMatches, SubCommand};
 
 use glob::glob;
 
-use plotters::drawing::BitMapBackend;
+use plotters::prelude::BitMapBackend;
 
 use futures::future::try_join_all;
 
