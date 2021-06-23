@@ -48,8 +48,14 @@ features = ["rustls-tls"]
 
 [dependencies.plotters]
 version = "0.3"
-# default-features = false
-# features = ["image_encoder", "line_series", "datetime"]
+default-features = false
+features = [
+    "bitmap_backend",
+    "bitmap_encoder",
+    "ttf",
+    "line_series",
+    "datetime",
+]
 
 [dependencies.plotters-backend]
 version = "0.3"
