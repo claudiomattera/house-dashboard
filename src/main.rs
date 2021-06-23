@@ -17,7 +17,7 @@ use std::process::exit;
 
 use anyhow::{Context, Result};
 
-use chrono::Duration;
+use chrono::{DateTime, Duration, Local, SecondsFormat, Utc};
 
 use clap::{app_from_crate, crate_name, crate_version, crate_authors, crate_description};
 use clap::{Arg, ArgMatches, SubCommand};
@@ -76,6 +76,14 @@ async fn inner_main() -> Result<()> {
     let configuration = parse_configuration(configuration_path)
         .context("Could not load configuration")?;
 
+    let now = matches
+        .value_of("now")
+        .map(DateTime::parse_from_rfc3339)
+        .transpose()?
+        .map(|dt| dt.with_timezone(&Utc))
+        .unwrap_or_else(|| Utc::now());
+    info!("Current time is {}", now.with_timezone(&Local));
+
     debug!("Creating InfluxDB client");
     let influxdb_client = InfluxdbClient::new(
         configuration.influxdb.url,
@@ -122,16 +130,16 @@ async fn inner_main() -> Result<()> {
 
                 match chart {
                     ChartConfiguration::Trend(chart) => {
-                        let task = generate_trend_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
+                        let task = generate_trend_chart(chart, &influxdb_client, now, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::GeographicalHeatMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
-                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
+                        let task = generate_geographical_map_chart(chart, regions, &influxdb_client, now, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::TemporalHeatMap(chart) => {
-                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
+                        let task = generate_temporal_heat_map_chart(chart, &influxdb_client, now, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::Image(image_configuration) => {
@@ -139,7 +147,7 @@ async fn inner_main() -> Result<()> {
                         tasks.push(Box::pin(task));
                     }
                     ChartConfiguration::InfrastructureSummary(infrastructure_summary_configuration) => {
-                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, &configuration.style, chart_path, configuration.style.resolution, &bar);
+                        let task = generate_infrastructure_summary(infrastructure_summary_configuration, &influxdb_client, now, &configuration.style, chart_path, configuration.style.resolution, &bar);
                         tasks.push(Box::pin(task));
                     }
                 }
@@ -168,6 +176,14 @@ fn parse_arguments() -> ArgMatches<'static> {
                 .long("configuration")
                 .required(true)
                 .help("Path to configuration file")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("now")
+                .short("n")
+                .long("now")
+                .required(false)
+                .help("Create charts at a specific instant")
                 .takes_value(true),
         )
         .subcommand(
@@ -229,7 +245,7 @@ fn parse_configuration(
 
 #[tracing::instrument(
     name = "Generating a trend chart",
-    skip(trend_configuration, influxdb_client, style, resolution, progress_bar),
+    skip(trend_configuration, influxdb_client, now, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
@@ -237,6 +253,7 @@ fn parse_configuration(
 async fn generate_trend_chart(
             trend_configuration: TrendConfiguration,
             influxdb_client: &InfluxdbClient,
+            now: DateTime<Utc>,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
@@ -248,7 +265,7 @@ async fn generate_trend_chart(
 
     let query = format!(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago}
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago}
         GROUP BY time({period}),{tag} FILL(none)",
         scale = trend_configuration.scale.unwrap_or(1.0),
         aggregator = trend_configuration.aggregator.clone().unwrap_or_else(|| "mean".to_owned()),
@@ -260,6 +277,7 @@ async fn generate_trend_chart(
             .as_ref()
             .map(|d| duration_to_query(&d.duration))
             .unwrap_or_else(|| "1h".to_owned()),
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
         how_long_ago = duration_to_query(&trend_configuration.how_long_ago.duration),
     );
 
@@ -285,7 +303,7 @@ async fn generate_trend_chart(
 
 #[tracing::instrument(
     name = "Generating a geographical map chart",
-    skip(geographical_heatmap_configuration, regions_configurations, influxdb_client, style, resolution, progress_bar),
+    skip(geographical_heatmap_configuration, regions_configurations, influxdb_client, now, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
@@ -294,6 +312,7 @@ async fn generate_geographical_map_chart(
             geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
             influxdb_client: &InfluxdbClient,
+            now: DateTime<Utc>,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
@@ -310,13 +329,14 @@ async fn generate_geographical_map_chart(
 
     let query = format!(
         "SELECT {scale} * last({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago}
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago}
         GROUP BY {tag} FILL(none)",
         scale = geographical_heatmap_configuration.scale.unwrap_or(1.0),
         field = geographical_heatmap_configuration.field,
         database = geographical_heatmap_configuration.database,
         measurement = geographical_heatmap_configuration.measurement,
         tag = geographical_heatmap_configuration.tag,
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
         how_long_ago = duration_to_query(&geographical_heatmap_configuration.how_long_ago.duration),
     );
 
@@ -347,7 +367,7 @@ async fn generate_geographical_map_chart(
 
 #[tracing::instrument(
     name = "Generating a temporal heatmap chart",
-    skip(temporal_heatmap_configuration, influxdb_client, style, resolution, progress_bar),
+    skip(temporal_heatmap_configuration, influxdb_client, now, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
@@ -355,6 +375,7 @@ async fn generate_geographical_map_chart(
 async fn generate_temporal_heat_map_chart(
             temporal_heatmap_configuration: TemporalHeatMapConfiguration,
             influxdb_client: &InfluxdbClient,
+            now: DateTime<Utc>,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
@@ -366,7 +387,7 @@ async fn generate_temporal_heat_map_chart(
 
     let query = format!(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago} AND {tag} = '{tag_value}'
         GROUP BY time({period}),{tag} FILL(previous)",
         scale = temporal_heatmap_configuration.scale.unwrap_or(1.0),
         aggregator = temporal_heatmap_configuration.aggregator.clone().unwrap_or_else(|| "mean".to_owned()),
@@ -376,6 +397,7 @@ async fn generate_temporal_heat_map_chart(
         tag = temporal_heatmap_configuration.tag,
         tag_value = &temporal_heatmap_configuration.tag_value,
         period = temporal_heatmap_configuration.period.to_query_group(),
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
         how_long_ago = temporal_heatmap_configuration.period.how_long_ago(),
     );
 
@@ -433,7 +455,7 @@ async fn generate_image(
 
 #[tracing::instrument(
     name = "Generating an infrastructure summary chart",
-    skip(infrastructure_summary, influxdb_client, style, resolution, progress_bar),
+    skip(infrastructure_summary, influxdb_client, now, style, resolution, progress_bar),
     fields(
         path = %path.display(),
     )
@@ -441,6 +463,7 @@ async fn generate_image(
 async fn generate_infrastructure_summary(
             infrastructure_summary: InfrastructureSummaryConfiguration,
             influxdb_client: &InfluxdbClient,
+            now: DateTime<Utc>,
             style: &StyleConfiguration,
             path: PathBuf,
             resolution: (u32, u32),
@@ -470,7 +493,7 @@ async fn generate_infrastructure_summary(
 
     let query = format!(
         "SELECT last({load_field}) / last({n_cpus_field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
         GROUP BY {tag}",
         load_field = load_field,
         n_cpus_field = n_cpus_field,
@@ -479,6 +502,7 @@ async fn generate_infrastructure_summary(
         tag = tag,
         filter_tag_name = filter_tag_name,
         filter_tag_value = filter_tag_value,
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
         how_long_ago = duration_to_query(&infrastructure_summary.how_long_ago.duration),
     );
 
@@ -491,6 +515,7 @@ async fn generate_infrastructure_summary(
 
     chart::draw_infrastructure_summary(
         infrastructure_summary,
+        now,
         hosts,
         loads,
         style,
