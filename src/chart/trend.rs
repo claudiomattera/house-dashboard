@@ -17,6 +17,8 @@ use plotters::series::LineSeries;
 use plotters::style::{Color, IntoFont};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
+use palette::Hsla;
+
 use crate::configuration::TrendConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
@@ -182,6 +184,37 @@ pub fn draw_trend_chart(
         }
     }
 
+    debug!("Drawing axis");
+
+    let ylabel = match (&trend_configuration.ylabel, &trend_configuration.yunit) {
+        (Some(ylabel), Some(yunit)) => format!("{} [{}]", ylabel, yunit),
+        (Some(ylabel), None) => ylabel.to_owned(),
+        (None, _) => "".to_owned(),
+    };
+
+    let mut mesh = chart
+        .configure_mesh();
+
+    let mesh = if trend_configuration.draw_horizontal_grid.unwrap_or(false) {
+        mesh
+            .disable_x_mesh()
+            .line_style_1(&style.system_palette.pick(SystemColor::Middle))
+            .line_style_2(&Hsla::new(0.0, 0.0, 0.0, 0.0))
+    } else {
+        mesh
+            .disable_mesh()
+    };
+
+    mesh
+        .axis_style(&style.system_palette.pick(SystemColor::Foreground))
+        .x_labels(4)
+        .x_label_formatter(&|d| d.format(&trend_configuration.xlabel_format).to_string())
+        .y_labels(5)
+        .y_label_formatter(&|value| format!("{0:.1$}", value, trend_configuration.precision.unwrap_or(0)))
+        .y_desc(ylabel)
+        .label_style(label_font)
+        .draw()?;
+
     if !trend_configuration.hide_legend.unwrap_or(false) {
         debug!("Drawing legend");
 
@@ -193,26 +226,6 @@ pub fn draw_trend_chart(
             .label_font(legend_font)
             .draw()?;
     }
-
-    debug!("Drawing axis");
-
-    let ylabel = match (&trend_configuration.ylabel, &trend_configuration.yunit) {
-        (Some(ylabel), Some(yunit)) => format!("{} [{}]", ylabel, yunit),
-        (Some(ylabel), None) => ylabel.to_owned(),
-        (None, _) => "".to_owned(),
-    };
-
-    chart
-        .configure_mesh()
-        .disable_mesh()
-        .axis_style(&style.system_palette.pick(SystemColor::Foreground))
-        .x_labels(4)
-        .x_label_formatter(&|d| d.format(&trend_configuration.xlabel_format).to_string())
-        .y_labels(5)
-        .y_label_formatter(&|value| format!("{0:.1$}", value, trend_configuration.precision.unwrap_or(0)))
-        .y_desc(ylabel)
-        .label_style(label_font)
-        .draw()?;
 
     Ok(())
 }

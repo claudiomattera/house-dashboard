@@ -21,6 +21,7 @@ pub enum SystemColor {
     Foreground,
     LightBackground,
     LightForeground,
+    Middle,
 }
 
 impl SystemColor {
@@ -30,6 +31,7 @@ impl SystemColor {
             SystemColor::Foreground => 1,
             SystemColor::LightBackground => 2,
             SystemColor::LightForeground => 3,
+            SystemColor::Middle => 4,
         }
     }
 }
@@ -85,6 +87,7 @@ impl Palette for PaletteDarkTheme {
         (255, 255, 255),
         (32, 32, 32),
         (192, 192, 192),
+        (128, 128, 128),
     ];
 }
 
@@ -96,6 +99,7 @@ impl Palette for PaletteLightTheme {
         (0, 0, 0),
         (192, 192, 192),
         (32, 32, 32),
+        (128, 128, 128),
     ];
 }
 
