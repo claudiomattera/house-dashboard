@@ -67,6 +67,7 @@ pub struct TrendConfiguration {
     pub hide_legend: Option<bool>,
     pub top_padding: Option<f64>,
     pub draw_horizontal_grid: Option<bool>,
+    pub max_x_ticks: Option<usize>,
     pub max_y_ticks: Option<usize>,
     pub database: String,
     pub measurement: String,
