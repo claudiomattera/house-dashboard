@@ -308,6 +308,7 @@ async fn generate_trend_chart(
         path = %path.display(),
     )
 )]
+#[allow(clippy::too_many_arguments)]
 async fn generate_geographical_map_chart(
             geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
             regions_configurations: Vec<GeographicalRegionConfiguration>,
