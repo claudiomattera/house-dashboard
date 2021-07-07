@@ -7,7 +7,7 @@ use tracing::*;
 
 use std::collections::{HashMap, HashSet};
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, Utc};
 
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::style::{Color, IntoFont, ShapeStyle};
@@ -24,6 +24,7 @@ use super::element::loadbar::Loadbar;
 
 pub fn draw_infrastructure_summary(
             infrastructure_summary: InfrastructureSummaryConfiguration,
+            now: DateTime<Utc>,
             hosts: HashSet<String>,
             loads: HashMap<String, TimeSeries>,
             style: &StyleConfiguration,
@@ -127,7 +128,7 @@ pub fn draw_infrastructure_summary(
     }
 
     if let Some(format) = infrastructure_summary.last_update_format {
-        let now: DateTime<Local> = Local::now();
+        let now: DateTime<Local> = now.with_timezone(&Local);
         new_root.draw(
             &Text::new(
                 now.format(&format).to_string(),
