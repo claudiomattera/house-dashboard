@@ -209,7 +209,7 @@ pub fn draw_trend_chart(
         .axis_style(&style.system_palette.pick(SystemColor::Foreground))
         .x_labels(4)
         .x_label_formatter(&|d| d.format(&trend_configuration.xlabel_format).to_string())
-        .y_labels(5)
+        .y_labels(trend_configuration.max_y_ticks.unwrap_or(5))
         .y_label_formatter(&|value| format!("{0:.1$}", value, trend_configuration.precision.unwrap_or(0)))
         .y_desc(ylabel)
         .label_style(label_font)
