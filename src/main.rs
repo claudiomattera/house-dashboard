@@ -81,7 +81,7 @@ async fn inner_main() -> Result<()> {
         .map(DateTime::parse_from_rfc3339)
         .transpose()?
         .map(|dt| dt.with_timezone(&Utc))
-        .unwrap_or_else(|| Utc::now());
+        .unwrap_or_else(Utc::now);
     info!("Current time is {}", now.with_timezone(&Local));
 
     debug!("Creating InfluxDB client");
