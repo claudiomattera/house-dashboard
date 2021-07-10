@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
 use plotters::element::{PathElement, Polygon, Text};
 use plotters::style::text_anchor::{HPos, Pos, VPos};
-use plotters::style::{IntoFont, RGBColor, BLACK};
+use plotters::style::{Color, IntoFont, RGBColor, BLACK};
 
 use crate::colormap::Colormap;
 use crate::configuration::GeographicalHeatMapConfiguration;
@@ -32,6 +32,13 @@ pub fn draw_geographical_heat_map_chart(
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
+
+    let indices = geographical_heatmap_configuration.colored_tag_values.map(|tag_values| {
+        tag_values.iter().enumerate().map(|(index, name)| {
+            (name.to_owned(), index)
+        })
+        .collect::<HashMap::<String, usize>>()
+    });
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
@@ -112,7 +119,21 @@ pub fn draw_geographical_heat_map_chart(
             )?;
         }
 
-        new_root.draw(&PathElement::new(closed_path, &style.system_palette.pick(SystemColor::LightForeground)))?;
+        let border_color = if let Some(ref indices) = indices {
+            let index = match indices.get(&name) {
+                Some(index) => *index,
+                None => {
+                    warn!("{}", DashboardError::UnexpectedTagValue(name.to_owned()));
+                    continue;
+                }
+            };
+            style.series_palette.pick(index).stroke_width(2)
+
+        } else {
+            style.system_palette.pick(SystemColor::LightForeground).stroke_width(1)
+        };
+
+        new_root.draw(&PathElement::new(closed_path, border_color))?;
     }
 
     debug!("Drawing colorbar");
