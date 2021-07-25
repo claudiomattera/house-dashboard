@@ -94,6 +94,7 @@ pub struct GeographicalHeatMapConfiguration {
     pub bounds: (f64, f64),
     pub colormap: Option<ColormapType>,
     pub reversed: Option<bool>,
+    pub colored_tag_values: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
