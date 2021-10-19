@@ -26,6 +26,11 @@ steps:
     root: drone
     restore: true
 
+- name: download dependencies
+  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  commands:
+  - cargo fetch --locked
+
 - name: check format
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
