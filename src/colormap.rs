@@ -29,7 +29,12 @@ pub struct Colormap {
 }
 
 impl Colormap {
-    pub fn new_with_bounds_and_direction(colormap_type: Option<&ColormapType>, min: f64, max: f64, reversed: Option<bool>) -> Self {
+    pub fn new_with_bounds_and_direction(
+        colormap_type: Option<&ColormapType>,
+        min: f64,
+        max: f64,
+        reversed: Option<bool>,
+    ) -> Self {
         let base_palette = match colormap_type.unwrap_or(&ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
@@ -45,19 +50,11 @@ impl Colormap {
         } else {
             base_palette.to_vec()
         };
-        let linear_palette = palette.iter().map(
-            |[r, g, b]| Srgb::new(
-                *r as f64 / 255.0,
-                *g as f64 / 255.0,
-                *b as f64 / 255.0,
-            ).into_linear()
-        );
+        let linear_palette = palette.iter().map(|[r, g, b]| {
+            Srgb::new(*r as f64 / 255.0, *g as f64 / 255.0, *b as f64 / 255.0).into_linear()
+        });
         let gradient = Gradient::new(linear_palette);
-        Colormap {
-            gradient,
-            min,
-            max,
-        }
+        Colormap { gradient, min, max }
     }
 
     pub fn new_with_bounds(colormap_type: Option<&ColormapType>, min: f64, max: f64) -> Self {
@@ -72,9 +69,7 @@ impl Colormap {
     pub fn get_color_array(&self, value: f64) -> [u8; 3] {
         let value = (value - self.min) / (self.max - self.min);
         let color = self.gradient.get(value);
-        let pixel: [u8; 3] = Srgb::from_linear(color)
-            .into_format()
-            .into_raw();
+        let pixel: [u8; 3] = Srgb::from_linear(color).into_format().into_raw();
         pixel
     }
 }
@@ -176,6 +171,7 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
     [103, 0, 31],
 ];
 
+#[rustfmt::skip]
 const PALETTE_STATUS: &[[u8; 3]] = &[
     [77, 175, 74],
     [255, 255, 51],

@@ -8,25 +8,26 @@ use num_traits::{Bounded, FromPrimitive, Num, Zero};
 use chrono::{DateTime, Local};
 
 mod geographicalheatmap;
+mod image;
 mod infrastructuresummary;
 mod temporalheatmap;
 mod trend;
-mod image;
 
 mod element;
 
 pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
-pub use self::temporalheatmap::draw_temporal_heat_map_chart;
-pub use self::trend::draw_trend_chart;
 pub use self::image::draw_image;
 pub use self::infrastructuresummary::draw_infrastructure_summary;
+pub use self::temporalheatmap::draw_temporal_heat_map_chart;
+pub use self::trend::draw_trend_chart;
 
 use crate::types::TimeSeries;
 
-fn time_series_to_local_time(
-            time_series: TimeSeries
-        ) -> Vec<(DateTime<Local>, f64)> {
-    time_series.iter().map(|(dt, v)| (dt.with_timezone(&Local), *v)).collect()
+fn time_series_to_local_time(time_series: TimeSeries) -> Vec<(DateTime<Local>, f64)> {
+    time_series
+        .iter()
+        .map(|(dt, v)| (dt.with_timezone(&Local), *v))
+        .collect()
 }
 
 pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
@@ -64,7 +65,11 @@ pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) ->
 
 fn area_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> T {
     let mut area = T::zero();
-    let closed_elements: Vec<(T, T)> = elements.iter().chain(elements.first().iter().copied()).copied().collect();
+    let closed_elements: Vec<(T, T)> = elements
+        .iter()
+        .chain(elements.first().iter().copied())
+        .copied()
+        .collect();
     let paired = closed_elements.iter().skip(1).zip(elements.iter());
     for ((x1, y1), (x2, y2)) in paired {
         area = area + (*x1 * *y2 - *x2 * *y1);
@@ -130,12 +135,12 @@ pub fn project_with_two_to_one_isometry(x: f64, y: f64, z: f64) -> (f64, f64, f6
 }
 
 fn project(
-            point: (f64, f64, f64),
-            big_x: (f64, f64, f64),
-            big_y: (f64, f64, f64),
-            big_z: (f64, f64, f64),
-            origin: (f64, f64, f64),
-        ) -> (f64, f64, f64) {
+    point: (f64, f64, f64),
+    big_x: (f64, f64, f64),
+    big_y: (f64, f64, f64),
+    big_z: (f64, f64, f64),
+    origin: (f64, f64, f64),
+) -> (f64, f64, f64) {
     #[allow(clippy::suspicious_operation_groupings)]
     let x = big_x.0 * point.0 + big_y.0 * point.1 + big_z.0 * point.2 + origin.0;
 
@@ -202,6 +207,7 @@ mod tests {
 
     #[test]
     fn centroid_of_path() {
+        #[rustfmt::skip]
         let path = vec![(0.0, 0.0), (0.0, 2.0), (1.0, 2.0), (1.0, 1.0), (2.0, 1.0), (2.0, 0.0)];
         let actual = centroid_of(&path);
         let expected = (5.0 / 6.0, 5.0 / 6.0);

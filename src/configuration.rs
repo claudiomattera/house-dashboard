@@ -3,8 +3,8 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use serde::{Deserialize, Deserializer};
 use serde::de::Error;
+use serde::{Deserialize, Deserializer};
 
 use regex::Regex;
 
@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 use url::Url;
 
-use chrono::{Datelike, DateTime, Duration, Local, Timelike};
+use chrono::{DateTime, Datelike, Duration, Local, Timelike};
 
 use crate::colormap::ColormapType;
 use crate::palette::{SeriesPalette, SystemPalette};
@@ -54,7 +54,6 @@ pub enum ChartConfiguration {
     Image(ImageConfiguration),
     InfrastructureSummary(InfrastructureSummaryConfiguration),
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct TrendConfiguration {
@@ -153,8 +152,9 @@ impl<'a> Period {
     }
 
     pub fn instant_to_rectangle(
-                &self, instant: DateTime<Local>,
-            ) -> ((DateTime<Local>, DateTime<Local>), (u32, u32)) {
+        &self,
+        instant: DateTime<Local>,
+    ) -> ((DateTime<Local>, DateTime<Local>), (u32, u32)) {
         match self {
             Period::HourOverDay => {
                 let hour = instant.hour();
@@ -168,8 +168,8 @@ impl<'a> Period {
                 let next_day = day + 1;
                 let date = instant.with_day(1).expect("Invalid date");
                 let next_date = match date.month() {
-                    1|3|5|7|8|19 => date + Duration::days(31),
-                    4|6|9|11 => date + Duration::days(30),
+                    1 | 3 | 5 | 7 | 8 | 19 => date + Duration::days(31),
+                    4 | 6 | 9 | 11 => date + Duration::days(30),
                     _ => {
                         if (date + Duration::days(28)).day() == 29 {
                             date + Duration::days(29)
@@ -214,29 +214,29 @@ pub struct Iso8601Duration {
 impl<'de> Deserialize<'de> for Iso8601Duration {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: Deserializer<'de> {
-            let string = String::deserialize(deserializer)?;
-            let duration = string_to_duration(&string)
-                .ok_or_else(|| D::Error::custom("Not a ISO8601 duration".to_owned()))?;
-            Ok(Iso8601Duration{duration})
-        }
+        D: Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+        let duration = string_to_duration(&string)
+            .ok_or_else(|| D::Error::custom("Not a ISO8601 duration".to_owned()))?;
+        Ok(Iso8601Duration { duration })
+    }
 }
 
 fn string_to_duration(string: &str) -> Option<Duration> {
-    let duration_regex = Regex::new(
-        concat!(
-            r"^P",
-            r"((?P<years>\d+)Y)?",
-            r"((?P<months>\d+)M)?",
-            r"((?P<days>\d+)D)?",
-            r"(T",
-            r"((?P<hours>\d+)H)?",
-            r"((?P<minutes>\d+)M)?",
-            r"((?P<seconds>\d+)S)?",
-            r")?",
-            r"$",
-        )
-    ).unwrap();
+    let duration_regex = Regex::new(concat!(
+        r"^P",
+        r"((?P<years>\d+)Y)?",
+        r"((?P<months>\d+)M)?",
+        r"((?P<days>\d+)D)?",
+        r"(T",
+        r"((?P<hours>\d+)H)?",
+        r"((?P<minutes>\d+)M)?",
+        r"((?P<seconds>\d+)S)?",
+        r")?",
+        r"$",
+    ))
+    .unwrap();
 
     let mut duration = Duration::zero();
 
@@ -268,7 +268,7 @@ fn string_to_duration(string: &str) -> Option<Duration> {
             }
             Some(duration)
         }
-        None => None
+        None => None,
     }
 }
 
@@ -287,7 +287,7 @@ mod tests {
     #[test]
     fn string_to_duration_years_months() {
         let string = "P1Y4M";
-        let expected = Some(Duration::days(365 + 30*4));
+        let expected = Some(Duration::days(365 + 30 * 4));
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }
@@ -304,10 +304,10 @@ mod tests {
     fn string_to_duration_years_days_hours() {
         let string = "P1Y8DT3H";
         let expected = Some(
-                Duration::days(365 + 8)
-                    .checked_add(&Duration::hours(3))
-                    .unwrap(),
-            );
+            Duration::days(365 + 8)
+                .checked_add(&Duration::hours(3))
+                .unwrap(),
+        );
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }
@@ -316,12 +316,12 @@ mod tests {
     fn string_to_duration_years_days_hours_minutes() {
         let string = "P1Y8DT3H28M";
         let expected = Some(
-                Duration::days(365 + 8)
-                    .checked_add(&Duration::hours(3))
-                    .unwrap()
-                    .checked_add(&Duration::minutes(28))
-                    .unwrap(),
-            );
+            Duration::days(365 + 8)
+                .checked_add(&Duration::hours(3))
+                .unwrap()
+                .checked_add(&Duration::minutes(28))
+                .unwrap(),
+        );
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }
@@ -330,10 +330,10 @@ mod tests {
     fn string_to_duration_years_days_seconds() {
         let string = "P1Y8DT14S";
         let expected = Some(
-                Duration::days(365 + 8)
-                    .checked_add(&Duration::seconds(14))
-                    .unwrap(),
-            );
+            Duration::days(365 + 8)
+                .checked_add(&Duration::seconds(14))
+                .unwrap(),
+        );
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }
@@ -342,10 +342,10 @@ mod tests {
     fn string_to_duration_hours_seconds() {
         let string = "PT7H14S";
         let expected = Some(
-                Duration::hours(7)
-                    .checked_add(&Duration::seconds(14))
-                    .unwrap(),
-            );
+            Duration::hours(7)
+                .checked_add(&Duration::seconds(14))
+                .unwrap(),
+        );
         let actual = string_to_duration(string);
         assert_eq!(actual, expected);
     }

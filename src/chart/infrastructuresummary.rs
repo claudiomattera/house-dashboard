@@ -10,26 +10,26 @@ use std::collections::{HashMap, HashSet};
 use chrono::{DateTime, Local, Utc};
 
 use plotters::drawing::{BitMapBackend, IntoDrawingArea};
-use plotters::style::{Color, IntoFont, ShapeStyle};
-use plotters::style::text_anchor::{HPos, Pos, VPos};
 use plotters::element::{Circle, Text};
+use plotters::style::text_anchor::{HPos, Pos, VPos};
+use plotters::style::{Color, IntoFont, ShapeStyle};
 
+use super::element::loadbar::Loadbar;
 use crate::colormap::{Colormap, ColormapType};
 use crate::configuration::InfrastructureSummaryConfiguration;
 use crate::configuration::StyleConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::types::TimeSeries;
-use super::element::loadbar::Loadbar;
 
 pub fn draw_infrastructure_summary(
-            infrastructure_summary: InfrastructureSummaryConfiguration,
-            now: DateTime<Utc>,
-            hosts: HashSet<String>,
-            loads: HashMap<String, TimeSeries>,
-            style: &StyleConfiguration,
-            root: BitMapBackend,
-        ) -> Result<(), DashboardError> {
+    infrastructure_summary: InfrastructureSummaryConfiguration,
+    now: DateTime<Utc>,
+    hosts: HashSet<String>,
+    loads: HashMap<String, TimeSeries>,
+    style: &StyleConfiguration,
+    root: BitMapBackend,
+) -> Result<(), DashboardError> {
     info!("Drawing infrastructure summary");
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
@@ -44,13 +44,13 @@ pub fn draw_infrastructure_summary(
     // but that would make the title not centred.
     // So we must draw the title manually, and also create a new margin area.
     let pos = Pos::new(HPos::Center, VPos::Top);
-    root.draw(
-        &Text::new(
-            "INFRASTRUCTURE",
-            (width as i32 / 2, 10),
-            title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
-        )
-    )?;
+    root.draw(&Text::new(
+        "INFRASTRUCTURE",
+        (width as i32 / 2, 10),
+        title_font
+            .color(&style.system_palette.pick(SystemColor::Foreground))
+            .pos(pos),
+    ))?;
 
     let new_root = root.margin(30, 0, 0, 0);
     let (_new_width, _new_height) = new_root.dim_in_pixel();
@@ -59,13 +59,19 @@ pub fn draw_infrastructure_summary(
     hosts.sort();
 
     let header_pos = Pos::new(HPos::Center, VPos::Top);
-    let header_font = label_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(header_pos);
+    let header_font = label_font
+        .color(&style.system_palette.pick(SystemColor::Foreground))
+        .pos(header_pos);
 
     let host_pos = Pos::new(HPos::Left, VPos::Center);
-    let host_font = label_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(host_pos);
+    let host_font = label_font
+        .color(&style.system_palette.pick(SystemColor::Foreground))
+        .pos(host_pos);
 
     let footer_pos = Pos::new(HPos::Right, VPos::Bottom);
-    let footer_font = label_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(footer_pos);
+    let footer_font = label_font
+        .color(&style.system_palette.pick(SystemColor::Foreground))
+        .pos(footer_pos);
 
     const STATUS_X: i32 = 220;
     const LOAD_X: i32 = 280;
@@ -88,7 +94,8 @@ pub fn draw_infrastructure_summary(
             "Processing host {} ({}, relative load: {})",
             i + 1,
             host,
-            load.map(|l| l.to_string()).unwrap_or_else(|| "None".to_owned())
+            load.map(|l| l.to_string())
+                .unwrap_or_else(|| "None".to_owned())
         );
 
         let vertical_step = infrastructure_summary.vertical_step.unwrap_or(20);
@@ -103,17 +110,21 @@ pub fn draw_infrastructure_summary(
 
         debug!("Drawing status");
         let color = if load.is_some() {
-                colormap.get_color(0.0).to_rgba()
-            } else {
-                colormap.get_color(MAX_LOAD).to_rgba()
-            };
+            colormap.get_color(0.0).to_rgba()
+        } else {
+            colormap.get_color(MAX_LOAD).to_rgba()
+        };
         let shape_style: ShapeStyle = ShapeStyle {
             color,
             filled: true,
             stroke_width: 0,
         };
         new_root.draw(&Circle::new((STATUS_X, centered_y), 7, shape_style))?;
-        new_root.draw(&Circle::new((STATUS_X, centered_y), 7, &style.system_palette.pick(SystemColor::LightForeground)))?;
+        new_root.draw(&Circle::new(
+            (STATUS_X, centered_y),
+            7,
+            &style.system_palette.pick(SystemColor::LightForeground),
+        ))?;
 
         debug!("Drawing loadbar");
         let loadbar = Loadbar::new(
@@ -129,13 +140,11 @@ pub fn draw_infrastructure_summary(
 
     if let Some(format) = infrastructure_summary.last_update_format {
         let now: DateTime<Local> = now.with_timezone(&Local);
-        new_root.draw(
-            &Text::new(
-                now.format(&format).to_string(),
-                (width as i32 - 10, height as i32 - 30),
-                &footer_font
-            )
-        )?;
+        new_root.draw(&Text::new(
+            now.format(&format).to_string(),
+            (width as i32 - 10, height as i32 - 30),
+            &footer_font,
+        ))?;
     }
 
     Ok(())

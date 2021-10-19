@@ -3,7 +3,7 @@
 // See accompanying file License.txt, or online at
 // https://opensource.org/licenses/MIT
 
-use std::iter::{Once, once};
+use std::iter::{once, Once};
 
 use plotters::drawing::backend::{BackendCoord, DrawingBackend, DrawingErrorKind};
 use plotters::element::{Drawable, PointCollection};
@@ -24,13 +24,13 @@ pub struct Loadbar<'a> {
 
 impl<'a> Loadbar<'a> {
     pub fn new(
-                position: (i32, i32),
-                size: (i32, i32),
-                max: f64,
-                value: f64,
-                system_palette: &'a SystemPalette,
-                colormap: &'a Colormap,
-            ) -> Self {
+        position: (i32, i32),
+        size: (i32, i32),
+        max: f64,
+        value: f64,
+        system_palette: &'a SystemPalette,
+        colormap: &'a Colormap,
+    ) -> Self {
         Self {
             position,
             size,
@@ -43,7 +43,7 @@ impl<'a> Loadbar<'a> {
     }
 }
 
-impl <'a> PointCollection<'a, (i32, i32)> for &'a Loadbar<'a> {
+impl<'a> PointCollection<'a, (i32, i32)> for &'a Loadbar<'a> {
     type Borrow = &'a (i32, i32);
     type IntoIter = Once<&'a (i32, i32)>;
     fn point_iter(self) -> Self::IntoIter {
@@ -51,25 +51,19 @@ impl <'a> PointCollection<'a, (i32, i32)> for &'a Loadbar<'a> {
     }
 }
 
-impl <'a, DB:DrawingBackend> Drawable<DB> for Loadbar<'a> {
-    fn draw<I:Iterator<Item = BackendCoord>>(
-            &self,
-            mut pos: I,
-            backend: &mut DB,
-            _: (u32, u32),
-        ) -> Result<(), DrawingErrorKind<DB::ErrorType>> {
+impl<'a, DB: DrawingBackend> Drawable<DB> for Loadbar<'a> {
+    fn draw<I: Iterator<Item = BackendCoord>>(
+        &self,
+        mut pos: I,
+        backend: &mut DB,
+        _: (u32, u32),
+    ) -> Result<(), DrawingErrorKind<DB::ErrorType>> {
         if let Some((x, y)) = pos.next() {
-            let upper_left =
-                (
-                    x - self.size.0 / 2 - 1,
-                    y - self.size.1 / 2 - 1,
-                );
-            let bottom_right =
-                (
-                    x + self.size.0 / 2 + 1,
-                    y + self.size.1 / 2 + 1,
-                );
-            backend.draw_rect(upper_left, bottom_right,
+            let upper_left = (x - self.size.0 / 2 - 1, y - self.size.1 / 2 - 1);
+            let bottom_right = (x + self.size.0 / 2 + 1, y + self.size.1 / 2 + 1);
+            backend.draw_rect(
+                upper_left,
+                bottom_right,
                 &self.system_palette.pick(SystemColor::LightForeground),
                 false,
             )?;
