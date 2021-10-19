@@ -41,22 +41,22 @@ steps:
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo clippy --all-targets --all-features -- -D warnings
+  - cargo clippy --frozen --all-targets --all-features -- -D warnings
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo build --all-targets --all-features
+  - cargo build --frozen --all-targets --all-features
 
 - name: build tests
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo test --no-run
+  - cargo test --frozen --no-run
 
 - name: test
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo test
+  - cargo test --frozen
 
 - name: prepare cache
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
@@ -108,12 +108,12 @@ steps:
 - name: remove build artifacts
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo clean
+  - cargo clean --frozen
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
-  - cargo build --release
+  - cargo build --frozen --release
 
 - name: package deb
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
