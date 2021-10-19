@@ -34,7 +34,10 @@ mod chart;
 mod colormap;
 mod configuration;
 mod error;
+
+#[cfg(feature = "framebuffer")]
 mod framebuffer;
+
 mod influxdb;
 mod palette;
 mod types;
