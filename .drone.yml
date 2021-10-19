@@ -218,12 +218,12 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: daily security report
+name: security report
 trigger:
   event:
   - cron
   cron:
-  - daily
+  - security report
 
 steps:
 - name: check security advisories
@@ -254,12 +254,12 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: weekly cache flush
+name: cache flush
 trigger:
   event:
   - cron
   cron:
-  - weekly
+  - cache flush
 
 steps:
 - name: flush cache
