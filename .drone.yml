@@ -2,6 +2,8 @@
 kind: pipeline
 type: docker
 name: build and test
+environment:
+  CARGO_HOME: "./.cargo_home/"
 trigger:
   event:
     exclude:
@@ -25,30 +27,22 @@ steps:
 - name: check format
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo fmt --all -- --check
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo clippy --all-targets --all-features -- -D warnings
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo build --all-targets --all-features
 
 - name: test
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
   commands:
   - cargo test
 
