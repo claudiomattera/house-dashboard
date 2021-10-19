@@ -77,7 +77,7 @@ steps:
     rebuild: true
     mount:
       - ./target
-      - ./.cargo_home/registry/
+      - ./.cargo_home
 
 ---
 kind: pipeline
