@@ -100,6 +100,16 @@ steps:
     root: drone
     restore: true
 
+- name: download dependencies
+  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  commands:
+  - cargo fetch --locked
+
+- name: remove build artifacts
+  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  commands:
+  - cargo clean
+
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
   commands:
