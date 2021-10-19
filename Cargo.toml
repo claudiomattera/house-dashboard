@@ -17,57 +17,33 @@ categories = [
 publish = false
 
 [dependencies]
-thiserror = "1.0"
-anyhow = "1.0"
-clap = "2.33"
-chrono = "0.4"
-serde_json = "1.0"
-num-traits = "0.2"
-framebuffer = "0.3"
-toml = "0.5"
-glob = "0.3"
-regex = "1"
-indicatif = "0.16"
-tracing = "0.1"
-tracing-futures = "0.2"
+thiserror = { version = "1.0" }
+anyhow = { version = "1.0" }
+clap = { version = "2.33" }
+chrono = { version = "0.4" }
+serde_json = { version = "1.0" }
+num-traits = { version = "0.2" }
+framebuffer = { version = "0.3" }
+toml = { version = "0.5" }
+glob = { version = "0.3" }
+regex = { version = "1" }
+indicatif = { version = "0.16" }
+tracing = { version = "0.1" }
+tracing-futures = { version = "0.2" }
 tracing-subscriber = { version = "0.2", features = ["registry", "env-filter"] }
-tracing-log = "0.1"
-
-[dependencies.url]
-version = "2"
-features = ["serde"]
-
-[dependencies.serde]
-version = "1"
-features = ["derive"]
-
-[dependencies.reqwest]
-version = "0.11"
-default-features = false
-features = ["rustls-tls"]
+tracing-log = { version = "0.1" }
+url = { version = "2", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+palette = { version = "^0.5", default-features = false, features = ["std"] }
+image = { version = "0.23", default-features = false, features = ["jpeg", "png", "bmp"] }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros"] }
+futures = { version = "0.3" }
 
 [dependencies.plotters]
 version = "0.2"
 # default-features = false
 # features = ["image_encoder", "line_series", "datetime"]
-
-[dependencies.palette]
-version = "^0.5"
-default-features = false
-features = ["std"]
-
-[dependencies.image]
-version = "0.23"
-default-features = false
-features = ["jpeg", "png", "bmp"]
-
-[dependencies.tokio]
-version = "1"
-default-features = false
-features = ["rt-multi-thread", "macros"]
-
-[dependencies.futures]
-version = "0.3"
 
 [package.metadata.deb]
 extended-description = """\
