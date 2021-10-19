@@ -509,7 +509,7 @@ async fn generate_infrastructure_summary(
 
     let loads = influxdb_client.fetch_timeseries_by_tag(
         &query,
-        &tag,
+        tag,
     )
     .await
     .context("Failed to fetch data from database")?;

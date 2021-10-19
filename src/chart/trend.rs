@@ -172,7 +172,7 @@ pub fn draw_trend_chart(
             let last_value = last_reading.1;
             let last_value_text = format!("{0:.1$}", last_value, trend_configuration.precision.unwrap_or(0));
 
-            let last_value_coordinates = chart.backend_coord(&last_reading);
+            let last_value_coordinates = chart.backend_coord(last_reading);
 
             root.draw(
                 &Text::new(

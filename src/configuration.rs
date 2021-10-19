@@ -240,7 +240,7 @@ fn string_to_duration(string: &str) -> Option<Duration> {
 
     let mut duration = Duration::zero();
 
-    match duration_regex.captures(&string) {
+    match duration_regex.captures(string) {
         Some(captures) => {
             if let Some(years_match) = captures.name("years") {
                 let years: i64 = years_match.as_str().parse().ok()?;
