@@ -18,6 +18,11 @@ publish = false
 
 [features]
 default = []
+trend-chart = []
+temporal-heatmap-chart = []
+geographical-heatmap-chart = []
+image-chart = []
+infrastructure-chart = []
 
 [dependencies]
 thiserror = { version = "1.0" }

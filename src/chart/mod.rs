@@ -7,18 +7,32 @@ use num_traits::{Bounded, FromPrimitive, Num, Zero};
 
 use chrono::{DateTime, Local};
 
+#[cfg(feature = "geographical-heatmap-chart")]
 mod geographicalheatmap;
+#[cfg(feature = "image-chart")]
 mod image;
+#[cfg(feature = "infrastructure-chart")]
 mod infrastructuresummary;
+#[cfg(feature = "temporal-heatmap-chart")]
 mod temporalheatmap;
+#[cfg(feature = "trend-chart")]
 mod trend;
 
 mod element;
 
+#[cfg(feature = "geographical-heatmap-chart")]
 pub use self::geographicalheatmap::draw_geographical_heat_map_chart;
+
+#[cfg(feature = "image-chart")]
 pub use self::image::draw_image;
+
+#[cfg(feature = "infrastructure-chart")]
 pub use self::infrastructuresummary::draw_infrastructure_summary;
+
+#[cfg(feature = "temporal-heatmap-chart")]
 pub use self::temporalheatmap::draw_temporal_heat_map_chart;
+
+#[cfg(feature = "trend-chart")]
 pub use self::trend::draw_trend_chart;
 
 use crate::types::TimeSeries;

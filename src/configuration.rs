@@ -22,6 +22,8 @@ pub struct Configuration {
     pub style: StyleConfiguration,
     pub influxdb: InfluxdbConfiguration,
     pub charts: Vec<ChartConfiguration>,
+
+    #[cfg(feature = "geographical-heatmap-chart")]
     pub regions: Option<Vec<GeographicalRegionConfiguration>>,
 }
 
@@ -48,13 +50,19 @@ pub struct InfluxdbConfiguration {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind")]
 pub enum ChartConfiguration {
+    #[cfg(feature = "trend-chart")]
     Trend(TrendConfiguration),
+    #[cfg(feature = "temporal-heatmap-chart")]
     TemporalHeatMap(TemporalHeatMapConfiguration),
+    #[cfg(feature = "geographical-heatmap-chart")]
     GeographicalHeatMap(GeographicalHeatMapConfiguration),
+    #[cfg(feature = "image-chart")]
     Image(ImageConfiguration),
+    #[cfg(feature = "infrastructure-chart")]
     InfrastructureSummary(InfrastructureSummaryConfiguration),
 }
 
+#[cfg(feature = "trend-chart")]
 #[derive(Debug, Deserialize)]
 pub struct TrendConfiguration {
     pub title: String,
@@ -79,6 +87,7 @@ pub struct TrendConfiguration {
     pub tag_values: Option<Vec<String>>,
 }
 
+#[cfg(feature = "geographical-heatmap-chart")]
 #[derive(Debug, Deserialize)]
 pub struct GeographicalHeatMapConfiguration {
     pub title: String,
@@ -96,6 +105,7 @@ pub struct GeographicalHeatMapConfiguration {
     pub colored_tag_values: Option<Vec<String>>,
 }
 
+#[cfg(feature = "geographical-heatmap-chart")]
 #[derive(Clone, Debug, Deserialize)]
 pub struct GeographicalRegionConfiguration {
     pub name: String,
@@ -184,6 +194,7 @@ impl<'a> Period {
     }
 }
 
+#[cfg(feature = "temporal-heatmap-chart")]
 #[derive(Debug, Deserialize)]
 pub struct TemporalHeatMapConfiguration {
     pub title: String,
@@ -201,6 +212,7 @@ pub struct TemporalHeatMapConfiguration {
     pub colormap: Option<ColormapType>,
 }
 
+#[cfg(feature = "image-chart")]
 #[derive(Debug, Deserialize)]
 pub struct ImageConfiguration {
     pub path: PathBuf,

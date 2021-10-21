@@ -42,11 +42,23 @@ mod influxdb;
 mod palette;
 mod types;
 
-use crate::configuration::{
-    ChartConfiguration, Configuration, GeographicalHeatMapConfiguration,
-    GeographicalRegionConfiguration, ImageConfiguration, InfrastructureSummaryConfiguration,
-    StyleConfiguration, TemporalHeatMapConfiguration, TrendConfiguration,
-};
+use crate::configuration::{ChartConfiguration, Configuration, StyleConfiguration};
+
+#[cfg(feature = "trend-chart")]
+use crate::configuration::TrendConfiguration;
+
+#[cfg(feature = "geographical-heatmap-chart")]
+use crate::configuration::{GeographicalHeatMapConfiguration, GeographicalRegionConfiguration};
+
+#[cfg(feature = "temporal-heatmap-chart")]
+use crate::configuration::TemporalHeatMapConfiguration;
+
+#[cfg(feature = "image-chart")]
+use crate::configuration::ImageConfiguration;
+
+#[cfg(feature = "infrastructure-chart")]
+use crate::configuration::InfrastructureSummaryConfiguration;
+
 use crate::error::DashboardError;
 use crate::influxdb::InfluxdbClient;
 
@@ -139,6 +151,7 @@ async fn inner_main() -> Result<()> {
                 let chart_path = directory_path.join(format!("{:02}.bmp", i)).to_owned();
 
                 match chart {
+                    #[cfg(feature = "trend-chart")]
                     ChartConfiguration::Trend(chart) => {
                         let task = generate_trend_chart(
                             chart,
@@ -151,6 +164,7 @@ async fn inner_main() -> Result<()> {
                         );
                         tasks.push(Box::pin(task));
                     }
+                    #[cfg(feature = "geographical-heatmap-chart")]
                     ChartConfiguration::GeographicalHeatMap(chart) => {
                         let regions = configuration.regions.clone().unwrap_or_else(Vec::new);
                         let task = generate_geographical_map_chart(
@@ -165,6 +179,7 @@ async fn inner_main() -> Result<()> {
                         );
                         tasks.push(Box::pin(task));
                     }
+                    #[cfg(feature = "temporal-heatmap-chart")]
                     ChartConfiguration::TemporalHeatMap(chart) => {
                         let task = generate_temporal_heat_map_chart(
                             chart,
@@ -177,6 +192,7 @@ async fn inner_main() -> Result<()> {
                         );
                         tasks.push(Box::pin(task));
                     }
+                    #[cfg(feature = "image-chart")]
                     ChartConfiguration::Image(image_configuration) => {
                         let task = generate_image(
                             image_configuration,
@@ -186,6 +202,7 @@ async fn inner_main() -> Result<()> {
                         );
                         tasks.push(Box::pin(task));
                     }
+                    #[cfg(feature = "infrastructure-chart")]
                     ChartConfiguration::InfrastructureSummary(
                         infrastructure_summary_configuration,
                     ) => {
@@ -287,6 +304,7 @@ fn parse_configuration(configuration_path: &Path) -> Result<Configuration> {
     Ok(configuration)
 }
 
+#[cfg(feature = "trend-chart")]
 #[tracing::instrument(
     name = "Generating a trend chart",
     skip(trend_configuration, influxdb_client, now, style, resolution, progress_bar),
@@ -342,6 +360,7 @@ async fn generate_trend_chart(
     Ok(())
 }
 
+#[cfg(feature = "geographical-heatmap-chart")]
 #[tracing::instrument(
     name = "Generating a geographical map chart",
     skip(geographical_heatmap_configuration, regions_configurations, influxdb_client, now, style, resolution, progress_bar),
@@ -406,6 +425,7 @@ async fn generate_geographical_map_chart(
     Ok(())
 }
 
+#[cfg(feature = "temporal-heatmap-chart")]
 #[tracing::instrument(
     name = "Generating a temporal heatmap chart",
     skip(temporal_heatmap_configuration, influxdb_client, now, style, resolution, progress_bar),
@@ -471,6 +491,7 @@ async fn generate_temporal_heat_map_chart(
     Ok(())
 }
 
+#[cfg(feature = "image-chart")]
 #[tracing::instrument(
     name = "Generating an image chart",
     skip(image_configuration, resolution, progress_bar),
@@ -493,6 +514,7 @@ async fn generate_image(
     Ok(())
 }
 
+#[cfg(feature = "infrastructure-chart")]
 #[tracing::instrument(
     name = "Generating an infrastructure summary chart",
     skip(infrastructure_summary, influxdb_client, now, style, resolution, progress_bar),
