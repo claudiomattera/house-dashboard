@@ -23,6 +23,7 @@ temporal-heatmap-chart = []
 geographical-heatmap-chart = []
 image-chart = []
 infrastructure-chart = []
+proxmox-chart = []
 
 [dependencies]
 thiserror = { version = "1.0" }

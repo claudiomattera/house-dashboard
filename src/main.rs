@@ -59,6 +59,9 @@ use crate::configuration::ImageConfiguration;
 #[cfg(feature = "infrastructure-chart")]
 use crate::configuration::InfrastructureSummaryConfiguration;
 
+#[cfg(feature = "proxmox-chart")]
+use crate::configuration::ProxmoxSummaryConfiguration;
+
 use crate::error::DashboardError;
 use crate::influxdb::InfluxdbClient;
 
@@ -208,6 +211,21 @@ async fn inner_main() -> Result<()> {
                     ) => {
                         let task = generate_infrastructure_summary(
                             infrastructure_summary_configuration,
+                            &influxdb_client,
+                            now,
+                            &configuration.style,
+                            chart_path,
+                            configuration.style.resolution,
+                            &bar,
+                        );
+                        tasks.push(Box::pin(task));
+                    }
+                    #[cfg(feature = "proxmox-chart")]
+                    ChartConfiguration::ProxmoxSummary(
+                        proxmox_summary_configuration,
+                    ) => {
+                        let task = generate_proxmox_summary(
+                            proxmox_summary_configuration,
                             &influxdb_client,
                             now,
                             &configuration.style,
@@ -579,6 +597,96 @@ async fn generate_infrastructure_summary(
         .context("Failed to fetch data from database")?;
 
     chart::draw_infrastructure_summary(infrastructure_summary, now, hosts, loads, style, backend)
+        .context("Failed to draw image")?;
+
+    progress_bar.inc(1);
+
+    Ok(())
+}
+
+#[cfg(feature = "proxmox-chart")]
+#[tracing::instrument(
+    name = "Generating a Proxmox summary chart",
+    skip(proxmox_summary, influxdb_client, now, style, resolution, progress_bar),
+    fields(
+        path = %path.display(),
+    )
+)]
+async fn generate_proxmox_summary(
+    proxmox_summary: ProxmoxSummaryConfiguration,
+    influxdb_client: &InfluxdbClient,
+    now: DateTime<Utc>,
+    style: &StyleConfiguration,
+    path: PathBuf,
+    resolution: (u32, u32),
+    progress_bar: &ProgressBar,
+) -> Result<()> {
+    let backend = BitMapBackend::new(&path, resolution);
+
+    let status_field = "status";
+    let cpuload_field = "cpuload";
+    let database = "telegraf";
+    let measurement = "proxmox";
+    let tag = "vm_name";
+    let filter_tag_name = "node_fqdn";
+    let filter_tag_value = "h2plus.dk.claudiomattera.it";
+
+    let hosts = influxdb_client
+        .fetch_tag_values(
+            database,
+            measurement,
+            tag,
+            filter_tag_name,
+            filter_tag_value,
+        )
+        .await
+        .context("Failed to fetch data from database")?;
+
+    debug!(
+        "Found {} hosts: {}",
+        hosts.len(),
+        hosts.iter().cloned().collect::<Vec<String>>().join(", "),
+    );
+
+    let query = format!(
+        "SELECT last({status_field}) FROM {database}.autogen.{measurement}
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        status_field = status_field,
+        database = database,
+        measurement = measurement,
+        tag = tag,
+        filter_tag_name = filter_tag_name,
+        filter_tag_value = filter_tag_value,
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
+        how_long_ago = duration_to_query(&proxmox_summary.how_long_ago.duration),
+    );
+
+    let statuses = influxdb_client
+        .fetch_timeseries_by_tag(&query, tag)
+        .await
+        .context("Failed to fetch data from database")?;
+
+    let query = format!(
+        "SELECT last({cpuload_field}) FROM {database}.autogen.{measurement}
+        WHERE time < '{now}' AND time > '{now}' - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        cpuload_field = cpuload_field,
+        database = database,
+        measurement = measurement,
+        tag = tag,
+        filter_tag_name = filter_tag_name,
+        filter_tag_value = filter_tag_value,
+        now = now.to_rfc3339_opts(SecondsFormat::Nanos, true),
+        how_long_ago = duration_to_query(&proxmox_summary.how_long_ago.duration),
+    );
+
+    let loads = influxdb_client
+        .fetch_timeseries_by_tag(&query, tag)
+        .await
+        .context("Failed to fetch data from database")?;
+
+    chart::draw_proxmox_summary(proxmox_summary, now, hosts, statuses, loads, style, backend)
         .context("Failed to draw image")?;
 
     progress_bar.inc(1);

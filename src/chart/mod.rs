@@ -13,6 +13,8 @@ mod geographicalheatmap;
 mod image;
 #[cfg(feature = "infrastructure-chart")]
 mod infrastructuresummary;
+#[cfg(feature = "proxmox-chart")]
+mod proxmoxsummary;
 #[cfg(feature = "temporal-heatmap-chart")]
 mod temporalheatmap;
 #[cfg(feature = "trend-chart")]

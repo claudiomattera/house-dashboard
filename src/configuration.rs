@@ -60,6 +60,8 @@ pub enum ChartConfiguration {
     Image(ImageConfiguration),
     #[cfg(feature = "infrastructure-chart")]
     InfrastructureSummary(InfrastructureSummaryConfiguration),
+    #[cfg(feature = "proxmox-chart")]
+    ProxmoxSummary(ProxmoxSummaryConfiguration),
 }
 
 #[cfg(feature = "trend-chart")]
@@ -365,6 +367,14 @@ mod tests {
 
 #[derive(Debug, Deserialize)]
 pub struct InfrastructureSummaryConfiguration {
+    pub how_long_ago: Iso8601Duration,
+    pub suffix: Option<String>,
+    pub last_update_format: Option<String>,
+    pub vertical_step: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProxmoxSummaryConfiguration {
     pub how_long_ago: Iso8601Duration,
     pub suffix: Option<String>,
     pub last_update_format: Option<String>,

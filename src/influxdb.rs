@@ -196,12 +196,14 @@ struct InfluxdbResults {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct InfluxdbResult {
     pub statement_id: u32,
     pub series: Option<Vec<Series>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct Series {
     pub name: String,
     pub columns: Vec<String>,
@@ -215,12 +217,14 @@ struct InfluxdbTextualResults {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct InfluxdbTextualResult {
     pub statement_id: u32,
     pub series: Option<Vec<TextualSeries>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct TextualSeries {
     pub name: String,
     pub columns: Vec<String>,
