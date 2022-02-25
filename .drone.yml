@@ -27,39 +27,39 @@ steps:
     restore: true
 
 - name: download dependencies
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo fetch --locked
 
 - name: check format
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo fmt --all -- --check
 
 - name: run linter
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo clippy --frozen --all-targets --all-features -- -D warnings
 
 - name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo build --frozen --all-targets --all-features
 
 - name: build tests
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo test --frozen --all-features --no-run
 
 - name: test
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo test --all-features --frozen
 
 - name: prepare cache
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - find ./target/debug -maxdepth 1 -type f -and -not -name xtask.exe -delete
   - rm -rf ./target/.rustc_info.json
@@ -101,22 +101,22 @@ steps:
     restore: true
 
 - name: download dependencies
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo fetch --locked
 
 - name: remove build artifacts
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo clean --frozen
 
 - name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo build --frozen --all-features --release
 
 - name: package deb
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo deb --no-build
 
@@ -227,7 +227,7 @@ trigger:
 
 steps:
 - name: check security advisories
-  image: docker.claudiomattera.it/claudiomattera/rust:1.55.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo audit --deny unsound --deny yanked
 
