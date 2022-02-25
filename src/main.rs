@@ -221,9 +221,7 @@ async fn inner_main() -> Result<()> {
                         tasks.push(Box::pin(task));
                     }
                     #[cfg(feature = "proxmox-chart")]
-                    ChartConfiguration::ProxmoxSummary(
-                        proxmox_summary_configuration,
-                    ) => {
+                    ChartConfiguration::ProxmoxSummary(proxmox_summary_configuration) => {
                         let task = generate_proxmox_summary(
                             proxmox_summary_configuration,
                             &influxdb_client,
@@ -426,7 +424,12 @@ async fn generate_geographical_map_chart(
 
     let values: HashMap<String, Option<f64>> = time_seriess
         .iter()
-        .map(|(region, time_series)| (region.to_owned(), time_series.first().map(|o| o.1.clone().to_f64())))
+        .map(|(region, time_series)| {
+            (
+                region.to_owned(),
+                time_series.first().map(|o| o.1.clone().to_f64()),
+            )
+        })
         .collect();
 
     chart::draw_geographical_heat_map_chart(

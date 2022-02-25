@@ -124,7 +124,15 @@ pub fn draw_trend_chart(
 
     let mut its: Vec<(String, LocalTimeSeries)> = time_seriess
         .iter()
-        .map(|(s, ts)| (s.clone(), time_series_to_local_time(ts.clone()).into_iter().map(|(i, v)| (i, v.clone().to_f64())).collect()))
+        .map(|(s, ts)| {
+            (
+                s.clone(),
+                time_series_to_local_time(ts.clone())
+                    .into_iter()
+                    .map(|(i, v)| (i, v.clone().to_f64()))
+                    .collect(),
+            )
+        })
         .collect::<Vec<_>>();
     its.sort_by(|a, b| a.partial_cmp(b).expect("Invalid comparison"));
 

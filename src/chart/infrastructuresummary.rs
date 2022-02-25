@@ -80,17 +80,26 @@ pub fn draw_infrastructure_summary(
     let text = "HOST";
     let half_width: i32 = (text.len() as i32 * 8) / 2;
     new_root.draw(&Text::new(text, (HOST_X, 10), &header_font))?;
-    new_root.draw(&Rectangle::new([(HOST_X - half_width, 19), (HOST_X + half_width, 19)], &style.system_palette.pick(SystemColor::Foreground)))?;
+    new_root.draw(&Rectangle::new(
+        [(HOST_X - half_width, 19), (HOST_X + half_width, 19)],
+        &style.system_palette.pick(SystemColor::Foreground),
+    ))?;
 
     let text = "STATUS";
     let half_width: i32 = (text.len() as i32 * 8) / 2;
     new_root.draw(&Text::new(text, (STATUS_X, 10), &header_font))?;
-    new_root.draw(&Rectangle::new([(STATUS_X - half_width, 19), (STATUS_X + half_width, 19)], &style.system_palette.pick(SystemColor::Foreground)))?;
+    new_root.draw(&Rectangle::new(
+        [(STATUS_X - half_width, 19), (STATUS_X + half_width, 19)],
+        &style.system_palette.pick(SystemColor::Foreground),
+    ))?;
 
     let text = "LOAD";
     let half_width: i32 = (text.len() as i32 * 8) / 2;
     new_root.draw(&Text::new(text, (LOAD_X, 10), &header_font))?;
-    new_root.draw(&Rectangle::new([(LOAD_X - half_width, 19), (LOAD_X + half_width, 19)], &style.system_palette.pick(SystemColor::Foreground)))?;
+    new_root.draw(&Rectangle::new(
+        [(LOAD_X - half_width, 19), (LOAD_X + half_width, 19)],
+        &style.system_palette.pick(SystemColor::Foreground),
+    ))?;
 
     const MAX_LOAD: f64 = 1.0;
     let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD);
