@@ -29,18 +29,21 @@ pub use self::image::draw_image;
 #[cfg(feature = "infrastructure-chart")]
 pub use self::infrastructuresummary::draw_infrastructure_summary;
 
+#[cfg(feature = "proxmox-chart")]
+pub use self::proxmoxsummary::draw_proxmox_summary;
+
 #[cfg(feature = "temporal-heatmap-chart")]
 pub use self::temporalheatmap::draw_temporal_heat_map_chart;
 
 #[cfg(feature = "trend-chart")]
 pub use self::trend::draw_trend_chart;
 
-use crate::types::TimeSeries;
+use crate::types::{TimeSeries, Value};
 
-fn time_series_to_local_time(time_series: TimeSeries) -> Vec<(DateTime<Local>, f64)> {
+fn time_series_to_local_time(time_series: TimeSeries) -> Vec<(DateTime<Local>, Value)> {
     time_series
         .iter()
-        .map(|(dt, v)| (dt.with_timezone(&Local), *v))
+        .map(|(dt, v)| (dt.with_timezone(&Local), v.clone()))
         .collect()
 }
 

@@ -21,7 +21,7 @@ use url::Url;
 use anyhow::{Context, Result};
 
 use crate::error::DashboardError;
-use crate::types::TimeSeries;
+use crate::types::{TimeSeries, Value};
 
 #[derive(Debug)]
 pub struct InfluxdbClient {
@@ -137,10 +137,10 @@ impl InfluxdbClient {
             let time_series: TimeSeries = raw_series
                 .values
                 .iter()
-                .map(|(timestamp, value): &(i64, Option<f64>)| {
+                .map(|(timestamp, value): &(i64, Option<Value>)| {
                     if let Some(value) = value {
                         let datetime: DateTime<Utc> = Utc.timestamp(*timestamp as i64, 0);
-                        Some((datetime, *value))
+                        Some((datetime, value.clone()))
                     } else {
                         None
                     }
@@ -205,7 +205,7 @@ struct InfluxdbResult {
 struct Series {
     pub name: String,
     pub columns: Vec<String>,
-    pub values: Vec<(i64, Option<f64>)>,
+    pub values: Vec<(i64, Option<Value>)>,
     pub tags: Option<HashMap<String, String>>,
 }
 

@@ -88,7 +88,7 @@ pub fn draw_infrastructure_summary(
             .get(host)
             .map(|loads| loads.last())
             .flatten()
-            .map(|(_instant, value)| *value);
+            .map(|(_instant, value)| value.clone().to_f64());
 
         debug!(
             "Processing host {} ({}, relative load: {})",
