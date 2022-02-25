@@ -14,31 +14,37 @@ use plotters::style::{Color, IntoFont, RGBColor, BLACK};
 
 use crate::colormap::Colormap;
 use crate::configuration::GeographicalHeatMapConfiguration;
+use crate::configuration::StyleConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
-use crate::configuration::StyleConfiguration;
 
 use super::element::colorbar::Colorbar;
 use super::{bounds_of, centroid_of, project_with_two_to_one_isometry};
 
 pub fn draw_geographical_heat_map_chart(
-            values: HashMap<String, Option<f64>>,
-            geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
-            regions: HashMap<String, Vec<(f64, f64)>>,
-            style: &StyleConfiguration,
-            root: BitMapBackend,
-        ) -> Result<(), DashboardError> {
-    info!("Drawing geographical heat map '{}'", geographical_heatmap_configuration.title.to_lowercase());
+    values: HashMap<String, Option<f64>>,
+    geographical_heatmap_configuration: GeographicalHeatMapConfiguration,
+    regions: HashMap<String, Vec<(f64, f64)>>,
+    style: &StyleConfiguration,
+    root: BitMapBackend,
+) -> Result<(), DashboardError> {
+    info!(
+        "Drawing geographical heat map '{}'",
+        geographical_heatmap_configuration.title.to_lowercase(),
+    );
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
 
-    let indices = geographical_heatmap_configuration.colored_tag_values.map(|tag_values| {
-        tag_values.iter().enumerate().map(|(index, name)| {
-            (name.to_owned(), index)
-        })
-        .collect::<HashMap::<String, usize>>()
-    });
+    let indices = geographical_heatmap_configuration
+        .colored_tag_values
+        .map(|tag_values| {
+            tag_values
+                .iter()
+                .enumerate()
+                .map(|(index, name)| (name.to_owned(), index))
+                .collect::<HashMap<String, usize>>()
+        });
 
     let root = root.into_drawing_area();
     let (width, height) = root.dim_in_pixel();
@@ -49,25 +55,26 @@ pub fn draw_geographical_heat_map_chart(
     // but that would make the title not centred.
     // So we must draw the title manually, and also create a new margin area.
     let pos = Pos::new(HPos::Center, VPos::Top);
-    root.draw(
-        &Text::new(
-            geographical_heatmap_configuration.title,
-            (width as i32 / 2, 10),
-            title_font.color(&style.system_palette.pick(SystemColor::Foreground)).pos(pos)
-        )
-    )?;
+    root.draw(&Text::new(
+        geographical_heatmap_configuration.title,
+        (width as i32 / 2, 10),
+        title_font
+            .color(&style.system_palette.pick(SystemColor::Foreground))
+            .pos(pos),
+    ))?;
 
     let new_root = root.margin(0, 0, 0, 60);
     let (new_width, new_height) = new_root.dim_in_pixel();
 
     debug!("Computing projected regions");
-    let projected_regions: HashMap::<String, Vec<(f64, f64)>> = regions
+    let projected_regions: HashMap<String, Vec<(f64, f64)>> = regions
         .iter()
         .map(|(region, path)| {
             let true_isometric_path: Vec<(f64, f64)> = path
                 .iter()
                 .map(|(x, y)| {
-                    let (new_x, new_y, _new_z) = project_with_two_to_one_isometry(*x as f64, *y as f64, 0.0);
+                    let (new_x, new_y, _new_z) =
+                        project_with_two_to_one_isometry(*x as f64, *y as f64, 0.0);
                     (new_x, new_y)
                 })
                 .collect();
@@ -110,13 +117,15 @@ pub fn draw_geographical_heat_map_chart(
 
             let (cx, cy) = centroid_of(&path);
             let pos = Pos::new(HPos::Center, VPos::Center);
-            new_root.draw(
-                &Text::new(
-                    format!("{0:.1$}", value, geographical_heatmap_configuration.precision.unwrap_or(0)),
-                    (cx, cy),
-                    &label_font.color(&BLACK).pos(pos),
+            new_root.draw(&Text::new(
+                format!(
+                    "{0:.1$}",
+                    value,
+                    geographical_heatmap_configuration.precision.unwrap_or(0),
                 ),
-            )?;
+                (cx, cy),
+                &label_font.color(&BLACK).pos(pos),
+            ))?;
         }
 
         let border_color = if let Some(ref indices) = indices {
@@ -128,9 +137,11 @@ pub fn draw_geographical_heat_map_chart(
                 }
             };
             style.series_palette.pick(index).stroke_width(2)
-
         } else {
-            style.system_palette.pick(SystemColor::LightForeground).stroke_width(1)
+            style
+                .system_palette
+                .pick(SystemColor::LightForeground)
+                .stroke_width(1)
         };
 
         new_root.draw(&PathElement::new(closed_path, border_color))?;
@@ -154,12 +165,11 @@ pub fn draw_geographical_heat_map_chart(
 }
 
 fn normalize_regions(
-            regions: HashMap<String, Vec<(f64, f64)>>,
-            (width, height): (f64, f64),
-            (top_margin, bottom_margin): (f64, f64),
-            (left_margin, right_margin): (f64, f64),
-        ) -> HashMap<String, Vec<(f64, f64)>> {
-
+    regions: HashMap<String, Vec<(f64, f64)>>,
+    (width, height): (f64, f64),
+    (top_margin, bottom_margin): (f64, f64),
+    (left_margin, right_margin): (f64, f64),
+) -> HashMap<String, Vec<(f64, f64)>> {
     let (min_x, max_x, min_y, max_y) = compute_all_regions_bounds(&regions);
 
     let effective_width = width - left_margin - right_margin;
@@ -179,13 +189,14 @@ fn normalize_regions(
         .map(|(name, path)| {
             (
                 name.to_owned(),
-                path.iter().map(
-                    |(x, y)| {
+                path.iter()
+                    .map(|(x, y)| {
                         (
                             left_margin + slack_x / 2.0 + ((x - min_x) * ratio),
                             top_margin + slack_y / 2.0 + ((y - min_y) * ratio),
                         )
-                    }).collect(),
+                    })
+                    .collect(),
             )
         })
         .collect()

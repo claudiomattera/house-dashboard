@@ -11,13 +11,13 @@ use framebuffer::{Framebuffer, KdMode};
 
 #[allow(dead_code)]
 pub fn display_image(
-            fb_device: &Path,
-            image: &[u8],
-            image_width: u32,
-            image_height: u32,
-        ) -> Result<(), Box<dyn std::error::Error>> {
-
+    fb_device: &Path,
+    image: &[u8],
+    image_width: u32,
+    image_height: u32,
+) -> Result<(), Box<dyn std::error::Error>> {
     info!("Opening framebuffer {}", fb_device.display());
+
     let mut framebuffer = Framebuffer::new(fb_device.to_str().expect("Invalid path"))?;
     let width = framebuffer.var_screen_info.xres;
     let height = framebuffer.var_screen_info.yres;
@@ -93,11 +93,7 @@ pub fn display_image(
     Ok(())
 }
 
-fn pixel_to_pixel(
-            original: (u8, u8, u8),
-            length: (u32, u32, u32),
-            offset: (u32, u32, u32),
-        ) -> u32 {
+fn pixel_to_pixel(original: (u8, u8, u8), length: (u32, u32, u32), offset: (u32, u32, u32)) -> u32 {
     let red: u32 = (original.0 as u32) * (1 << length.0) / 256;
     let green: u32 = (original.1 as u32) * (1 << length.1) / 256;
     let blue: u32 = (original.2 as u32) * (1 << length.2) / 256;

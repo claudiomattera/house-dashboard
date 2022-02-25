@@ -14,17 +14,12 @@ use image::{open, RgbImage};
 
 use crate::error::DashboardError;
 
-pub fn draw_image(
-            path: PathBuf,
-            root: BitMapBackend,
-        ) -> Result<(), DashboardError> {
+pub fn draw_image(path: PathBuf, root: BitMapBackend) -> Result<(), DashboardError> {
     info!("Drawing image '{}'", path.display());
 
     let root = root.into_drawing_area();
 
-    let image: RgbImage = open(&path)
-        .map_err(DashboardError::ImageError)?
-        .to_rgb8();
+    let image: RgbImage = open(&path).map_err(DashboardError::ImageError)?.to_rgb8();
 
     let width = image.width();
     let height = image.height();
@@ -33,11 +28,7 @@ pub fn draw_image(
     let mut bitmap_element: BitMapElement<(i32, i32)> = BitMapElement::new((0, 0), (width, height));
     bitmap_element
         .as_bitmap_backend()
-        .blit_bitmap(
-            (0, 0),
-            (width, height),
-            &raw,
-        )?;
+        .blit_bitmap((0, 0), (width, height), &raw)?;
 
     root.draw(&bitmap_element)?;
 

@@ -5,5 +5,30 @@
 
 use chrono::{DateTime, Utc};
 
-pub type Reading = (DateTime<Utc>, f64);
+use serde::Deserialize;
+
+pub type Reading = (DateTime<Utc>, Value);
 pub type TimeSeries = Vec<Reading>;
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum Value {
+    Float(f64),
+    String(String),
+}
+
+impl Value {
+    pub fn into_f64(self) -> f64 {
+        match self {
+            Self::Float(value) => value,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn into_string(self) -> String {
+        match self {
+            Self::String(value) => value,
+            _ => unreachable!(),
+        }
+    }
+}

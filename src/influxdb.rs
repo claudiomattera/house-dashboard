@@ -10,9 +10,9 @@ use std::path::PathBuf;
 
 use chrono::{DateTime, TimeZone, Utc};
 
-use reqwest::Client;
 use reqwest::header;
 use reqwest::Certificate;
+use reqwest::Client;
 
 use serde::Deserialize;
 
@@ -21,8 +21,7 @@ use url::Url;
 use anyhow::{Context, Result};
 
 use crate::error::DashboardError;
-use crate::types::TimeSeries;
-
+use crate::types::{TimeSeries, Value};
 
 #[derive(Debug)]
 pub struct InfluxdbClient {
@@ -35,18 +34,20 @@ pub struct InfluxdbClient {
 
 impl InfluxdbClient {
     pub fn new(
-                base_url: Url,
-                database: String,
-                username: String,
-                password: String,
-                ca_cert: Option<PathBuf>,
-                dangerously_accept_invalid_certs: bool,
-            ) -> Result<Self> {
+        base_url: Url,
+        database: String,
+        username: String,
+        password: String,
+        ca_cert: Option<PathBuf>,
+        dangerously_accept_invalid_certs: bool,
+    ) -> Result<Self> {
         let mut headers = header::HeaderMap::new();
-        headers.insert(header::ACCEPT, header::HeaderValue::from_static("application/json"));
+        headers.insert(
+            header::ACCEPT,
+            header::HeaderValue::from_static("application/json"),
+        );
 
-        let mut client_builder = Client::builder()
-                .default_headers(headers);
+        let mut client_builder = Client::builder().default_headers(headers);
 
         if let Some(ca_cert) = ca_cert {
             debug!("Adding certificate authority {}", ca_cert.display());
@@ -71,16 +72,16 @@ impl InfluxdbClient {
 
     #[tracing::instrument(
         name = "Fetching tag values",
-        skip(self, filter_tag_name, filter_tag_value),
+        skip(self, filter_tag_name, filter_tag_value)
     )]
     pub async fn fetch_tag_values(
-                &self,
-                database: &str,
-                measurement: &str,
-                key: &str,
-                filter_tag_name: &str,
-                filter_tag_value: &str,
-            ) -> Result<HashSet<String>> {
+        &self,
+        database: &str,
+        measurement: &str,
+        key: &str,
+        filter_tag_name: &str,
+        filter_tag_value: &str,
+    ) -> Result<HashSet<String>> {
         let query = format!(
             "SHOW TAG VALUES ON {database} FROM {measurement}
             WITH KEY = \"{key}\" WHERE \"{filter_tag_name}\" = '{filter_tag_value}'",
@@ -113,19 +114,16 @@ impl InfluxdbClient {
         Ok(tag_values)
     }
 
-    #[tracing::instrument(
-        name = "Fetching timeseries by tag",
-        skip(self, query),
-    )]
+    #[tracing::instrument(name = "Fetching timeseries by tag", skip(self, query))]
     pub async fn fetch_timeseries_by_tag(
-                &self,
-                query: &str,
-                tag_name: &str,
-            ) -> Result<HashMap<String, TimeSeries>> {
+        &self,
+        query: &str,
+        tag_name: &str,
+    ) -> Result<HashMap<String, TimeSeries>> {
         let raw = self.send_request(query).await?;
 
-        let p: InfluxdbResults = serde_json::from_str(&raw)
-            .context("Failed to parse JSON returned from InfluxDB")?;
+        let p: InfluxdbResults =
+            serde_json::from_str(&raw).context("Failed to parse JSON returned from InfluxDB")?;
 
         let result = p.results[0].clone();
 
@@ -136,13 +134,13 @@ impl InfluxdbClient {
         debug!("Fetched {} time-series", series.len());
 
         for raw_series in series {
-
-            let time_series: TimeSeries = raw_series.values
+            let time_series: TimeSeries = raw_series
+                .values
                 .iter()
-                .map(|(timestamp, value): &(i64, Option<f64>)| {
+                .map(|(timestamp, value): &(i64, Option<Value>)| {
                     if let Some(value) = value {
                         let datetime: DateTime<Utc> = Utc.timestamp(*timestamp as i64, 0);
-                        Some((datetime, *value))
+                        Some((datetime, value.clone()))
                     } else {
                         None
                     }
@@ -166,11 +164,7 @@ impl InfluxdbClient {
         Ok(time_seriess)
     }
 
-    async fn send_request(
-                &self,
-                query: &str
-            ) -> Result<String> {
-
+    async fn send_request(&self, query: &str) -> Result<String> {
         let mut params = HashMap::new();
         params.insert("q", query);
         params.insert("db", &self.database);
@@ -180,7 +174,8 @@ impl InfluxdbClient {
 
         debug!("Sending query {} to {}", query, query_url);
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(query_url)
             .basic_auth(&self.username, Some(&self.password))
             .form(&params)
@@ -201,19 +196,20 @@ struct InfluxdbResults {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct InfluxdbResult {
     pub statement_id: u32,
     pub series: Option<Vec<Series>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct Series {
     pub name: String,
     pub columns: Vec<String>,
-    pub values: Vec<(i64, Option<f64>)>,
+    pub values: Vec<(i64, Option<Value>)>,
     pub tags: Option<HashMap<String, String>>,
 }
-
 
 #[derive(Debug, Deserialize, Clone)]
 struct InfluxdbTextualResults {
@@ -221,12 +217,14 @@ struct InfluxdbTextualResults {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct InfluxdbTextualResult {
     pub statement_id: u32,
     pub series: Option<Vec<TextualSeries>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 struct TextualSeries {
     pub name: String,
     pub columns: Vec<String>,

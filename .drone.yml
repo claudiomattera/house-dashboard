@@ -2,6 +2,10 @@
 kind: pipeline
 type: docker
 name: build and test
+environment:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_HOME: "./.cargo_home/"
 trigger:
   event:
     exclude:
@@ -22,35 +26,43 @@ steps:
     root: drone
     restore: true
 
+- name: download dependencies
+  image: docker.claudiomattera.it/claudiomattera/rust:1
+  commands:
+  - cargo make --disable-check-for-updates fetch
+
 - name: check format
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo fmt --all -- --check
+  - cargo make --disable-check-for-updates check-format
 
 - name: run linter
   failure: ignore
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo clippy --all-targets --all-features -- -D warnings
+  - cargo make --disable-check-for-updates lint
 
 - name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo build --all-targets --all-features
+  - cargo build --frozen --all-targets --all-features
+
+- name: build tests
+  image: docker.claudiomattera.it/claudiomattera/rust:1
+  commands:
+  - cargo test --frozen --all-features --no-run
 
 - name: test
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
-  environment:
-    CARGO_HOME: "./.cargo_home/"
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo test
+  - cargo test --all-features --frozen
+
+- name: prepare cache
+  image: docker.claudiomattera.it/claudiomattera/rust:1
+  commands:
+  - find ./target/debug -maxdepth 1 -type f -and -not -name xtask.exe -delete
+  - rm -rf ./target/.rustc_info.json
 
 - name: rebuild cache
   image: plugins/s3-cache
@@ -65,12 +77,16 @@ steps:
     rebuild: true
     mount:
       - ./target
-      - ./.cargo_home/registry/
+      - ./.cargo_home
 
 ---
 kind: pipeline
 type: docker
 name: build release
+environment:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_HOME: "./.cargo_home/"
 trigger:
   event:
   - tag
@@ -88,15 +104,25 @@ steps:
     root: drone
     restore: true
 
-- name: build
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
+- name: download dependencies
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo build --release
+  - cargo make --disable-check-for-updates fetch
+
+- name: remove build artifacts
+  image: docker.claudiomattera.it/claudiomattera/rust:1
+  commands:
+  - cargo make --disable-check-for-updates clean-release
+
+- name: build
+  image: docker.claudiomattera.it/claudiomattera/rust:1
+  commands:
+  - cargo make --disable-check-for-updates build-release
 
 - name: package deb
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo deb --no-build
+  - cargo make --disable-check-for-updates deb
 
 - name: create release on gitea
   image: plugins/gitea-release
@@ -196,18 +222,18 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: daily security report
+name: security report
 trigger:
   event:
   - cron
   cron:
-  - daily
+  - security report
 
 steps:
 - name: check security advisories
-  image: docker.claudiomattera.it/claudiomattera/rust:1.52.0
+  image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo audit --deny unsound --deny yanked
+  - cargo make --disable-check-for-updates audit
 
 - name: notification
   depends_on:
@@ -232,12 +258,12 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: weekly cache flush
+name: cache flush
 trigger:
   event:
   - cron
   cron:
-  - weekly
+  - cache flush
 
 steps:
 - name: flush cache

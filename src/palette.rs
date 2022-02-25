@@ -5,9 +5,9 @@
 
 use serde::Deserialize;
 
+use plotters::style::Color;
 use plotters::style::Palette;
 use plotters::style::RGBColor;
-use plotters::style::Color;
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub enum SystemPalette {

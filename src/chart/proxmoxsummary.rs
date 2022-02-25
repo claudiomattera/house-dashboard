@@ -16,21 +16,22 @@ use plotters::style::{Color, IntoFont, ShapeStyle};
 
 use super::element::loadbar::Loadbar;
 use crate::colormap::{Colormap, ColormapType};
-use crate::configuration::InfrastructureSummaryConfiguration;
+use crate::configuration::ProxmoxSummaryConfiguration;
 use crate::configuration::StyleConfiguration;
 use crate::error::DashboardError;
 use crate::palette::SystemColor;
 use crate::types::TimeSeries;
 
-pub fn draw_infrastructure_summary(
-    infrastructure_summary: InfrastructureSummaryConfiguration,
+pub fn draw_proxmox_summary(
+    proxmox_summary: ProxmoxSummaryConfiguration,
     now: DateTime<Utc>,
     hosts: HashSet<String>,
+    statuses: HashMap<String, TimeSeries>,
     loads: HashMap<String, TimeSeries>,
     style: &StyleConfiguration,
     root: BitMapBackend,
 ) -> Result<(), DashboardError> {
-    info!("Drawing infrastructure summary");
+    info!("Drawing Proxmox summary");
 
     let title_font = (style.font.as_str(), 16.0 * style.font_scale).into_font();
     let label_font = (style.font.as_str(), 8.0 * style.font_scale).into_font();
@@ -45,7 +46,7 @@ pub fn draw_infrastructure_summary(
     // So we must draw the title manually, and also create a new margin area.
     let pos = Pos::new(HPos::Center, VPos::Top);
     root.draw(&Text::new(
-        "INFRASTRUCTURE",
+        "PROXMOX",
         (width as i32 / 2, 10),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
@@ -111,6 +112,12 @@ pub fn draw_infrastructure_summary(
             .flatten()
             .map(|(_instant, value)| value.clone().into_f64());
 
+        let status: Option<bool> = statuses
+            .get(host)
+            .map(|statuses| statuses.last())
+            .flatten()
+            .map(|(_instant, value)| value.clone().into_string() == "running");
+
         debug!(
             "Processing host {} ({}, relative load: {})",
             i + 1,
@@ -119,18 +126,18 @@ pub fn draw_infrastructure_summary(
                 .unwrap_or_else(|| "None".to_owned())
         );
 
-        let vertical_step = infrastructure_summary.vertical_step.unwrap_or(20);
-        let centered_y = 35 + vertical_step * i;
+        let vertical_step = proxmox_summary.vertical_step.unwrap_or(20);
+        let centered_y = 30 + vertical_step * i;
 
         debug!("Drawing hostname");
-        let short_hostname = match infrastructure_summary.suffix {
+        let short_hostname = match proxmox_summary.suffix {
             Some(ref suffix) => host.strip_suffix(suffix).unwrap_or(host),
             None => host,
         };
         new_root.draw(&Text::new(short_hostname, (15, centered_y), &host_font))?;
 
         debug!("Drawing status");
-        let color = if load.is_some() {
+        let color = if status == Some(true) {
             colormap.get_color(0.0).to_rgba()
         } else {
             colormap.get_color(MAX_LOAD).to_rgba()
@@ -140,17 +147,18 @@ pub fn draw_infrastructure_summary(
             filled: true,
             stroke_width: 0,
         };
-        new_root.draw(&Circle::new((STATUS_X, centered_y), 7, shape_style))?;
+        let radius = 3;
+        new_root.draw(&Circle::new((STATUS_X, centered_y), radius, shape_style))?;
         new_root.draw(&Circle::new(
             (STATUS_X, centered_y),
-            7,
+            radius,
             &style.system_palette.pick(SystemColor::LightForeground),
         ))?;
 
         debug!("Drawing loadbar");
         let loadbar = Loadbar::new(
             (LOAD_X, centered_y),
-            (40, 10),
+            (40, 5),
             MAX_LOAD,
             load.unwrap_or(0.0),
             &style.system_palette,
@@ -159,7 +167,7 @@ pub fn draw_infrastructure_summary(
         new_root.draw(&loadbar)?;
     }
 
-    if let Some(format) = infrastructure_summary.last_update_format {
+    if let Some(format) = proxmox_summary.last_update_format {
         let now: DateTime<Local> = now.with_timezone(&Local);
         new_root.draw(&Text::new(
             now.format(&format).to_string(),
