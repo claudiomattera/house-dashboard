@@ -19,9 +19,6 @@ use anyhow::{Context, Result};
 
 use chrono::{DateTime, Duration, Local, SecondsFormat, Utc};
 
-use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version};
-use clap::{Arg, ArgMatches, SubCommand};
-
 use glob::glob;
 
 use plotters::drawing::BitMapBackend;
@@ -30,8 +27,11 @@ use futures::future::try_join_all;
 
 use indicatif::ProgressBar;
 
+use clap::Parser;
+
 mod chart;
 mod colormap;
+mod commandline;
 mod configuration;
 mod error;
 
@@ -41,6 +41,8 @@ mod framebuffer;
 mod influxdb;
 mod palette;
 mod types;
+
+use crate::commandline::{Arguments, SubCommand};
 
 use crate::configuration::{ChartConfiguration, Configuration, StyleConfiguration};
 
@@ -77,28 +79,15 @@ async fn main() {
 }
 
 async fn inner_main() -> Result<()> {
-    let matches = parse_arguments();
-    setup_logging(matches.occurrences_of("verbosity"));
-
-    if matches.subcommand().1.is_none() {
-        println!("{}", matches.usage());
-        return Ok(());
-    }
+    let arguments = Arguments::parse();
+    setup_logging(arguments.verbosity);
 
     debug!("Parsing configuration");
-    let configuration_path = matches
-        .value_of("configuration-path")
-        .map(Path::new)
-        .expect("Missing argument \"configuration\"");
-    let configuration =
-        parse_configuration(configuration_path).context("Could not load configuration")?;
+    let configuration = parse_configuration(&arguments.configuration_path)
+            .context("Could not load configuration")?;
 
-    let now = matches
-        .value_of("now")
-        .map(DateTime::parse_from_rfc3339)
-        .transpose()?
-        .map(|dt| dt.with_timezone(&Utc))
-        .unwrap_or_else(Utc::now);
+    let now = arguments.now.unwrap_or_else(Utc::now);
+
     info!("Current time is {}", now.with_timezone(&Local));
 
     debug!("Creating InfluxDB client");
@@ -115,15 +104,11 @@ async fn inner_main() -> Result<()> {
     )?;
 
     debug!("Matching subcommand");
-    match matches.subcommand() {
-        ("save", Some(subcommand)) => {
+    match arguments.subcommand {
+        SubCommand::Save { directory_path, clear } => {
             debug!("Creating directory path");
-            let directory_path = subcommand
-                .value_of("path")
-                .map(Path::new)
-                .expect("Missing argument \"path\"");
             info!("Saving chart to directory {}", directory_path.display());
-            if subcommand.is_present("clear") {
+            if clear {
                 info!("Removing existing BMP files");
                 for image_path_result in glob(
                     directory_path
@@ -238,58 +223,12 @@ async fn inner_main() -> Result<()> {
 
             let _results: Vec<()> = try_join_all(tasks).await?;
         }
-        _ => println!("{}", matches.usage()),
     }
 
     Ok(())
 }
 
-fn parse_arguments() -> ArgMatches<'static> {
-    app_from_crate!()
-        .arg(
-            Arg::with_name("verbosity")
-                .short("v")
-                .long("verbose")
-                .multiple(true)
-                .help("Sets the level of verbosity"),
-        )
-        .arg(
-            Arg::with_name("configuration-path")
-                .short("c")
-                .long("configuration")
-                .required(true)
-                .help("Path to configuration file")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("now")
-                .short("n")
-                .long("now")
-                .required(false)
-                .help("Create charts at a specific instant")
-                .takes_value(true),
-        )
-        .subcommand(
-            SubCommand::with_name("save")
-                .about("Save charts to files")
-                .arg(
-                    Arg::with_name("path")
-                        .short("p")
-                        .long("path")
-                        .required(true)
-                        .help("Path to charts directory")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("clear")
-                        .long("clear")
-                        .help("Clears all .bmp files in charts directory"),
-                ),
-        )
-        .get_matches()
-}
-
-fn setup_logging(verbosity: u64) {
+fn setup_logging(verbosity: u8) {
     // Redirect all `log`'s events to our subscriber
     LogTracer::init().expect("Failed to set logger");
 

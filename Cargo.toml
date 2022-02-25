@@ -28,7 +28,7 @@ proxmox-chart = []
 [dependencies]
 thiserror = { version = "1.0" }
 anyhow = { version = "1.0" }
-clap = { version = "2.33" }
+clap = { version = "3", features = ["derive"] }
 chrono = { version = "0.4" }
 serde_json = { version = "1.0" }
 num-traits = { version = "0.2" }
