@@ -29,19 +29,19 @@ steps:
 - name: download dependencies
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo fetch --locked
+  - cargo make --disable-check-for-updates fetch
 
 - name: check format
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo fmt --all -- --check
+  - cargo make --disable-check-for-updates check-format
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo clippy --frozen --all-targets --all-features -- -D warnings
+  - cargo make --disable-check-for-updates lint
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1
@@ -103,22 +103,22 @@ steps:
 - name: download dependencies
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo fetch --locked
+  - cargo make --disable-check-for-updates fetch
 
 - name: remove build artifacts
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo clean --frozen --release
+  - cargo make --disable-check-for-updates clean-release
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo build --frozen --all-features --release
+  - cargo make --disable-check-for-updates build-release
 
 - name: package deb
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo deb --no-build
+  - cargo make --disable-check-for-updates deb
 
 - name: create release on gitea
   image: plugins/gitea-release
@@ -229,7 +229,7 @@ steps:
 - name: check security advisories
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo audit --deny unsound --deny yanked
+  - cargo make --disable-check-for-updates audit
 
 - name: notification
   depends_on:
