@@ -82,8 +82,8 @@ pub fn draw_trend_chart(
         for (date, value) in time_series {
             min_x_utc = min_x_utc.min(*date);
             max_x_utc = max_x_utc.max(*date);
-            min_y = min_y.min(value.clone().to_f64());
-            max_y = max_y.max(value.clone().to_f64());
+            min_y = min_y.min(value.clone().into_f64());
+            max_y = max_y.max(value.clone().into_f64());
         }
     }
 
@@ -129,7 +129,7 @@ pub fn draw_trend_chart(
                 s.clone(),
                 time_series_to_local_time(ts.clone())
                     .into_iter()
-                    .map(|(i, v)| (i, v.clone().to_f64()))
+                    .map(|(i, v)| (i, v.into_f64()))
                     .collect(),
             )
         })

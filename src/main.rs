@@ -427,7 +427,7 @@ async fn generate_geographical_map_chart(
         .map(|(region, time_series)| {
             (
                 region.to_owned(),
-                time_series.first().map(|o| o.1.clone().to_f64()),
+                time_series.first().map(|o| o.1.clone().into_f64()),
             )
         })
         .collect();

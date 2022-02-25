@@ -18,14 +18,14 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn to_f64(self) -> f64 {
+    pub fn into_f64(self) -> f64 {
         match self {
             Self::Float(value) => value,
             _ => unreachable!(),
         }
     }
 
-    pub fn to_string(self) -> String {
+    pub fn into_string(self) -> String {
         match self {
             Self::String(value) => value,
             _ => unreachable!(),

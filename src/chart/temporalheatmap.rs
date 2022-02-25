@@ -126,7 +126,7 @@ pub fn draw_temporal_heat_map_chart(
                 .instant_to_rectangle(*instant);
             Rectangle::new(
                 [(x1, y1 as f64), (x2, y2 as f64)],
-                colormap.get_color(value.clone().to_f64()).filled(),
+                colormap.get_color(value.clone().into_f64()).filled(),
             )
         })
         .collect();
