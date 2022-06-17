@@ -577,7 +577,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard"
-version = "0.15.0"
+version = "0.16.0-dev"
 dependencies = [
  "anyhow",
  "chrono",
