@@ -6,6 +6,8 @@ environment:
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
   CARGO_HOME: "./.cargo_home/"
+  PRE_COMMIT_HOME: ".cache/pre-commit"
+  VIRTUAL_ENV: ".cache/venv"
 trigger:
   event:
     exclude:
@@ -31,6 +33,8 @@ steps:
   environment:
     SKIP: no-commit-to-branch
   commands:
+  - python3 -m venv "$${VIRTUAL_ENV}"
+  - . "$${VIRTUAL_ENV}/bin/activate"
   - apt-get update
   - apt-get install --no-install-recommends -y git
   - pip install pre-commit
@@ -88,6 +92,7 @@ steps:
     mount:
       - ./target
       - ./.cargo_home
+      - ./.cache
 
 ---
 kind: pipeline
