@@ -1,0 +1,93 @@
+[package]
+name = "house-dashboard"
+version = "1.0.0-dev"
+authors = ["Claudio Mattera <claudio@mattera.it>"]
+edition = "2021"
+description = "An application to generate and display charts for a house dashboard"
+readme = "Readme.md"
+homepage = "https://gitlab.com/claudiomattera/house-dashboard"
+repository = "https://gitlab.com/claudiomattera/house-dashboard"
+license = "MPL-2.0"
+keywords = [
+    "dashboard",
+]
+categories = [
+    "command-line-utilities",
+]
+publish = false
+
+[features]
+default = []
+trend-chart = []
+temporal-heatmap-chart = []
+geographical-heatmap-chart = []
+image-chart = []
+infrastructure-chart = []
+proxmox-chart = []
+
+
+[dependencies]
+house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary" }
+
+thiserror = { version = "1" }
+miette = { version = "5", features = ["fancy"] }
+
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros"] }
+futures = { version = "0.3" }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+
+clap = { version = "4", features = ["derive", "env"] }
+url = { version = "2", features = ["serde"] }
+
+tracing = { version = "0.1" }
+tracing-futures = { version = "0.2" }
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
+tracing-log = { version = "0.1" }
+tracing-journald = { version = "0.3" }
+
+palette = { version = "0.5", default-features = false, features = ["std"] }
+
+regex = { version = "1" }
+
+serde = { version = "1", features = ["derive"] }
+toml = { version = "0.5" }
+
+rinfluxdb = { version = "0.2" }
+
+[dependencies.plotters]
+git = "https://github.com/plotters-rs/plotters/"
+branch = "master"
+default-features = false
+features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
+
+
+
+
+# anyhow = { version = "1.0" }
+# thiserror = { version = "1.0" }
+# clap = { version = "3", features = ["derive"] }
+# serde_json = { version = "1.0" }
+# num-traits = { version = "0.2" }
+# framebuffer = { version = "0.3", optional = true }
+# glob = { version = "0.3" }
+# indicatif = { version = "0.16" }
+# tracing = { version = "0.1" }
+# tracing-futures = { version = "0.2" }
+# tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
+# tracing-log = { version = "0.1" }
+# url = { version = "2", features = ["serde"] }
+# image = { version = "0.24", default-features = false, features = ["jpeg", "png", "bmp"] }
+# futures = { version = "0.3" }
+
+# [dependencies.plotters]
+# version = "0.2"
+# # default-features = false
+# # features = ["image_encoder", "line_series", "datetime"]
+
+[package.metadata.deb]
+extended-description = """\
+This application generates charts for a house dashboard.
+Charts are dynamically configured through a TOML file, and their data is
+fetched from an InfluxDB instance."""
+section = "utility"

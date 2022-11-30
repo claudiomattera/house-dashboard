@@ -28,13 +28,19 @@ cargo clippy --frozen --all-targets --all-features -- -D warnings
 [tasks.check]
 dependencies = ["fetch"]
 script = '''
-cargo check --frozen --all-features
+cargo check --frozen --all-targets --all-features
 '''
 
 [tasks.build]
 dependencies = ["fetch"]
 script = '''
-cargo build --frozen --all-targets --all-features
+cargo build --frozen --all-features
+'''
+
+[tasks.run]
+dependencies = ["build"]
+script = '''
+cargo run --frozen --all-features -- $@
 '''
 
 [tasks.build-tests]
@@ -46,19 +52,20 @@ cargo test --frozen --all-features --no-run
 [tasks.test]
 dependencies = ["build-tests"]
 script = '''
-cargo test --frozen --all-features
+env RUST_LOG=trace cargo test --frozen --all-features $@
 '''
 
-[tasks.prepare-cache]
+[tasks.mutants]
+dependencies = ["fetch"]
+description = "Run mutation testing tool"
 script = '''
-find ./target/debug -maxdepth 1 -type f -and -not -name xtask.exe -delete
-rm -rf ./target/.rustc_info.json
+cargo mutants --caught --dir house-dashboard -- --target=x86_64-unknown-linux-gnu --package house-dashboard
 '''
 
 [tasks.build-release]
+dependencies = ["fetch"]
 script = '''
-cargo build --frozen --all-features --release
-strip target/release/house-dashboard
+env RUSTC_WRAPPER="" cargo auditable build --frozen --all-features --release
 '''
 
 [tasks.clean-release]
@@ -71,12 +78,12 @@ script = '''
 cargo clean --frozen
 '''
 
-[tasks.deb]
-script = '''
-cargo deb --no-build
-'''
-
 [tasks.audit]
 script = '''
 cargo audit --deny unsound --deny yanked
+'''
+
+[tasks.audit-binary]
+script = '''
+cargo audit bin --deny unsound --deny yanked $@
 '''
