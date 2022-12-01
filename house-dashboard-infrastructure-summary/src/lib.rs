@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::path::Path;
 
 use tracing::instrument;
 
@@ -32,16 +31,17 @@ pub async fn process_infrastructure_summary(
     infrastructure_summary_configuration: &InfrastructureSummaryConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
-) -> Result<(), Report> {
+) -> Result<Vec<u8>, Report> {
     let now = Utc::now();
 
     let (hosts, loads) = fetch_data()
         .await
         .wrap_err("cannot fetch data for infrastructure summary")?;
 
-    let filename = format!("{:02}.bmp", index + 1);
-    let path = Path::new(&filename);
-    let backend = BitMapBackend::new(&path, style_configuration.resolution);
+    let area = style_configuration.resolution.0 * style_configuration.resolution.1;
+    let area_in_bytes = area as usize * 3;
+    let mut buffer: Vec<u8> = vec![0; area_in_bytes];
+    let backend = BitMapBackend::with_buffer(&mut buffer, style_configuration.resolution);
     draw_infrastructure_summary(
         infrastructure_summary_configuration,
         now,
@@ -52,7 +52,7 @@ pub async fn process_infrastructure_summary(
     )
     .wrap_err("cannot draw infrastructure summary")?;
 
-    Ok(())
+    Ok(buffer)
 }
 
 /// Fetch data for infrastructure summary

@@ -45,7 +45,10 @@
 
 use std::ffi::OsStr;
 use std::fs::{read, read_dir, read_to_string};
+use std::io::{BufWriter, Cursor};
 use std::path::Path;
+
+use async_std::fs::write;
 
 use tracing::{debug, trace};
 
@@ -58,6 +61,8 @@ use toml::from_str as from_toml_str;
 use plotters::style::{register_font, FontStyle};
 
 use futures::{stream::FuturesUnordered, StreamExt};
+
+use image::{ImageFormat, RgbImage};
 
 use house_dashboard_common::configuration::StyleConfiguration;
 
@@ -107,7 +112,10 @@ pub async fn main() -> Result<(), Report> {
         .collect();
 
     while let Some(result) = tasks.next().await {
-        result?;
+        let (index, bytes) = result?;
+        save_chart(index, bytes, style_configuration.resolution)
+            .await
+            .wrap_err("cannot save image")?;
     }
 
     Ok(())
@@ -186,5 +194,27 @@ fn load_font(name: &str, path: &Path) -> Result<(), Report> {
     let font_bytes = read(path).into_diagnostic()?.into_boxed_slice();
     let font_bytes: &'static [u8] = Box::leak(font_bytes);
     register_font(name, FontStyle::Normal, font_bytes).map_err(|_| miette!("Cannot load font"))?;
+    Ok(())
+}
+
+/// Save a chart to a file
+async fn save_chart(
+    index: usize,
+    bytes: Vec<u8>,
+    (width, height): (u32, u32),
+) -> Result<(), Report> {
+    let filename = format!("{:02}.bmp", index + 1);
+    let path = Path::new(&filename);
+
+    let image =
+        RgbImage::from_raw(width, height, bytes).ok_or_else(|| miette!("invalid image data"))?;
+
+    let mut buffer = BufWriter::new(Cursor::new(Vec::new()));
+    image
+        .write_to(&mut buffer, ImageFormat::Bmp)
+        .into_diagnostic()?;
+
+    let buffer = buffer.into_inner().into_diagnostic()?.into_inner();
+    write(path, &buffer).await.into_diagnostic()?;
     Ok(())
 }

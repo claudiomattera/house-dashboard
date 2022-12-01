@@ -51,12 +51,18 @@ pub enum Chart {
 }
 
 impl Chart {
-    pub async fn process(self, style: &StyleConfiguration, index: usize) -> Result<(), Report> {
+    /// Process a chart
+    pub async fn process(
+        self,
+        style: &StyleConfiguration,
+        index: usize,
+    ) -> Result<(usize, Vec<u8>), Report> {
         match self {
             Self::InfrastructureSummary(configuration) => {
-                process_infrastructure_summary(&configuration, &style, index)
+                let bytes = process_infrastructure_summary(&configuration, style, index)
                     .await
-                    .wrap_err("cannot process infrastructure summary chart")
+                    .wrap_err("cannot process infrastructure summary chart")?;
+                Ok((index, bytes))
             }
         }
     }

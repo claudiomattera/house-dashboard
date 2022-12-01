@@ -166,7 +166,7 @@ pub fn draw_infrastructure_summary(
     if let Some(ref format) = infrastructure_summary.last_update_format {
         let now: DateTime<Local> = now.with_timezone(&Local);
         new_root.draw(&Text::new(
-            now.format(&format).to_string(),
+            now.format(format).to_string(),
             (width as i32 - 10, height as i32 - 30),
             &footer_font,
         ))?;

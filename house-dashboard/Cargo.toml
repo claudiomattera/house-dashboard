@@ -34,8 +34,10 @@ thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }
 
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros"] }
+async-std = { version = "1" }
 futures = { version = "0.3" }
 reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+image = { version = "0.24", default-features = false, features = ["bmp"] }
 
 clap = { version = "4", features = ["derive", "env"] }
 url = { version = "2", features = ["serde"] }
