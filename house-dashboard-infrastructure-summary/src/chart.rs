@@ -11,7 +11,11 @@ use tracing::{debug, info, trace};
 use std::collections::{HashMap, HashSet};
 use std::hash::BuildHasher;
 
-use chrono::{DateTime, Local, Utc};
+use time::OffsetDateTime;
+
+use time_tz::{system::get_timezone, OffsetDateTimeExt};
+
+use time_fmt::format::format_offset_date_time;
 
 use plotters::{
     backend::{BitMapBackend, DrawingBackend},
@@ -56,7 +60,7 @@ const HEADER_HEIGHT: i32 = 35;
 /// Return and error when chart generation failed
 pub fn draw_infrastructure_summary<S>(
     infrastructure_summary: &InfrastructureSummaryConfiguration,
-    now: DateTime<Utc>,
+    now: OffsetDateTime,
     hosts: &HashSet<String, S>,
     loads: &HashMap<String, f64, S>,
     style: &StyleConfiguration,
@@ -279,7 +283,7 @@ fn draw_host_loadbar<DB: DrawingBackend>(
 /// Draw footer
 fn draw_footer<DB: DrawingBackend>(
     last_update_format: &str,
-    now: DateTime<Utc>,
+    now: OffsetDateTime,
     style: &StyleConfiguration,
     root: &DrawingArea<DB, Shift>,
 ) -> Result<(), Error> {
@@ -291,9 +295,11 @@ fn draw_footer<DB: DrawingBackend>(
         .color(&style.system_palette.pick(SystemColor::Foreground))
         .pos(footer_pos);
 
-    let now: DateTime<Local> = now.with_timezone(&Local);
+    let timezone = get_timezone()?;
+    let now = now.to_timezone(timezone);
+
     root.draw(&Text::new(
-        now.format(last_update_format).to_string(),
+        format_offset_date_time(last_update_format, now)?,
         (i32::try_from(width)? - 10, i32::try_from(height)?),
         &footer_font,
     ))?;

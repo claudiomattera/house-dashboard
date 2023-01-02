@@ -49,7 +49,7 @@ use tracing::instrument;
 
 use miette::{Report, WrapErr};
 
-use chrono::Utc;
+use time::OffsetDateTime;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
@@ -81,7 +81,7 @@ pub async fn process_infrastructure_summary(
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let now = Utc::now();
+    let now = OffsetDateTime::now_utc();
 
     let (hosts, loads) = fetch_data()
         .await

@@ -6,7 +6,7 @@
 
 //! Data types for parsing ISO8601 durations
 
-use chrono::Duration;
+use time::Duration;
 
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
@@ -48,33 +48,33 @@ fn parse_iso8601_duration(string: &str) -> Option<Duration> {
     ))
     .ok()
     .and_then(|duration_regex| {
-        let mut duration = Duration::zero();
+        let mut duration = Duration::ZERO;
 
         match duration_regex.captures(string) {
             Some(captures) => {
                 if let Some(years_match) = captures.name("years") {
                     let years: i64 = years_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::days(365 * years))?;
+                    duration = duration.checked_add(Duration::days(365 * years))?;
                 }
                 if let Some(months_match) = captures.name("months") {
                     let months: i64 = months_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::days(30 * months))?;
+                    duration = duration.checked_add(Duration::days(30 * months))?;
                 }
                 if let Some(days_match) = captures.name("days") {
                     let days: i64 = days_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::days(days))?;
+                    duration = duration.checked_add(Duration::days(days))?;
                 }
                 if let Some(hours_match) = captures.name("hours") {
                     let hours: i64 = hours_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::hours(hours))?;
+                    duration = duration.checked_add(Duration::hours(hours))?;
                 }
                 if let Some(minutes_match) = captures.name("minutes") {
                     let minutes: i64 = minutes_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::minutes(minutes))?;
+                    duration = duration.checked_add(Duration::minutes(minutes))?;
                 }
                 if let Some(seconds_match) = captures.name("seconds") {
                     let seconds: i64 = seconds_match.as_str().parse().ok()?;
-                    duration = duration.checked_add(&Duration::seconds(seconds))?;
+                    duration = duration.checked_add(Duration::seconds(seconds))?;
                 }
                 Some(duration)
             }

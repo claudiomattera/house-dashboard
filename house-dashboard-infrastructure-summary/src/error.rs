@@ -14,6 +14,10 @@ use miette::Diagnostic;
 
 use plotters::drawing::DrawingAreaErrorKind;
 
+use time_tz::system::Error as TimeTzError;
+
+use time_fmt::format::FormatError as TimeFormatError;
+
 /// An error occurred generating a chart
 #[derive(ThisError, Debug, Diagnostic)]
 pub enum Error {
@@ -32,6 +36,14 @@ pub enum Error {
     /// Integer conversion failed
     #[error(transparent)]
     TryFromInt(#[from] TryFromIntError),
+
+    /// Time formatting failed
+    #[error(transparent)]
+    TimeFormat(#[from] TimeFormatError),
+
+    /// Timezone error
+    #[error(transparent)]
+    TimeTz(#[from] TimeTzError),
 }
 
 impl<T: std::error::Error + Send + Sync> From<DrawingAreaErrorKind<T>> for Error {
