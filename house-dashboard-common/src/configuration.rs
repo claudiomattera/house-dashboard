@@ -12,13 +12,27 @@ use serde::Deserialize;
 
 use crate::palette::{SeriesPalette, SystemPalette};
 
+/// Style configuration
 #[derive(Debug, Deserialize)]
 pub struct StyleConfiguration {
+    /// Font name
     pub font_name: String,
+
+    /// Font path (relative to configuration directory)
     pub font_path: PathBuf,
+
+    /// Font scale
     pub font_scale: f64,
+
+    /// Palette for text and other controls
     pub system_palette: SystemPalette,
+
+    /// Palette for charts
     pub series_palette: SeriesPalette,
+
+    /// Flag for drawing marks
     pub draw_markers: Option<bool>,
+
+    /// Chart resolution
     pub resolution: (u32, u32),
 }

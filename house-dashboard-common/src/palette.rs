@@ -1,7 +1,10 @@
-// Copyright Claudio Mattera 2020.
-// Distributed under the MIT License.
-// See accompanying file License.txt, or online at
-// https://opensource.org/licenses/MIT
+// Copyright Claudio Mattera 2022.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+//! Data structures for palettes
 
 use serde::Deserialize;
 
@@ -9,24 +12,40 @@ use plotters::style::Color;
 use plotters::style::Palette;
 use plotters::style::RGBColor;
 
+/// Palette for text and other controls
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub enum SystemPalette {
+    /// Dark palette
     Dark,
+
+    /// Light palette
     Light,
 }
 
+/// Type of system color
 #[derive(Clone, Copy, Debug)]
 pub enum SystemColor {
+    /// Background
     Background,
+
+    /// Foreground
     Foreground,
+
+    /// Light background
     LightBackground,
+
+    /// Light foreground
     LightForeground,
+
+    /// Middle
     Middle,
 }
 
 impl SystemColor {
+    /// Get the index of a system color
+    #[must_use]
     pub fn index(&self) -> usize {
-        match self {
+        match *self {
             SystemColor::Background => 0,
             SystemColor::Foreground => 1,
             SystemColor::LightBackground => 2,
@@ -37,8 +56,10 @@ impl SystemColor {
 }
 
 impl SystemPalette {
+    /// Map a system color to a palette color
+    #[must_use]
     pub fn pick(&self, color: SystemColor) -> RGBColor {
-        match self {
+        match *self {
             SystemPalette::Dark => {
                 let index = color.index();
                 let (r, g, b) = PaletteDarkTheme::pick(index).rgb();
@@ -53,16 +74,24 @@ impl SystemPalette {
     }
 }
 
+/// Palette for charts
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub enum SeriesPalette {
+    /// Colorbrewer set 1
     ColorbrewerSet1,
+
+    /// Colorbrewer set 2
     ColorbrewerSet2,
+
+    /// Colorbrewer set 3
     ColorbrewerSet3,
 }
 
 impl SeriesPalette {
+    /// Map a color to a palette color
+    #[must_use]
     pub fn pick(&self, index: usize) -> RGBColor {
-        match self {
+        match *self {
             SeriesPalette::ColorbrewerSet1 => {
                 let (r, g, b) = PaletteColorbrewerSet1::pick(index).rgb();
                 RGBColor(r, g, b)
@@ -79,6 +108,7 @@ impl SeriesPalette {
     }
 }
 
+/// Wrapper palette for dark theme
 pub struct PaletteDarkTheme;
 
 impl Palette for PaletteDarkTheme {
@@ -91,6 +121,7 @@ impl Palette for PaletteDarkTheme {
     ];
 }
 
+/// Wrapper palette for light theme
 pub struct PaletteLightTheme;
 
 impl Palette for PaletteLightTheme {
@@ -103,6 +134,7 @@ impl Palette for PaletteLightTheme {
     ];
 }
 
+/// Wrapper palette for Colorbrewer set 1
 pub struct PaletteColorbrewerSet1;
 
 impl Palette for PaletteColorbrewerSet1 {
@@ -119,6 +151,7 @@ impl Palette for PaletteColorbrewerSet1 {
     ];
 }
 
+/// Wrapper palette for Colorbrewer set 2
 pub struct PaletteColorbrewerSet2;
 
 impl Palette for PaletteColorbrewerSet2 {
@@ -134,6 +167,7 @@ impl Palette for PaletteColorbrewerSet2 {
     ];
 }
 
+/// Wrapper palette for Colorbrewer set 3
 pub struct PaletteColorbrewerSet3;
 
 impl Palette for PaletteColorbrewerSet3 {

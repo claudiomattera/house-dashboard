@@ -1,7 +1,10 @@
-// Copyright Claudio Mattera 2020.
-// Distributed under the MIT License.
-// See accompanying file License.txt, or online at
-// https://opensource.org/licenses/MIT
+// Copyright Claudio Mattera 2022.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+//! Data structures for colormaps
 
 use serde::Deserialize;
 
@@ -9,33 +12,57 @@ use palette::{Gradient, LinSrgb, Pixel, Srgb};
 
 use plotters::style::RGBColor;
 
+/// Type of color maps
 #[derive(Debug, Deserialize)]
 pub enum ColormapType {
+    /// Cool/Warm
     CoolWarm,
+
+    /// Shades of blue
     Blues,
+
+    /// Shades of red
     Reds,
+
+    /// Shades of green
     Greens,
+
+    /// Shades of orange
     Oranges,
+
+    /// Shades of violet
     Violets,
+
+    /// Shades of gray
     Grays,
+
+    /// Status (red/yellow/green)
     Status,
 }
 
+/// A Color map
 #[derive(Debug)]
 pub struct Colormap {
+    /// Color map gradient
     gradient: Gradient<LinSrgb<f64>>,
+
+    /// Gradient lower bound
     min: f64,
+
+    /// Gradient upper bound
     max: f64,
 }
 
 impl Colormap {
+    /// Create a new colormap with bounds and direction
+    #[must_use]
     pub fn new_with_bounds_and_direction(
         colormap_type: Option<&ColormapType>,
         min: f64,
         max: f64,
         reversed: Option<bool>,
     ) -> Self {
-        let base_palette = match colormap_type.unwrap_or(&ColormapType::Blues) {
+        let base_palette = match *colormap_type.unwrap_or(&ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
             ColormapType::Blues => PALETTE_BLUES,
@@ -46,26 +73,37 @@ impl Colormap {
             ColormapType::Status => PALETTE_STATUS,
         };
         let palette = if let Some(true) = reversed {
-            base_palette.iter().rev().cloned().collect::<Vec<[u8; 3]>>()
+            base_palette.iter().rev().copied().collect::<Vec<[u8; 3]>>()
         } else {
             base_palette.to_vec()
         };
-        let linear_palette = palette.iter().map(|[r, g, b]| {
-            Srgb::new(*r as f64 / 255.0, *g as f64 / 255.0, *b as f64 / 255.0).into_linear()
+        let linear_palette = palette.iter().map(|&[r, g, b]| {
+            Srgb::new(
+                f64::from(r) / 255.0,
+                f64::from(g) / 255.0,
+                f64::from(b) / 255.0,
+            )
+            .into_linear()
         });
         let gradient = Gradient::new(linear_palette);
         Colormap { gradient, min, max }
     }
 
+    /// Create a new colormap with bounds
+    #[must_use]
     pub fn new_with_bounds(colormap_type: Option<&ColormapType>, min: f64, max: f64) -> Self {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
+    /// Map value to color
+    #[must_use]
     pub fn get_color(&self, value: f64) -> RGBColor {
         let [r, g, b] = self.get_color_array(value);
         RGBColor(r, g, b)
     }
 
+    /// Map value to RGB array
+    #[must_use]
     pub fn get_color_array(&self, value: f64) -> [u8; 3] {
         let value = (value - self.min) / (self.max - self.min);
         let color = self.gradient.get(value);
@@ -74,7 +112,9 @@ impl Colormap {
     }
 }
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of red
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_REDS: &[[u8; 3]] = &[
     [255, 245, 240],
     [254, 224, 210],
@@ -87,7 +127,9 @@ const PALETTE_REDS: &[[u8; 3]] = &[
     [103, 0, 13],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of blue
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_BLUES: &[[u8; 3]] = &[
     [247, 251, 255],
     [222, 235, 247],
@@ -100,7 +142,9 @@ const PALETTE_BLUES: &[[u8; 3]] = &[
     [8, 48, 107],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of green
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_GREENS: &[[u8; 3]] = &[
     [247, 252, 245],
     [229, 245, 224],
@@ -113,7 +157,9 @@ const PALETTE_GREENS: &[[u8; 3]] = &[
     [0, 68, 27],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of gray
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_GRAYS: &[[u8; 3]] = &[
     [255, 255, 255],
     [240, 240, 240],
@@ -126,7 +172,9 @@ const PALETTE_GRAYS: &[[u8; 3]] = &[
     [0, 0, 0],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of orange
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_ORANGES: &[[u8; 3]] = &[
     [255, 245, 235],
     [254, 230, 206],
@@ -139,7 +187,9 @@ const PALETTE_ORANGES: &[[u8; 3]] = &[
     [127, 39, 4],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of violet
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_VIOLETS: &[[u8; 3]] = &[
     [252, 251, 253],
     [239, 237, 245],
@@ -152,7 +202,9 @@ const PALETTE_VIOLETS: &[[u8; 3]] = &[
     [63, 0, 125],
 ];
 
-// Palette from https://colorbrewer2.org/
+/// Palette consisting of shades of cool/warm
+///
+/// From <https://colorbrewer2.org/>
 const PALETTE_COOLWARM: &[[u8; 3]] = &[
     [5, 48, 97],
     [33, 102, 172],
@@ -171,6 +223,7 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
     [103, 0, 31],
 ];
 
+/// Palette for status
 #[rustfmt::skip]
 const PALETTE_STATUS: &[[u8; 3]] = &[
     [77, 175, 74],
