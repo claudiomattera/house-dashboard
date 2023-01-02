@@ -69,13 +69,13 @@ where
 
     let mut chart = create_chart_context(trend.top_padding, &indices, &new_root, &time_seriess)?;
 
+    debug!("Drawing axis");
+    draw_axes(trend, style, &mut chart)?;
+
     debug!("Plotting time-series");
     for (name, time_series) in &time_seriess {
         plot_time_series(trend, &indices, style, &new_root, &mut chart, name, time_series)?;
     }
-
-    debug!("Drawing axis");
-    draw_axes(trend, style, &mut chart)?;
 
     if !trend.hide_legend.unwrap_or(false) {
         draw_legend(&mut chart, style)?;
