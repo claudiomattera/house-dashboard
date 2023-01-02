@@ -53,7 +53,7 @@ pub fn draw_infrastructure_summary(
     // So we must draw the title manually, and also create a new margin area.
     let pos = Pos::new(HPos::Center, VPos::Top);
     root.draw(&Text::new(
-        "INFRASTRUCTURE",
+        infrastructure_summary.title.as_str(),
         (width as i32 / 2, 10),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
