@@ -157,6 +157,8 @@ fn parse_charts_configurations(
         .filter(|path| path.file_name() != Some(OsStr::new("style.toml")))
         .collect::<Vec<std::path::PathBuf>>();
 
+    paths.sort_unstable();
+
     debug!("Collected configuration paths: {:?}", paths);
 
     let entries = paths
