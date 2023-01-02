@@ -51,10 +51,10 @@ pub struct Influxdb {
 #[serde(tag = "kind")]
 pub enum Chart {
     /// Chart configuration for infrastructure summary
-    InfrastructureSummary(InfrastructureSummaryConfiguration),
+    InfrastructureSummary(Box<InfrastructureSummaryConfiguration>),
 
     /// Chart configuration for trend
-    Trend(TrendConfiguration),
+    Trend(Box<TrendConfiguration>),
 }
 
 impl Chart {
