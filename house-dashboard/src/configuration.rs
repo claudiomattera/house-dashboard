@@ -20,6 +20,10 @@ use house_dashboard_infrastructure_summary::{
     process_infrastructure_summary, InfrastructureSummaryConfiguration,
 };
 
+use house_dashboard_trend::{
+    process_trend, TrendConfiguration,
+};
+
 /// InfluxDB configuration
 #[derive(Debug, Deserialize)]
 pub struct Influxdb {
@@ -48,6 +52,9 @@ pub struct Influxdb {
 pub enum Chart {
     /// Chart configuration for infrastructure summary
     InfrastructureSummary(InfrastructureSummaryConfiguration),
+
+    /// Chart configuration for trend
+    Trend(TrendConfiguration),
 }
 
 impl Chart {
@@ -62,6 +69,12 @@ impl Chart {
                 let bytes = process_infrastructure_summary(&configuration, style, index)
                     .await
                     .wrap_err("cannot process infrastructure summary chart")?;
+                Ok((index, bytes))
+            }
+            Self::Trend(configuration) => {
+                let bytes = process_trend(&configuration, style, index)
+                    .await
+                    .wrap_err("cannot process trend chart")?;
                 Ok((index, bytes))
             }
         }

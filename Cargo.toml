@@ -3,6 +3,7 @@ members = [
     "house-dashboard",
     "house-dashboard-common",
     "house-dashboard-infrastructure-summary",
+    "house-dashboard-trend",
 ]
 
 [profile.release]

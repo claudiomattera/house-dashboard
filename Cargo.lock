@@ -768,6 +768,7 @@ dependencies = [
  "futures",
  "house-dashboard-common",
  "house-dashboard-infrastructure-summary",
+ "house-dashboard-trend",
  "image",
  "miette",
  "palette",
@@ -803,6 +804,21 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-infrastructure-summary"
+version = "1.0.0-dev"
+dependencies = [
+ "chrono",
+ "house-dashboard-common",
+ "miette",
+ "palette",
+ "plotters",
+ "plotters-backend",
+ "serde",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "house-dashboard-trend"
 version = "1.0.0-dev"
 dependencies = [
  "chrono",
