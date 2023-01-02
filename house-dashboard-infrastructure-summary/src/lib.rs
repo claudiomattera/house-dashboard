@@ -119,7 +119,6 @@ async fn fetch_data() -> Result<(HashSet<String>, HashMap<String, f64>), Report>
 
     let mut loads: HashMap<String, f64> = HashMap::new();
     loads.insert("dashboard.dk.claudiomattera.it".to_owned(), 0.2);
-    loads.insert("h2plus.dk.claudiomattera.it".to_owned(), 0.6);
     loads.insert("media-center.dk.claudiomattera.it".to_owned(), 0.9);
     loads.insert("vps.de.claudiomattera.it".to_owned(), 0.1);
 
