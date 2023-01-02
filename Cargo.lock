@@ -767,6 +767,7 @@ dependencies = [
  "clap",
  "futures",
  "house-dashboard-common",
+ "house-dashboard-geographical-heatmap",
  "house-dashboard-infrastructure-summary",
  "house-dashboard-trend",
  "image",
@@ -797,6 +798,21 @@ dependencies = [
  "palette",
  "plotters",
  "regex",
+ "serde",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "house-dashboard-geographical-heatmap"
+version = "1.0.0-dev"
+dependencies = [
+ "house-dashboard-common",
+ "miette",
+ "num-traits",
+ "palette",
+ "plotters",
+ "plotters-backend",
  "serde",
  "thiserror",
  "tracing",
