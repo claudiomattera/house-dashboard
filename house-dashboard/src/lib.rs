@@ -148,21 +148,26 @@ fn parse_configuration(
 fn parse_charts_configurations(
     configuration_directory_path: &Path,
 ) -> Result<Vec<ChartConfiguration>, Report> {
-    let entries: Vec<Result<Option<ChartConfiguration>, Report>> =
-        read_dir(configuration_directory_path)
-            .into_diagnostic()
-            .wrap_err("Iterating over files in configuration directory")?
-            .map(|result| {
-                result.map(|dir_entry| {
-                    parse_chart_configuration(&dir_entry.path())
-                        .wrap_err(format!("Parsing file {}", dir_entry.path().display()))
-                })
-            })
-            .collect::<Result<_, std::io::Error>>()
-            .into_diagnostic()?;
+    let mut paths = read_dir(configuration_directory_path)
+        .into_diagnostic()
+        .wrap_err("Iterating over files in configuration directory")?
+        .flat_map(|result| result.map(|dir_entry| dir_entry.path()))
+        .filter(|path| path.extension() == Some(OsStr::new("toml")))
+        .filter(|path| path.file_name() != Some(OsStr::new("influxdb.toml")))
+        .filter(|path| path.file_name() != Some(OsStr::new("style.toml")))
+        .collect::<Vec<std::path::PathBuf>>();
 
-    let entries: Result<Vec<Option<ChartConfiguration>>, Report> = entries.into_iter().collect();
-    let entries: Vec<ChartConfiguration> = entries?.into_iter().flatten().collect();
+    debug!("Collected configuration paths: {:?}", paths);
+
+    let entries = paths
+        .into_iter()
+        .map(|path: std::path::PathBuf| {
+            parse_chart_configuration(&path).wrap_err(format!("Parsing file {}", path.display()))
+        })
+        .collect::<Result<Vec<Option<ChartConfiguration>>, Report>>()?
+        .into_iter()
+        .flatten()
+        .collect();
 
     Ok(entries)
 }
