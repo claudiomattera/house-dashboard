@@ -126,7 +126,7 @@ fn parse_configuration(
     configuration_directory_path: &Path,
 ) -> Result<(StyleConfiguration, InfluxdbConfiguration), Report> {
     let style_configuration_path = configuration_directory_path.join("style.toml");
-    let raw_style_configuration = read_to_string(&style_configuration_path)
+    let raw_style_configuration = read_to_string(style_configuration_path)
         .into_diagnostic()
         .wrap_err("cannot read style configuration file")?;
     let style_configuration: StyleConfiguration = from_toml_str(&raw_style_configuration)
@@ -134,7 +134,7 @@ fn parse_configuration(
         .wrap_err("cannot parse style configuration file")?;
 
     let influxdb_configuration_path = configuration_directory_path.join("influxdb.toml");
-    let raw_influxdb_configuration = read_to_string(&influxdb_configuration_path)
+    let raw_influxdb_configuration = read_to_string(influxdb_configuration_path)
         .into_diagnostic()
         .wrap_err("cannot read InfluxDB configuration file")?;
     let influxdb_configuration: InfluxdbConfiguration = from_toml_str(&raw_influxdb_configuration)
