@@ -4,9 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use tracing::*;
+//! Functions for generating chart
+
+use tracing::{debug, info};
 
 use std::collections::{HashMap, HashSet};
+use std::hash::BuildHasher;
 
 use chrono::{DateTime, Local, Utc};
 
@@ -30,14 +33,34 @@ use crate::Error;
 use crate::InfrastructureSummaryConfiguration;
 use crate::Loadbar;
 
-pub fn draw_infrastructure_summary(
+/// Draw an infrastructure summary chart
+///
+/// # Errors
+///
+/// Return and error when chart generation failed
+pub fn draw_infrastructure_summary<S>(
     infrastructure_summary: &InfrastructureSummaryConfiguration,
     now: DateTime<Utc>,
-    hosts: HashSet<String>,
-    loads: HashMap<String, f64>,
+    hosts: &HashSet<String, S>,
+    loads: &HashMap<String, f64, S>,
     style: &StyleConfiguration,
     backend: BitMapBackend,
-) -> Result<(), Error> {
+) -> Result<(), Error>
+where
+    S: BuildHasher,
+{
+    /// X position of hostname
+    const HOST_X: i32 = 50;
+
+    /// X position of status
+    const STATUS_X: i32 = 220;
+
+    /// X position of load
+    const LOAD_X: i32 = 280;
+
+    /// Maximal load
+    const MAX_LOAD: f64 = 1.0;
+
     info!("Drawing infrastructure summary");
 
     let title_font = (style.font_name.as_str(), 16.0 * style.font_scale).into_font();
@@ -54,7 +77,7 @@ pub fn draw_infrastructure_summary(
     let pos = Pos::new(HPos::Center, VPos::Top);
     root.draw(&Text::new(
         infrastructure_summary.title.as_str(),
-        (width as i32 / 2, 10),
+        (i32::try_from(width)? / 2, 10),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
@@ -81,12 +104,8 @@ pub fn draw_infrastructure_summary(
         .color(&style.system_palette.pick(SystemColor::Foreground))
         .pos(footer_pos);
 
-    const HOST_X: i32 = 50;
-    const STATUS_X: i32 = 220;
-    const LOAD_X: i32 = 280;
-
     let text = "HOST";
-    let half_width: i32 = (text.len() as i32 * 8) / 2;
+    let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     new_root.draw(&Text::new(text, (HOST_X, 10), &header_font))?;
     new_root.draw(&Rectangle::new(
         [(HOST_X - half_width, 19), (HOST_X + half_width, 19)],
@@ -94,7 +113,7 @@ pub fn draw_infrastructure_summary(
     ))?;
 
     let text = "STATUS";
-    let half_width: i32 = (text.len() as i32 * 8) / 2;
+    let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     new_root.draw(&Text::new(text, (STATUS_X, 10), &header_font))?;
     new_root.draw(&Rectangle::new(
         [(STATUS_X - half_width, 19), (STATUS_X + half_width, 19)],
@@ -102,14 +121,13 @@ pub fn draw_infrastructure_summary(
     ))?;
 
     let text = "LOAD";
-    let half_width: i32 = (text.len() as i32 * 8) / 2;
+    let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     new_root.draw(&Text::new(text, (LOAD_X, 10), &header_font))?;
     new_root.draw(&Rectangle::new(
         [(LOAD_X - half_width, 19), (LOAD_X + half_width, 19)],
         style.system_palette.pick(SystemColor::Foreground),
     ))?;
 
-    const MAX_LOAD: f64 = 1.0;
     let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD);
 
     for (i, host) in (0..).zip(hosts) {
@@ -119,8 +137,7 @@ pub fn draw_infrastructure_summary(
             "Processing host {} ({}, relative load: {})",
             i + 1,
             host,
-            load.map(|l| l.to_string())
-                .unwrap_or_else(|| "None".to_owned())
+            load.map_or_else(|| "None".to_owned(), |l| l.to_string(),)
         );
 
         let vertical_step = infrastructure_summary.vertical_step.unwrap_or(20);
@@ -167,7 +184,7 @@ pub fn draw_infrastructure_summary(
         let now: DateTime<Local> = now.with_timezone(&Local);
         new_root.draw(&Text::new(
             now.format(format).to_string(),
-            (width as i32 - 10, height as i32 - 30),
+            (i32::try_from(width)? - 10, i32::try_from(height)? - 30),
             &footer_font,
         ))?;
     }
