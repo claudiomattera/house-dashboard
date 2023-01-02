@@ -20,9 +20,7 @@ use house_dashboard_infrastructure_summary::{
     process_infrastructure_summary, InfrastructureSummaryConfiguration,
 };
 
-use house_dashboard_trend::{
-    process_trend, TrendConfiguration,
-};
+use house_dashboard_trend::{process_trend, TrendConfiguration};
 
 /// InfluxDB configuration
 #[derive(Debug, Deserialize)]

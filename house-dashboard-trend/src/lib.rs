@@ -49,7 +49,7 @@ use tracing::instrument;
 
 use miette::{Report, WrapErr};
 
-use chrono::{Utc, TimeZone, DateTime};
+use chrono::{DateTime, TimeZone, Utc};
 
 use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
@@ -69,10 +69,7 @@ pub use self::error::Error;
 ///
 /// Return and error when chart generation failed
 #[allow(clippy::unreachable)]
-#[instrument(
-    name = "trend",
-    skip(trend_configuration, style_configuration)
-)]
+#[instrument(name = "trend", skip(trend_configuration, style_configuration))]
 pub async fn process_trend(
     trend_configuration: &TrendConfiguration,
     style_configuration: &StyleConfiguration,
@@ -112,21 +109,24 @@ async fn fetch_data() -> Result<HashMap<String, Vec<(DateTime<Utc>, f64)>>, Repo
             (Utc.with_ymd_and_hms(2014, 7, 8, 10, 10, 11).unwrap(), 26.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 11, 10, 11).unwrap(), 27.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 12, 10, 11).unwrap(), 25.0),
-    ]);
+        ],
+    );
     time_seriess.insert(
         "bedroom".to_owned(),
         vec![
             (Utc.with_ymd_and_hms(2014, 7, 8, 10, 0, 32).unwrap(), 23.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 11, 0, 32).unwrap(), 24.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 12, 0, 32).unwrap(), 20.0),
-    ]);
+        ],
+    );
     time_seriess.insert(
         "stairs".to_owned(),
         vec![
             (Utc.with_ymd_and_hms(2014, 7, 8, 10, 0, 32).unwrap(), 18.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 11, 0, 32).unwrap(), 19.0),
             (Utc.with_ymd_and_hms(2014, 7, 8, 12, 0, 32).unwrap(), 18.0),
-    ]);
+        ],
+    );
 
     Ok(time_seriess)
 }

@@ -18,27 +18,28 @@ use chrono::{DateTime, Duration, Local, Timelike, Utc};
 use plotters::{
     backend::{BitMapBackend, DrawingBackend},
     chart::{ChartBuilder, ChartContext, SeriesLabelPosition},
-    coord::{cartesian::Cartesian2d, types::{RangedDateTime, RangedCoordf64}, Shift},
+    coord::{
+        cartesian::Cartesian2d,
+        types::{RangedCoordf64, RangedDateTime},
+        Shift,
+    },
     drawing::{DrawingArea, IntoDrawingArea},
-    element::{Circle, Text, PathElement},
+    element::{Circle, PathElement, Text},
     series::LineSeries,
     style::{
         text_anchor::{HPos, Pos, VPos},
-        Color, IntoFont,
-        RGBAColor,
+        Color, IntoFont, RGBAColor,
     },
 };
 
-use house_dashboard_common::{
-    configuration::StyleConfiguration,
-    palette::SystemColor,
-};
+use house_dashboard_common::{configuration::StyleConfiguration, palette::SystemColor};
 
 use crate::Error;
 use crate::TrendConfiguration;
 
 /// A chart context
-type ChartContextAlias<'a, DB> = ChartContext<'a, DB, Cartesian2d<RangedDateTime<DateTime<Local>>, RangedCoordf64>>;
+type ChartContextAlias<'a, DB> =
+    ChartContext<'a, DB, Cartesian2d<RangedDateTime<DateTime<Local>>, RangedCoordf64>>;
 
 /// Draw a trend chart
 ///
@@ -74,7 +75,15 @@ where
 
     debug!("Plotting time-series");
     for (name, time_series) in &time_seriess {
-        plot_time_series(trend, &indices, style, &new_root, &mut chart, name, time_series)?;
+        plot_time_series(
+            trend,
+            &indices,
+            style,
+            &new_root,
+            &mut chart,
+            name,
+            time_series,
+        )?;
     }
 
     if !trend.hide_legend.unwrap_or(false) {
@@ -237,7 +246,7 @@ fn plot_time_series<'a, DB: DrawingBackend + 'a>(
     root: &DrawingArea<DB, Shift>,
     chart: &mut ChartContextAlias<'a, DB>,
     name: &str,
-    time_series: &[(DateTime<Local>, f64)]
+    time_series: &[(DateTime<Local>, f64)],
 ) -> Result<(), Error> {
     let value_font = (style.font_name.as_str(), 8.0 * style.font_scale)
         .into_font()
@@ -273,11 +282,7 @@ fn plot_time_series<'a, DB: DrawingBackend + 'a>(
     if trend.draw_last_value.unwrap_or(false) {
         if let Some(last_reading) = time_series.last() {
             let last_value = last_reading.1;
-            let last_value_text = format!(
-                "{0:.1$}",
-                last_value,
-                trend.precision.unwrap_or(0),
-            );
+            let last_value_text = format!("{0:.1$}", last_value, trend.precision.unwrap_or(0),);
 
             let last_value_coordinates = chart.backend_coord(last_reading);
 
@@ -324,9 +329,7 @@ fn draw_axes<'a, DB: DrawingBackend + 'a>(
         .x_labels(trend.max_x_ticks.unwrap_or(4))
         .x_label_formatter(&|d| d.format(&trend.xlabel_format).to_string())
         .y_labels(trend.max_y_ticks.unwrap_or(5))
-        .y_label_formatter(&|value| {
-            format!("{0:.1$}", value, trend.precision.unwrap_or(0))
-        })
+        .y_label_formatter(&|value| format!("{0:.1$}", value, trend.precision.unwrap_or(0)))
         .y_desc(ylabel)
         .label_style(label_font)
         .draw()?;
