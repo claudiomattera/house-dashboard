@@ -75,9 +75,7 @@ pub async fn process_trend(
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let time_seriess = fetch_data()
-        .await
-        .wrap_err("cannot fetch data for trend")?;
+    let time_seriess = fetch_data().await.wrap_err("cannot fetch data for trend")?;
 
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;

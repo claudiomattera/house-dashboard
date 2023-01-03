@@ -20,6 +20,8 @@ use house_dashboard_infrastructure_summary::{
     process_infrastructure_summary, InfrastructureSummaryConfiguration,
 };
 
+use house_dashboard_proxmox_summary::{process_proxmox_summary, ProxmoxSummaryConfiguration};
+
 use house_dashboard_trend::{process_trend, TrendConfiguration};
 
 use house_dashboard_geographical_heatmap::{
@@ -57,6 +59,9 @@ pub enum Chart {
     /// Chart configuration for infrastructure summary
     InfrastructureSummary(Box<InfrastructureSummaryConfiguration>),
 
+    /// Chart configuration for infrastructure summary
+    ProxmoxSummary(Box<ProxmoxSummaryConfiguration>),
+
     /// Chart configuration for trend
     Trend(Box<TrendConfiguration>),
 
@@ -79,6 +84,12 @@ impl Chart {
                 let bytes = process_infrastructure_summary(&configuration, style, index)
                     .await
                     .wrap_err("cannot process infrastructure summary chart")?;
+                Ok((index, bytes))
+            }
+            Self::ProxmoxSummary(configuration) => {
+                let bytes = process_proxmox_summary(&configuration, style, index)
+                    .await
+                    .wrap_err("cannot process proxmox summary chart")?;
                 Ok((index, bytes))
             }
             Self::Trend(configuration) => {
