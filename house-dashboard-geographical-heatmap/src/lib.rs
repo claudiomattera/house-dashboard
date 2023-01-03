@@ -64,7 +64,7 @@ pub use self::error::Error;
 mod colorbar;
 pub use self::colorbar::Colorbar;
 
-/// Fetch data and draw chart for infrastructure summary
+/// Fetch data and draw chart for geographical heatmap
 ///
 /// # Errors
 ///
@@ -93,12 +93,12 @@ pub async fn process_geographical_heatmap(
         style_configuration,
         backend,
     )
-    .wrap_err("cannot draw infrastructure summary")?;
+    .wrap_err("cannot draw geographical heatmap")?;
 
     Ok(buffer)
 }
 
-/// Fetch data for infrastructure summary
+/// Fetch data for geographical heatmap
 ///
 /// # Errors
 ///

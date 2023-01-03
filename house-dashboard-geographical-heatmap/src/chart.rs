@@ -34,7 +34,7 @@ use crate::Error;
 use crate::GeographicalHeatMapConfiguration;
 use crate::GeographicalRegionConfiguration;
 
-/// Draw an infrastructure summary chart
+/// Draw an geographical heatmap chart
 ///
 /// # Errors
 ///

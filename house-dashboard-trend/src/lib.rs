@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! Data types and functions for generating infrastructure summary charts
+//! Data types and functions for generating trend charts
 
 #![deny(
     missing_docs,
@@ -63,7 +63,7 @@ pub use self::configuration::TrendConfiguration;
 mod error;
 pub use self::error::Error;
 
-/// Fetch data and draw chart for infrastructure summary
+/// Fetch data and draw chart for trend
 ///
 /// # Errors
 ///
@@ -77,7 +77,7 @@ pub async fn process_trend(
 ) -> Result<Vec<u8>, Report> {
     let time_seriess = fetch_data()
         .await
-        .wrap_err("cannot fetch data for infrastructure summary")?;
+        .wrap_err("cannot fetch data for trend")?;
 
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;
@@ -89,12 +89,12 @@ pub async fn process_trend(
         style_configuration,
         backend,
     )
-    .wrap_err("cannot draw infrastructure summary")?;
+    .wrap_err("cannot draw trend")?;
 
     Ok(buffer)
 }
 
-/// Fetch data for infrastructure summary
+/// Fetch data for trend
 ///
 /// # Errors
 ///
