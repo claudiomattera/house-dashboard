@@ -6,6 +6,7 @@ members = [
     "house-dashboard-proxmox-summary",
     "house-dashboard-trend",
     "house-dashboard-geographical-heatmap",
+    "house-dashboard-temporal-heatmap",
     "house-dashboard-image",
 ]
 

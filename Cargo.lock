@@ -771,6 +771,7 @@ dependencies = [
  "house-dashboard-image",
  "house-dashboard-infrastructure-summary",
  "house-dashboard-proxmox-summary",
+ "house-dashboard-temporal-heatmap",
  "house-dashboard-trend",
  "image",
  "miette",
@@ -855,6 +856,21 @@ dependencies = [
 name = "house-dashboard-proxmox-summary"
 version = "1.0.0-dev"
 dependencies = [
+ "house-dashboard-common",
+ "miette",
+ "palette",
+ "plotters",
+ "plotters-backend",
+ "serde",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "house-dashboard-temporal-heatmap"
+version = "1.0.0-dev"
+dependencies = [
+ "chrono",
  "house-dashboard-common",
  "miette",
  "palette",
