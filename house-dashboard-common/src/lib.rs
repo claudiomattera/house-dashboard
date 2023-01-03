@@ -49,4 +49,6 @@ pub mod configuration;
 
 pub mod duration;
 
+pub mod element;
+
 pub mod palette;

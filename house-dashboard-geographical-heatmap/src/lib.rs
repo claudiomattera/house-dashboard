@@ -61,9 +61,6 @@ pub use self::configuration::{GeographicalHeatMapConfiguration, GeographicalRegi
 mod error;
 pub use self::error::Error;
 
-mod colorbar;
-pub use self::colorbar::Colorbar;
-
 /// Fetch data and draw chart for geographical heatmap
 ///
 /// # Errors

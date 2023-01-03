@@ -9,6 +9,7 @@
 use std::iter::{once, Once};
 
 use plotters::{
+    backend::DrawingBackend,
     element::{Drawable, PointCollection},
     style::{
         text_anchor::{HPos, Pos, VPos},
@@ -16,9 +17,9 @@ use plotters::{
     },
 };
 
-use plotters_backend::{BackendCoord, DrawingBackend, DrawingErrorKind};
+use plotters_backend::{BackendCoord, DrawingErrorKind};
 
-use house_dashboard_common::{
+use crate::{
     colormap::Colormap,
     palette::{SystemColor, SystemPalette},
 };

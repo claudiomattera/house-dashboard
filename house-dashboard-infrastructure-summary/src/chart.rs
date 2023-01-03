@@ -31,12 +31,12 @@ use plotters::{
 use house_dashboard_common::{
     colormap::{Colormap, ColormapType},
     configuration::StyleConfiguration,
+    element::Loadbar,
     palette::SystemColor,
 };
 
 use crate::Error;
 use crate::InfrastructureSummaryConfiguration;
-use crate::Loadbar;
 
 /// X position of hostname
 const HOST_X: i32 = 50;

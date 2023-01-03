@@ -12,7 +12,7 @@ use plotters::element::{Drawable, PointCollection};
 
 use plotters_backend::{BackendCoord, DrawingBackend, DrawingErrorKind};
 
-use house_dashboard_common::{
+use crate::{
     colormap::Colormap,
     palette::{SystemColor, SystemPalette},
 };

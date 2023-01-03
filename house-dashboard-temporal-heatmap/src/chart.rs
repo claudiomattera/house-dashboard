@@ -27,10 +27,9 @@ use plotters::{
 };
 
 use house_dashboard_common::{
-    colormap::Colormap, configuration::StyleConfiguration, palette::SystemColor,
+    colormap::Colormap, configuration::StyleConfiguration, element::Colorbar, palette::SystemColor,
 };
 
-use crate::Colorbar;
 use crate::Error;
 use crate::TemporalHeatMapConfiguration;
 

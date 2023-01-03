@@ -63,9 +63,6 @@ pub use self::configuration::InfrastructureSummaryConfiguration;
 mod error;
 pub use self::error::Error;
 
-mod loadbar;
-pub use self::loadbar::Loadbar;
-
 /// Fetch data and draw chart for infrastructure summary
 ///
 /// # Errors

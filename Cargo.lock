@@ -799,6 +799,7 @@ dependencies = [
  "miette",
  "palette",
  "plotters",
+ "plotters-backend",
  "regex",
  "serde",
  "thiserror",

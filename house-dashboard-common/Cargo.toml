@@ -46,6 +46,9 @@ branch = "master"
 default-features = false
 features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
 
+[dependencies.plotters-backend]
+git = "https://github.com/plotters-rs/plotters/"
+branch = "master"
 
 
 

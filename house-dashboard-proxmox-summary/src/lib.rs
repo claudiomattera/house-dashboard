@@ -61,9 +61,6 @@ pub use self::configuration::ProxmoxSummaryConfiguration;
 mod error;
 pub use self::error::Error;
 
-mod loadbar;
-pub use self::loadbar::Loadbar;
-
 /// Fetch data and draw chart for Proxmox summary
 ///
 /// # Errors
