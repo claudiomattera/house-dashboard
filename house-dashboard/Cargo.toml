@@ -31,6 +31,7 @@ house-dashboard-common = { path = "../house-dashboard-common" }
 house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary" }
 house-dashboard-trend = { path = "../house-dashboard-trend" }
 house-dashboard-geographical-heatmap = { path = "../house-dashboard-geographical-heatmap" }
+house-dashboard-image = { path = "../house-dashboard-image" }
 
 thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }

@@ -768,6 +768,7 @@ dependencies = [
  "futures",
  "house-dashboard-common",
  "house-dashboard-geographical-heatmap",
+ "house-dashboard-image",
  "house-dashboard-infrastructure-summary",
  "house-dashboard-trend",
  "image",
@@ -811,6 +812,20 @@ dependencies = [
  "miette",
  "num-traits",
  "palette",
+ "plotters",
+ "plotters-backend",
+ "serde",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "house-dashboard-image"
+version = "1.0.0-dev"
+dependencies = [
+ "house-dashboard-common",
+ "image",
+ "miette",
  "plotters",
  "plotters-backend",
  "serde",

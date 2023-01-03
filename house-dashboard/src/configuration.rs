@@ -26,6 +26,8 @@ use house_dashboard_geographical_heatmap::{
     process_geographical_heatmap, GeographicalHeatMapConfiguration,
 };
 
+use house_dashboard_image::{process_image, ImageConfiguration};
+
 /// InfluxDB configuration
 #[derive(Debug, Deserialize)]
 pub struct Influxdb {
@@ -60,6 +62,9 @@ pub enum Chart {
 
     /// Chart configuration for trend
     GeographicalHeatMap(Box<GeographicalHeatMapConfiguration>),
+
+    /// Chart configuration for trend
+    Image(Box<ImageConfiguration>),
 }
 
 impl Chart {
@@ -86,6 +91,12 @@ impl Chart {
                 let bytes = process_geographical_heatmap(&configuration, style, index)
                     .await
                     .wrap_err("cannot process geographical heatmap chart")?;
+                Ok((index, bytes))
+            }
+            Self::Image(configuration) => {
+                let bytes = process_image(&configuration, style, index)
+                    .await
+                    .wrap_err("cannot process image chart")?;
                 Ok((index, bytes))
             }
         }
