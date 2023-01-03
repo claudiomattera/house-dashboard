@@ -1,7 +1,7 @@
 [package]
 name = "house-dashboard-image"
 version = "1.0.0-dev"
-authors = ["Claudio Mattera <claudio@mattera.it>"]
+authors = ["Claudio Mattera <dev@claudiomattera.it>"]
 edition = "2021"
 description = "An application to generate and display charts for a house dashboard"
 readme = "Readme.md"
