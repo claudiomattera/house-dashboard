@@ -37,10 +37,8 @@ house-dashboard-image = { path = "../house-dashboard-image", optional = true }
 thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }
 
-tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros"] }
-async-std = { version = "1" }
+async-std = { version = "1", features = ["attributes"] }
 futures = { version = "0.3" }
-reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
 image = { version = "0.24", default-features = false, features = ["bmp"] }
 
 clap = { version = "4", features = ["derive", "env"] }
@@ -52,14 +50,10 @@ tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 tracing-log = { version = "0.1" }
 tracing-journald = { version = "0.3" }
 
-palette = { version = "0.5", default-features = false, features = ["std"] }
-
-regex = { version = "1" }
-
 serde = { version = "1", features = ["derive"] }
 toml = { version = "0.5" }
 
-rinfluxdb = { version = "0.2" }
+rinfluxdb = { version = "0.2", default-features = false }
 
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"

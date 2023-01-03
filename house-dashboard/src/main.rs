@@ -11,7 +11,7 @@ use house_dashboard::main as lib_main;
 use miette::Report;
 
 /// Wrapper for library main function
-#[tokio::main]
+#[async_std::main]
 async fn main() -> Result<(), Report> {
     lib_main().await?;
     Ok(())
