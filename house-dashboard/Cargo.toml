@@ -18,22 +18,21 @@ publish = false
 
 [features]
 default = []
-trend-chart = []
-temporal-heatmap-chart = []
-geographical-heatmap-chart = []
-image-chart = []
-infrastructure-chart = []
-proxmox-chart = []
-
+trend-chart = ["house-dashboard-trend"]
+temporal-heatmap-chart = ["house-dashboard-temporal-heatmap"]
+geographical-heatmap-chart = ["house-dashboard-geographical-heatmap"]
+image-chart = ["house-dashboard-image"]
+infrastructure-summary-chart = ["house-dashboard-infrastructure-summary"]
+proxmox-summary-chart = ["house-dashboard-proxmox-summary"]
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }
-house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary" }
-house-dashboard-proxmox-summary = { path = "../house-dashboard-proxmox-summary" }
-house-dashboard-trend = { path = "../house-dashboard-trend" }
-house-dashboard-geographical-heatmap = { path = "../house-dashboard-geographical-heatmap" }
-house-dashboard-temporal-heatmap = { path = "../house-dashboard-temporal-heatmap" }
-house-dashboard-image = { path = "../house-dashboard-image" }
+house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary", optional = true }
+house-dashboard-proxmox-summary = { path = "../house-dashboard-proxmox-summary", optional = true }
+house-dashboard-trend = { path = "../house-dashboard-trend", optional = true }
+house-dashboard-geographical-heatmap = { path = "../house-dashboard-geographical-heatmap", optional = true }
+house-dashboard-temporal-heatmap = { path = "../house-dashboard-temporal-heatmap", optional = true }
+house-dashboard-image = { path = "../house-dashboard-image", optional = true }
 
 thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }
