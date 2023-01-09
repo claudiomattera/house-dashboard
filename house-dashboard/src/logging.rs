@@ -29,7 +29,7 @@ use miette::{Context, IntoDiagnostic};
 pub fn setup(verbosity: u8) -> Result<(), Report> {
     LogTracer::init()
         .into_diagnostic()
-        .wrap_err("Failed to set log wrapper for tracing")?;
+        .wrap_err("cannot set log wrapper for tracing")?;
 
     let default_log_filter = match verbosity {
         0 => "warn",
@@ -53,7 +53,7 @@ pub fn setup(verbosity: u8) -> Result<(), Report> {
 
     let journald_layer = JournaldLayer::new()
         .into_diagnostic()
-        .wrap_err("Failed to open journald socket")?;
+        .wrap_err("cannot open journald socket")?;
 
     let subscriber = Registry::default()
         .with(env_filter)
@@ -62,7 +62,7 @@ pub fn setup(verbosity: u8) -> Result<(), Report> {
 
     set_global_default(subscriber)
         .into_diagnostic()
-        .wrap_err("Failed to set subscriber")?;
+        .wrap_err("cannot set subscriber")?;
 
     Ok(())
 }

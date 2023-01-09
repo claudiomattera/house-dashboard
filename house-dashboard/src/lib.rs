@@ -160,7 +160,7 @@ fn parse_charts_configurations(
 ) -> Result<Vec<ChartConfiguration>, Report> {
     let mut paths = read_dir(configuration_directory_path)
         .into_diagnostic()
-        .wrap_err("Iterating over files in configuration directory")?
+        .wrap_err("cannot iterate over files in configuration directory")?
         .flat_map(|result| result.map(|dir_entry| dir_entry.path()))
         .filter(|path| path.extension() == Some(OsStr::new("toml")))
         .filter(|path| path.file_name() != Some(OsStr::new("influxdb.toml")))
@@ -174,7 +174,7 @@ fn parse_charts_configurations(
     let entries = paths
         .into_iter()
         .map(|path: std::path::PathBuf| {
-            parse_chart_configuration(&path).wrap_err(format!("Parsing file {}", path.display()))
+            parse_chart_configuration(&path).wrap_err(format!("cannot parse file {}", path.display()))
         })
         .collect::<Result<Vec<Option<ChartConfiguration>>, Report>>()?
         .into_iter()
@@ -196,10 +196,10 @@ fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, 
         debug!("Processing path {}", path.display());
         let raw_configuration = read_to_string(path)
             .into_diagnostic()
-            .wrap_err("Reading configuration file")?;
+            .wrap_err("cannot read chart configuration file")?;
         let configuration: ChartConfiguration = from_toml_str(&raw_configuration)
             .into_diagnostic()
-            .wrap_err("Parsing configuration file")?;
+            .wrap_err("cannot parse chart configuration file")?;
         Ok(Some(configuration))
     } else {
         Ok(None)
