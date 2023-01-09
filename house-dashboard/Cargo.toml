@@ -42,7 +42,8 @@ async-std = { version = "1", features = ["attributes"] }
 futures = { version = "0.3" }
 image = { version = "0.24", default-features = false, features = ["bmp"] }
 
-clap = { version = "4", features = ["derive", "env"] }
+bpaf = { version = "0.7" }
+
 url = { version = "2", features = ["serde"] }
 
 tracing = { version = "0.1" }

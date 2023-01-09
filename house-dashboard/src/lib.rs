@@ -54,8 +54,6 @@ use tracing::{debug, info, trace, warn};
 
 use miette::{miette, IntoDiagnostic, Report, WrapErr};
 
-use clap::Parser;
-
 use toml::from_str as from_toml_str;
 
 use plotters::style::{register_font, FontStyle};
@@ -75,7 +73,7 @@ use house_dashboard_common::configuration::StyleConfiguration;
 use house_dashboard_influxdb::InfluxDBClient;
 
 mod commandline;
-use self::commandline::Arguments;
+use self::commandline::parse_command_line;
 
 mod configuration;
 use self::configuration::Chart as ChartConfiguration;
@@ -90,8 +88,8 @@ use self::logging::setup as setup_logging;
 ///
 /// Return an error when anything fails
 pub async fn main() -> Result<(), Report> {
-    let arguments = Arguments::parse();
-    setup_logging(arguments.verbosity)?;
+    let arguments = parse_command_line();
+    setup_logging(arguments.verbosity.try_into().into_diagnostic()?)?;
 
     let (style_configuration, influxdb_configuration) =
         parse_configuration(&arguments.configuration_directory_path)

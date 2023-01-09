@@ -6,19 +6,41 @@
 
 //! Data structures for parsing command-line arguments
 
-use clap::{ArgAction, Parser};
-
 use std::path::PathBuf;
 
+use bpaf::{construct, short, Parser};
+
 /// Command-line arguments
-#[derive(Debug, Parser)]
-#[command(author, version, about, long_about = None)]
+#[derive(Debug, Clone)]
 pub struct Arguments {
     /// Verbosity level
-    #[arg(short, long = "verbose", action = ArgAction::Count)]
-    pub verbosity: u8,
+    pub verbosity: usize,
 
     /// Path to configuration directory
-    #[arg(short, long = "configuration-directory")]
     pub configuration_directory_path: PathBuf,
+}
+
+/// Parse command-line arguments
+pub fn parse_command_line() -> Arguments {
+    let verbosity = short('v')
+        .long("verbose")
+        .help("Verbosity level")
+        .req_flag(())
+        .many()
+        .map(|xs| xs.len())
+        .guard(|&x| x <= 5, "It doesn't get any more verbose than this");
+
+    let configuration_directory_path = short('c')
+        .long("configuration-directory")
+        .help("Path to configuration directory")
+        .argument::<PathBuf>("PATH");
+
+    let parser = construct!(Arguments {
+        verbosity,
+        configuration_directory_path
+    })
+    .to_options()
+    .descr("Create dashboard images");
+
+    parser.run()
 }
