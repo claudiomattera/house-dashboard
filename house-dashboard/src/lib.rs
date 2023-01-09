@@ -62,6 +62,11 @@ use futures::{stream::FuturesUnordered, StreamExt};
 
 use image::{ImageFormat, RgbImage};
 
+use extrasafe::{
+    builtins::{danger_zone::ForkAndExec, BasicCapabilities, Networking, SystemIO},
+    SafetyContext,
+};
+
 use isahc::{
     auth::{Authentication, Credentials},
     config::{CaCertificate, Configurable, SslOption},
@@ -90,6 +95,8 @@ use self::logging::setup as setup_logging;
 pub async fn main() -> Result<(), Report> {
     let arguments = parse_command_line();
     setup_logging(arguments.verbosity.try_into().into_diagnostic()?)?;
+
+    setup_allowed_syscalls()?;
 
     let (style_configuration, influxdb_configuration) =
         parse_configuration(&arguments.configuration_directory_path)
@@ -127,6 +134,47 @@ pub async fn main() -> Result<(), Report> {
             .await
             .wrap_err("cannot save image")?;
     }
+
+    Ok(())
+}
+
+/// Setup allowed syscalls
+fn setup_allowed_syscalls() -> Result<(), Report> {
+    let safety_context = SafetyContext::new();
+
+    let safety_context = safety_context
+        .enable(BasicCapabilities)
+        .into_diagnostic()
+        .wrap_err("cannot enable basic syscalls")?;
+
+    let safety_context = safety_context
+        .enable(
+            SystemIO::nothing()
+                .allow_read()
+                .allow_write()
+                .allow_ioctl()
+                .allow_metadata()
+                .allow_open()
+                .yes_really()
+                .allow_close(),
+        )
+        .into_diagnostic()
+        .wrap_err("cannot enable system IO syscalls")?;
+
+    let safety_context = safety_context
+        .enable(Networking::nothing().allow_start_tcp_clients())
+        .into_diagnostic()
+        .wrap_err("cannot enable networking syscalls")?;
+
+    let safety_context = safety_context
+        .enable(ForkAndExec)
+        .into_diagnostic()
+        .wrap_err("cannot enable fork and exec syscalls")?;
+
+    safety_context
+        .apply_to_all_threads()
+        .into_diagnostic()
+        .wrap_err("cannot apply safety context")?;
 
     Ok(())
 }
@@ -174,7 +222,8 @@ fn parse_charts_configurations(
     let entries = paths
         .into_iter()
         .map(|path: std::path::PathBuf| {
-            parse_chart_configuration(&path).wrap_err(format!("cannot parse file {}", path.display()))
+            parse_chart_configuration(&path)
+                .wrap_err(format!("cannot parse file {}", path.display()))
         })
         .collect::<Result<Vec<Option<ChartConfiguration>>, Report>>()?
         .into_iter()

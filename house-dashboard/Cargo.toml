@@ -57,6 +57,8 @@ toml = { version = "0.5" }
 
 isahc = { version = "1.7" }
 
+extrasafe = { version = "0.1" }
+
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"
 branch = "master"
