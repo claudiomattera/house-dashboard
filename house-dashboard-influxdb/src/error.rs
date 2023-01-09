@@ -51,6 +51,10 @@ pub enum Error {
     #[error("InfluxDB did not return a value for tag \"{0}\"")]
     MissingTag(String),
 
+    /// InfluxDB returned an error
+    #[error("InfluxDB returned error \"{0}\"")]
+    InfluxDBError(String),
+
     /// JSON deserialization failure
     #[error(transparent)]
     SerdeJson(#[from] SerdeJsonError),
