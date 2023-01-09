@@ -52,3 +52,5 @@ pub mod duration;
 pub mod element;
 
 pub mod palette;
+
+pub mod types;

@@ -1,5 +1,5 @@
 [package]
-name = "house-dashboard-infrastructure-summary"
+name = "house-dashboard-influxdb"
 version = "1.0.0-dev"
 authors = ["Claudio Mattera <dev@claudiomattera.it>"]
 edition = "2021"
@@ -18,21 +18,18 @@ publish = false
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }
-house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
 
-thiserror = { version = "1" }
-miette = { version = "5", features = ["fancy"] }
+async-std = { version = "1" }
 
-tracing = { version = "0.1" }
+isahc = { version = "1.7" }
+url = { version = "2" }
+serde_html_form = { version = "0.2" }
+
+chrono = { version = "0.4", features = ["serde"] }
 
 serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
 
-time = { version = "0.3", features = ["formatting"] }
-time-tz = { version = "1", features = ["system"] }
-time-fmt = { version = "0.3" }
+thiserror = { version = "1" }
 
-[dependencies.plotters]
-git = "https://github.com/plotters-rs/plotters/"
-branch = "master"
-default-features = false
-features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
+tracing = { version = "0.1" }

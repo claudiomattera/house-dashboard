@@ -27,6 +27,7 @@ proxmox-summary-chart = ["house-dashboard-proxmox-summary"]
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
 house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary", optional = true }
 house-dashboard-proxmox-summary = { path = "../house-dashboard-proxmox-summary", optional = true }
 house-dashboard-trend = { path = "../house-dashboard-trend", optional = true }
@@ -53,7 +54,7 @@ tracing-journald = { version = "0.3" }
 serde = { version = "1", features = ["derive"] }
 toml = { version = "0.5" }
 
-rinfluxdb = { version = "0.2", default-features = false }
+isahc = { version = "1.7" }
 
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"

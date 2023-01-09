@@ -50,7 +50,7 @@ use std::path::Path;
 
 use async_std::fs::write;
 
-use tracing::{debug, trace};
+use tracing::{debug, info, trace, warn};
 
 use miette::{miette, IntoDiagnostic, Report, WrapErr};
 
@@ -64,7 +64,15 @@ use futures::{stream::FuturesUnordered, StreamExt};
 
 use image::{ImageFormat, RgbImage};
 
+use isahc::{
+    auth::{Authentication, Credentials},
+    config::{CaCertificate, Configurable, SslOption},
+    HttpClient,
+};
+
 use house_dashboard_common::configuration::StyleConfiguration;
+
+use house_dashboard_influxdb::InfluxDBClient;
 
 mod commandline;
 use self::commandline::Arguments;
@@ -105,10 +113,14 @@ pub async fn main() -> Result<(), Report> {
 
     trace!("Charts configurations: {:?}", charts_configurations);
 
+    let influxdb_client = create_influxdb_client(influxdb_configuration)?;
+
     let mut tasks: FuturesUnordered<_> = charts_configurations
         .into_iter()
         .enumerate()
-        .map(|(i, chart_configuration)| chart_configuration.process(&style_configuration, i))
+        .map(|(i, chart_configuration)| {
+            chart_configuration.process(influxdb_client.clone(), &style_configuration, i)
+        })
         .collect();
 
     while let Some(result) = tasks.next().await {
@@ -202,6 +214,41 @@ fn load_font(name: &str, path: &Path) -> Result<(), Report> {
     let font_bytes: &'static [u8] = Box::leak(font_bytes);
     register_font(name, FontStyle::Normal, font_bytes).map_err(|_| miette!("Cannot load font"))?;
     Ok(())
+}
+
+/// Create an InfluxDB client
+fn create_influxdb_client(
+    influxdb_configuration: InfluxdbConfiguration,
+) -> Result<InfluxDBClient, Report> {
+    let mut http_client_builder = HttpClient::builder()
+        .authentication(Authentication::basic())
+        .credentials(Credentials::new(
+            influxdb_configuration.username,
+            influxdb_configuration.password,
+        ));
+
+    if let Some(path) = influxdb_configuration.cacert {
+        info!("Adding custom CA certificate {}", path.display());
+        http_client_builder = http_client_builder.ssl_ca_certificate(CaCertificate::file(path));
+    }
+
+    if influxdb_configuration
+        .dangerously_accept_invalid_certs
+        .unwrap_or(false)
+    {
+        warn!("Accepting invalid TLS certificates");
+        http_client_builder =
+            http_client_builder.ssl_options(SslOption::DANGER_ACCEPT_INVALID_CERTS);
+    }
+
+    let http_client = http_client_builder
+        .build()
+        .into_diagnostic()
+        .wrap_err("Creating HTTP client")?;
+
+    let influxdb_client = InfluxDBClient::new(influxdb_configuration.url, http_client);
+
+    Ok(influxdb_client)
 }
 
 /// Save a chart to a file

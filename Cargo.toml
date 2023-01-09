@@ -2,6 +2,7 @@
 members = [
     "house-dashboard",
     "house-dashboard-common",
+    "house-dashboard-influxdb",
     "house-dashboard-infrastructure-summary",
     "house-dashboard-proxmox-summary",
     "house-dashboard-trend",

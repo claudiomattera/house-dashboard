@@ -29,6 +29,7 @@ regex = { version = "1" }
 serde = { version = "1", features = ["derive"] }
 
 time = { version = "0.3" }
+chrono = { version = "0.4" }
 
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"

@@ -44,15 +44,23 @@
 #![allow(clippy::module_name_repetitions)]
 
 use std::collections::{HashMap, HashSet};
+use std::fmt::Error as FmtError;
+use std::fmt::Write;
 
-use tracing::instrument;
+use time::Duration;
 
-use miette::{Report, WrapErr};
+use tracing::{debug, instrument};
+
+use miette::{IntoDiagnostic, Report, WrapErr};
 
 use time::OffsetDateTime;
 
-use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
+
+use house_dashboard_common::configuration::StyleConfiguration;
+
+use house_dashboard_influxdb::Error as InfluxDBError;
+use house_dashboard_influxdb::InfluxDBClient;
 
 mod chart;
 pub use self::chart::draw_infrastructure_summary;
@@ -71,18 +79,26 @@ pub use self::error::Error;
 #[allow(clippy::unreachable)]
 #[instrument(
     name = "infrastructure_summary",
-    skip(infrastructure_summary_configuration, style_configuration)
+    skip(
+        influxdb_client,
+        infrastructure_summary_configuration,
+        style_configuration
+    )
 )]
 pub async fn process_infrastructure_summary(
+    influxdb_client: &InfluxDBClient,
     infrastructure_summary_configuration: &InfrastructureSummaryConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
     let now = OffsetDateTime::now_utc();
 
-    let (hosts, loads) = fetch_data()
-        .await
-        .wrap_err("cannot fetch data for infrastructure summary")?;
+    let (hosts, loads) = fetch_data(
+        influxdb_client,
+        &infrastructure_summary_configuration.how_long_ago.duration,
+    )
+    .await
+    .wrap_err("cannot fetch data for infrastructure summary")?;
 
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;
@@ -107,17 +123,68 @@ pub async fn process_infrastructure_summary(
 ///
 /// Return and error when data could not be fetched
 #[allow(clippy::unused_async)]
-async fn fetch_data() -> Result<(HashSet<String>, HashMap<String, f64>), Report> {
-    let mut hosts: HashSet<String> = HashSet::new();
-    hosts.insert("dashboard.dk.claudiomattera.it".to_owned());
-    hosts.insert("h2plus.dk.claudiomattera.it".to_owned());
-    hosts.insert("media-center.dk.claudiomattera.it".to_owned());
-    hosts.insert("vps.de.claudiomattera.it".to_owned());
+async fn fetch_data(
+    influxdb_client: &InfluxDBClient,
+    how_long_ago: &Duration,
+) -> Result<(HashSet<String>, HashMap<String, f64>), Report> {
+    //     let client = InfluxqlAsyncClient::new::<String, String>(
+    //         Url::parse("http://localhost:8086/").into_diagnostic()?,
+    //         None,
+    //     ).into_diagnostic()?;
 
-    let mut loads: HashMap<String, f64> = HashMap::new();
-    loads.insert("dashboard.dk.claudiomattera.it".to_owned(), 0.2);
-    loads.insert("media-center.dk.claudiomattera.it".to_owned(), 0.9);
-    loads.insert("vps.de.claudiomattera.it".to_owned(), 0.1);
+    //     let hosts_query = Query::new("SHOW TAG VALUES ON telegraf FROM system WITH KEY = host");
+
+    //     let df = client.fetch_dataframe(hosts_query);
+
+    let hosts: HashSet<String> = influxdb_client
+        .fetch_tag_values("telegraf", "system", "host")
+        .await
+        .into_diagnostic()
+        .wrap_err("cannot fetch existing hosts")?;
+
+    let query = format!(
+        "SELECT last({load_field}) / last({n_cpus_field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        load_field = "load15",
+        n_cpus_field = "n_cpus",
+        database = "telegraf",
+        measurement = "system",
+        tag = "host",
+        filter_tag_name = "always-on",
+        filter_tag_value = "true",
+        how_long_ago = duration_to_query(how_long_ago).into_diagnostic()?,
+    );
+
+    debug!("Query: {}", query);
+
+    let loads = match influxdb_client
+        .fetch_tagged_dataframes(&query, "host")
+        .await
+    {
+        Ok(loads) => Ok(loads),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch loads for always-on hosts")?;
+
+    let loads: HashMap<String, f64> = loads
+        .into_iter()
+        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, *value)))
+        .collect();
 
     Ok((hosts, loads))
+}
+
+/// Convert a duration to a duration string
+fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
+    let mut string = String::new();
+
+    let seconds = duration.whole_seconds();
+    if seconds > 0 {
+        write!(&mut string, "{seconds}s")?;
+    }
+
+    Ok(string)
 }

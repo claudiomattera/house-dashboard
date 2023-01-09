@@ -16,6 +16,8 @@ use url::Url;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 
+use house_dashboard_influxdb::InfluxDBClient;
+
 #[cfg(feature = "infrastructure-summary-chart")]
 use house_dashboard_infrastructure_summary::{
     process_infrastructure_summary, InfrastructureSummaryConfiguration,
@@ -93,15 +95,17 @@ impl Chart {
     /// Process a chart
     pub async fn process(
         self,
+        influxdb_client: InfluxDBClient,
         style: &StyleConfiguration,
         index: usize,
     ) -> Result<(usize, Vec<u8>), Report> {
         match self {
             #[cfg(feature = "infrastructure-summary-chart")]
             Self::InfrastructureSummary(configuration) => {
-                let bytes = process_infrastructure_summary(&configuration, style, index)
-                    .await
-                    .wrap_err("cannot process infrastructure summary chart")?;
+                let bytes =
+                    process_infrastructure_summary(&influxdb_client, &configuration, style, index)
+                        .await
+                        .wrap_err("cannot process infrastructure summary chart")?;
                 Ok((index, bytes))
             }
 

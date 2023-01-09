@@ -14,9 +14,6 @@ use tracing_log::LogTracer;
 use tracing_subscriber::fmt::layer as SubscriberFmtLayer;
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, EnvFilter, Registry};
 
-use miette::Report;
-use miette::{Context, IntoDiagnostic};
-
 /// Setup logging
 ///
 /// # Errors
@@ -26,18 +23,14 @@ use miette::{Context, IntoDiagnostic};
 /// * it failed to set a wrapper for `log::*`,
 /// * it failed to open journald socket,
 /// * it failed to set the tracing subscriber.
-pub fn setup(verbosity: u8) -> Result<(), Report> {
-    LogTracer::init()
-        .into_diagnostic()
-        .wrap_err("Failed to set log wrapper for tracing")?;
+pub fn setup(verbosity: u8) {
+    LogTracer::init().unwrap();
 
     let default_log_filter = match verbosity {
         0 => "warn",
-        1 => "warn,house_dashboard=info",
-        2 => "warn,house_dashboard=debug",
-        3 => "warn,house_dashboard=trace",
-        4 => "info,house_dashboard=trace",
-        _ => "trace",
+        1 => "info",
+        2 => "debug,isahc=info",
+        _ => "trace,isahc=info",
     };
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default_log_filter));
@@ -51,18 +44,12 @@ pub fn setup(verbosity: u8) -> Result<(), Report> {
         .with_span_events(FmtSpan::NONE)
         .with_writer(stderr);
 
-    let journald_layer = JournaldLayer::new()
-        .into_diagnostic()
-        .wrap_err("Failed to open journald socket")?;
+    let journald_layer = JournaldLayer::new().unwrap();
 
     let subscriber = Registry::default()
         .with(env_filter)
         .with(formatting_layer)
         .with(journald_layer);
 
-    set_global_default(subscriber)
-        .into_diagnostic()
-        .wrap_err("Failed to set subscriber")?;
-
-    Ok(())
+    set_global_default(subscriber).unwrap();
 }
