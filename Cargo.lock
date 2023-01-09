@@ -776,10 +776,12 @@ version = "1.0.0-dev"
 dependencies = [
  "chrono",
  "house-dashboard-common",
+ "house-dashboard-influxdb",
  "miette",
  "plotters",
  "serde",
  "thiserror",
+ "time 0.3.17",
  "tracing",
 ]
 

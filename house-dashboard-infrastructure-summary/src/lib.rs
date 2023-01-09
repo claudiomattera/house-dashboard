@@ -122,20 +122,10 @@ pub async fn process_infrastructure_summary(
 /// # Errors
 ///
 /// Return and error when data could not be fetched
-#[allow(clippy::unused_async)]
 async fn fetch_data(
     influxdb_client: &InfluxDBClient,
     how_long_ago: &Duration,
 ) -> Result<(HashSet<String>, HashMap<String, f64>), Report> {
-    //     let client = InfluxqlAsyncClient::new::<String, String>(
-    //         Url::parse("http://localhost:8086/").into_diagnostic()?,
-    //         None,
-    //     ).into_diagnostic()?;
-
-    //     let hosts_query = Query::new("SHOW TAG VALUES ON telegraf FROM system WITH KEY = host");
-
-    //     let df = client.fetch_dataframe(hosts_query);
-
     let hosts: HashSet<String> = influxdb_client
         .fetch_tag_values("telegraf", "system", "host")
         .await

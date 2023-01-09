@@ -119,7 +119,7 @@ impl Chart {
 
             #[cfg(feature = "trend-chart")]
             Self::Trend(configuration) => {
-                let bytes = process_trend(&configuration, style, index)
+                let bytes = process_trend(&influxdb_client, &configuration, style, index)
                     .await
                     .wrap_err("cannot process trend chart")?;
                 Ok((index, bytes))

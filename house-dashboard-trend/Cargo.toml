@@ -18,6 +18,7 @@ publish = false
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
 
 thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }
@@ -27,6 +28,8 @@ tracing = { version = "0.1" }
 serde = { version = "1", features = ["derive"] }
 
 chrono = { version = "0.4" }
+
+time = { version = "0.3" }
 
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"

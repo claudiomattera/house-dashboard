@@ -44,15 +44,23 @@
 #![allow(clippy::module_name_repetitions)]
 
 use std::collections::HashMap;
+use std::fmt::Error as FmtError;
+use std::fmt::Write;
 
-use tracing::instrument;
+use time::Duration;
 
-use miette::{Report, WrapErr};
+use tracing::{debug, instrument};
 
-use chrono::{DateTime, TimeZone, Utc};
+use miette::{IntoDiagnostic, Report, WrapErr};
+
+use chrono::{DateTime, Utc};
+
+use plotters::backend::BitMapBackend;
 
 use house_dashboard_common::configuration::StyleConfiguration;
-use plotters::backend::BitMapBackend;
+
+use house_dashboard_influxdb::Error as InfluxDBError;
+use house_dashboard_influxdb::InfluxDBClient;
 
 mod chart;
 pub use self::chart::draw_trend;
@@ -69,13 +77,19 @@ pub use self::error::Error;
 ///
 /// Return and error when chart generation failed
 #[allow(clippy::unreachable)]
-#[instrument(name = "trend", skip(trend_configuration, style_configuration))]
+#[instrument(
+    name = "trend",
+    skip(influxdb_client, trend_configuration, style_configuration)
+)]
 pub async fn process_trend(
+    influxdb_client: &InfluxDBClient,
     trend_configuration: &TrendConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let time_seriess = fetch_data().await.wrap_err("cannot fetch data for trend")?;
+    let time_seriess = fetch_data(influxdb_client, trend_configuration)
+        .await
+        .wrap_err("cannot fetch data for trend")?;
 
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;
@@ -97,34 +111,56 @@ pub async fn process_trend(
 /// # Errors
 ///
 /// Return and error when data could not be fetched
-#[allow(clippy::unused_async)]
-async fn fetch_data() -> Result<HashMap<String, Vec<(DateTime<Utc>, f64)>>, Report> {
-    let mut time_seriess: HashMap<String, Vec<(DateTime<Utc>, f64)>> = HashMap::new();
-    time_seriess.insert(
-        "living room".to_owned(),
-        vec![
-            (Utc.with_ymd_and_hms(2014, 7, 8, 9, 10, 11).unwrap(), 24.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 10, 10, 11).unwrap(), 26.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 11, 10, 11).unwrap(), 27.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 12, 10, 11).unwrap(), 25.0),
-        ],
-    );
-    time_seriess.insert(
-        "bedroom".to_owned(),
-        vec![
-            (Utc.with_ymd_and_hms(2014, 7, 8, 10, 0, 32).unwrap(), 23.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 11, 0, 32).unwrap(), 24.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 12, 0, 32).unwrap(), 20.0),
-        ],
-    );
-    time_seriess.insert(
-        "stairs".to_owned(),
-        vec![
-            (Utc.with_ymd_and_hms(2014, 7, 8, 10, 0, 32).unwrap(), 18.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 11, 0, 32).unwrap(), 19.0),
-            (Utc.with_ymd_and_hms(2014, 7, 8, 12, 0, 32).unwrap(), 18.0),
-        ],
+async fn fetch_data(
+    influxdb_client: &InfluxDBClient,
+    trend_configuration: &TrendConfiguration,
+) -> Result<HashMap<String, Vec<(DateTime<Utc>, f64)>>, Report> {
+    let query = format!(
+        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago}
+        GROUP BY time({period}),{tag} FILL(none)",
+        database = "telegraf",
+        scale = trend_configuration.scale.unwrap_or(1.0),
+        aggregator = trend_configuration
+            .aggregator
+            .clone()
+            .unwrap_or_else(|| "mean".to_owned()),
+        field = trend_configuration.field,
+        measurement = trend_configuration.measurement,
+        tag = trend_configuration.tag,
+        period = trend_configuration
+            .how_often
+            .as_ref()
+            .map_or_else(|| Ok("1h".to_owned()), |d| duration_to_query(&d.duration),)
+            .into_diagnostic()?,
+        how_long_ago =
+            duration_to_query(&trend_configuration.how_long_ago.duration).into_diagnostic()?,
     );
 
+    debug!("Query: {}", query);
+
+    let time_seriess = match influxdb_client
+        .fetch_tagged_dataframes(&query, &trend_configuration.tag)
+        .await
+    {
+        Ok(time_seriess) => Ok(time_seriess),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch time-series")?;
+
     Ok(time_seriess)
+}
+
+/// Convert a duration to a duration string
+fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
+    let mut string = String::new();
+
+    let seconds = duration.whole_seconds();
+    if seconds > 0 {
+        write!(&mut string, "{seconds}s")?;
+    }
+
+    Ok(string)
 }
