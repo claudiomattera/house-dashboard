@@ -118,7 +118,14 @@ async fn fetch_data(
     influxdb_client: &InfluxDBClient,
     node_fqdn: &str,
     how_long_ago: &Duration,
-) -> Result<(HashSet<String>, HashMap<String, String>, HashMap<String, f64>), Report> {
+) -> Result<
+    (
+        HashSet<String>,
+        HashMap<String, String>,
+        HashMap<String, f64>,
+    ),
+    Report,
+> {
     let hosts: HashSet<String> = influxdb_client
         .fetch_tag_values("telegraf", "proxmox", "vm_name", "node_fqdn", node_fqdn)
         .await
@@ -184,7 +191,11 @@ async fn fetch_data(
 
     let statuses: HashMap<String, String> = statuses
         .into_iter()
-        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, value.clone())))
+        .filter_map(|(name, series)| {
+            series
+                .last()
+                .map(|&(_instant, ref value)| (name, value.clone()))
+        })
         .collect();
 
     Ok((hosts, statuses, loads))

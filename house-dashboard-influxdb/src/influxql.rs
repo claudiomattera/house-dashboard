@@ -18,8 +18,8 @@ use serde_json::Value as JsonValue;
 
 use chrono::{DateTime, Utc};
 
-use house_dashboard_common::types::TimeSeries as OutputTimeSeries;
 use house_dashboard_common::types::StringTimeSeries as OutputStringTimeSeries;
+use house_dashboard_common::types::TimeSeries as OutputTimeSeries;
 
 use crate::Error;
 

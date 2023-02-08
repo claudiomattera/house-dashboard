@@ -66,7 +66,9 @@ pub fn draw_temporal_heatmap(
 
     draw_axes(temporal_heatmap, style, &mut chart)?;
 
-    let (min_y, max_y) = temporal_heatmap.bounds.unwrap_or_else(|| compute_value_range(&time_series));
+    let (min_y, max_y) = temporal_heatmap
+        .bounds
+        .unwrap_or_else(|| compute_value_range(&time_series));
 
     let colormap = Colormap::new_with_bounds_and_direction(
         temporal_heatmap.colormap.as_ref(),

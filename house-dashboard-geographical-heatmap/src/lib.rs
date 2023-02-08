@@ -144,7 +144,12 @@ async fn fetch_data(
 
     let values = time_seriess
         .into_iter()
-        .map(|(region, ts)| (region, ts.last().map(|&(ref _instant, ref value)| value).copied()))
+        .map(|(region, ts)| {
+            (
+                region,
+                ts.last().map(|&(ref _instant, ref value)| value).copied(),
+            )
+        })
         .collect::<HashMap<String, Option<f64>>>();
 
     Ok(values)
