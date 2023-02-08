@@ -159,7 +159,7 @@ impl InfluxDBClient {
 
         let influxdb_results: InfluxDBResponse = buffer.as_slice().try_into()?;
 
-        debug!("Parsed response: {:?}", influxdb_results);
+        trace!("Parsed response: {:?}", influxdb_results);
 
         Ok(influxdb_results)
     }
