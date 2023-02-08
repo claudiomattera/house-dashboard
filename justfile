@@ -34,8 +34,8 @@ build +args='--all-features': fetch
     @just cargo build --frozen {{args}}
 
 # Run debug
-run +args='--all-features': (build args)
-    @just cargo run --frozen {{args}}
+run +args: (build "--all-features")
+    @just cargo run --frozen --all-features {{args}}
 
 # Build tests
 build-tests +args='--all-features': fetch
