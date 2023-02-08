@@ -21,7 +21,8 @@ house-dashboard-common = { path = "../house-dashboard-common" }
 
 async-std = { version = "1" }
 
-isahc = { version = "1.7" }
+isahc = { version = "1.7", default-features = false }
+
 url = { version = "2" }
 serde_html_form = { version = "0.2" }
 

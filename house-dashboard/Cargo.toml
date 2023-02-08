@@ -55,7 +55,7 @@ tracing-journald = { version = "0.3" }
 serde = { version = "1", features = ["derive"] }
 toml = { version = "0.5" }
 
-isahc = { version = "1.7" }
+isahc = { version = "1.7", default-features = false }
 
 extrasafe = { version = "0.1" }
 

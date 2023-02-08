@@ -388,7 +388,6 @@ checksum = "6cfce34829f448b08f55b7db6d0009e23e2e86a34e8c2b366269bf5799b4a407"
 dependencies = [
  "cc",
  "libc",
- "libnghttp2-sys",
  "libz-sys",
  "openssl-sys",
  "pkg-config",
@@ -438,15 +437,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "encoding_rs"
-version = "0.8.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9852635589dc9f9ea1b6fe9f05b50ef208c85c834a562f0c6abb1c475736ec2b"
-dependencies = [
- "cfg-if",
 ]
 
 [[package]]
@@ -704,11 +694,13 @@ name = "house-dashboard-geographical-heatmap"
 version = "1.0.0-dev"
 dependencies = [
  "house-dashboard-common",
+ "house-dashboard-influxdb",
  "miette",
  "num-traits",
  "plotters",
  "serde",
  "thiserror",
+ "time 0.3.17",
  "tracing",
 ]
 
@@ -763,10 +755,12 @@ name = "house-dashboard-proxmox-summary"
 version = "1.0.0-dev"
 dependencies = [
  "house-dashboard-common",
+ "house-dashboard-influxdb",
  "miette",
  "plotters",
  "serde",
  "thiserror",
+ "time 0.3.17",
  "tracing",
 ]
 
@@ -776,6 +770,7 @@ version = "1.0.0-dev"
 dependencies = [
  "chrono",
  "house-dashboard-common",
+ "house-dashboard-influxdb",
  "miette",
  "plotters",
  "serde",
@@ -894,12 +889,10 @@ dependencies = [
  "crossbeam-utils",
  "curl",
  "curl-sys",
- "encoding_rs",
  "event-listener",
  "futures-lite",
  "http",
  "log",
- "mime",
  "once_cell",
  "polling",
  "slab",
@@ -951,16 +944,6 @@ name = "libc"
 version = "0.2.137"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7fcc620a3bff7cdd7a365be3376c97191aeaccc2a603e600951e452615bf89"
-
-[[package]]
-name = "libnghttp2-sys"
-version = "0.1.7+1.45.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57ed28aba195b38d5ff02b9170cbff627e336a20925e43b4945390401c5dc93f"
-dependencies = [
- "cc",
- "libc",
-]
 
 [[package]]
 name = "libseccomp"
@@ -1055,12 +1038,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "mime"
-version = "0.3.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a60c7ce501c71e03a9c9c0d35b861413ae925bd979cc7a4e30d060069aaac8d"
 
 [[package]]
 name = "miniz_oxide"

@@ -18,6 +18,7 @@ publish = false
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
 
 thiserror = { version = "1" }
 miette = { version = "5", features = ["fancy"] }
