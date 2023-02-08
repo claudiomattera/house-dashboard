@@ -62,7 +62,7 @@ mod error;
 pub use error::Error;
 
 mod influxql;
-use influxql::{InfluxDBResponse, TaggedDataFrame};
+use influxql::{InfluxDBResponse, TaggedDataFrame, TaggedStringDataFrame};
 
 /// A client to InfluxDB
 #[derive(Clone, Debug)]
@@ -124,6 +124,28 @@ impl InfluxDBClient {
         let a: (&str, &InfluxDBResponse) = (tag_name, &results);
         let dataframe: TaggedDataFrame = a.try_into()?;
         let seriess: HashMap<String, Vec<(DateTime<Utc>, f64)>> = dataframe.into();
+
+        debug!("Fetched {} time-series", seriess.len());
+
+        Ok(seriess)
+    }
+
+    /// Fetch a list of named string time-series, one per each tag value
+    ///
+    /// # Errors
+    ///
+    /// Return an error when the HTTP connection fails, when the InfluxDB
+    /// connection fails, or when the response cannot be parsed.
+    pub async fn fetch_tagged_string_dataframes(
+        &self,
+        query: &str,
+        tag_name: &str,
+    ) -> Result<HashMap<String, Vec<(DateTime<Utc>, String)>>, Error> {
+        let results = self.request(query).await?;
+
+        let a: (&str, &InfluxDBResponse) = (tag_name, &results);
+        let dataframe: TaggedStringDataFrame = a.try_into()?;
+        let seriess: HashMap<String, Vec<(DateTime<Utc>, String)>> = dataframe.into();
 
         debug!("Fetched {} time-series", seriess.len());
 

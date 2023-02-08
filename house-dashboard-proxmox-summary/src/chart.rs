@@ -55,7 +55,7 @@ const HEADER_HEIGHT: i32 = 35;
 pub fn draw_proxmox_summary<S>(
     proxmox_summary: &ProxmoxSummaryConfiguration,
     hosts: &HashSet<String, S>,
-    statuses: &HashMap<String, f64, S>,
+    statuses: &HashMap<String, String, S>,
     loads: &HashMap<String, f64, S>,
     style: &StyleConfiguration,
     backend: BitMapBackend,
@@ -89,7 +89,7 @@ where
 /// Prepare sorted pairs (host, load)
 fn prepare_sorted_loads<'a, 'b, S>(
     hosts: &'a HashSet<String, S>,
-    statuses: &'b HashMap<String, f64, S>,
+    statuses: &'b HashMap<String, String, S>,
     loads: &'b HashMap<String, f64, S>,
 ) -> Vec<(&'a String, Option<f64>)>
 where
@@ -102,7 +102,20 @@ where
 
     hosts
         .into_iter()
-        .map(|host| (host, loads.get(host).copied()))
+        .map(|host| {
+            let load: Option<f64> = statuses
+                .get(host)
+                .into_iter()
+                .filter_map(|status| {
+                    if status == "running" {
+                        loads.get(host).copied()
+                    } else {
+                        None
+                    }
+                })
+                .last();
+            (host, load)
+        })
         .collect()
 }
 

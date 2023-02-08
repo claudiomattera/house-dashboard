@@ -10,3 +10,6 @@ use chrono::{DateTime, Utc};
 
 /// A time-series
 pub type TimeSeries = Vec<(DateTime<Utc>, f64)>;
+
+/// A string time-series
+pub type StringTimeSeries = Vec<(DateTime<Utc>, String)>;

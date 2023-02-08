@@ -19,6 +19,7 @@ use serde_json::Value as JsonValue;
 use chrono::{DateTime, Utc};
 
 use house_dashboard_common::types::TimeSeries as OutputTimeSeries;
+use house_dashboard_common::types::StringTimeSeries as OutputStringTimeSeries;
 
 use crate::Error;
 
@@ -38,6 +39,26 @@ impl TaggedDataFrame {
 #[allow(clippy::implicit_hasher)]
 impl From<TaggedDataFrame> for HashMap<String, OutputTimeSeries> {
     fn from(dataframe: TaggedDataFrame) -> Self {
+        dataframe.0
+    }
+}
+
+/// A tagged string data-frame
+///
+/// This is defined as a newtype only to implement `TryFrom` on it.
+#[derive(Debug, Clone)]
+pub struct TaggedStringDataFrame(HashMap<String, OutputStringTimeSeries>);
+
+impl TaggedStringDataFrame {
+    /// Return an iterator over each named time-series
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &OutputStringTimeSeries)> {
+        self.0.iter()
+    }
+}
+
+#[allow(clippy::implicit_hasher)]
+impl From<TaggedStringDataFrame> for HashMap<String, OutputStringTimeSeries> {
+    fn from(dataframe: TaggedStringDataFrame) -> Self {
         dataframe.0
     }
 }
@@ -96,6 +117,42 @@ impl TryFrom<(&str, &InfluxDBResponse)> for TaggedDataFrame {
                     .collect::<Result<HashMap<String, OutputTimeSeries>, Self::Error>>()?;
 
                 Ok(TaggedDataFrame(seriess))
+            }
+        }
+    }
+}
+
+impl TryFrom<(&str, &InfluxDBResponse)> for TaggedStringDataFrame {
+    type Error = Error;
+
+    fn try_from((tag_name, result): (&str, &InfluxDBResponse)) -> Result<Self, Self::Error> {
+        match *result.results.first().ok_or(Error::EmptyInfluxDBResults)? {
+            InfluxDBResult::Error(ref result) => Err(Error::InfluxDBError(result.error.clone())),
+            InfluxDBResult::Success(ref result) => {
+                let seriess = result
+                    .series
+                    .iter()
+                    .map(|series| {
+                        if let &Series::TimeSeries(ref series) = series {
+                            let values = series
+                                .values
+                                .iter()
+                                .map(|&(ref instant, ref value)| {
+                                    (*instant, value.as_str().unwrap_or("").to_owned())
+                                })
+                                .collect();
+                            let tags = series.tags.as_ref().ok_or(Error::EmptyTags)?;
+                            let tag_value = tags
+                                .get(tag_name)
+                                .ok_or(Error::MissingTag(tag_name.into()))?;
+                            Ok((tag_value.clone(), values))
+                        } else {
+                            Err(Error::NotATimeSeries)
+                        }
+                    })
+                    .collect::<Result<HashMap<String, OutputStringTimeSeries>, Self::Error>>()?;
+
+                Ok(Self(seriess))
             }
         }
     }

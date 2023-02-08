@@ -118,7 +118,7 @@ async fn fetch_data(
     influxdb_client: &InfluxDBClient,
     node_fqdn: &str,
     how_long_ago: &Duration,
-) -> Result<(HashSet<String>, HashMap<String, f64>, HashMap<String, f64>), Report> {
+) -> Result<(HashSet<String>, HashMap<String, String>, HashMap<String, f64>), Report> {
     let hosts: HashSet<String> = influxdb_client
         .fetch_tag_values("telegraf", "proxmox", "vm_name", "node_fqdn", node_fqdn)
         .await
@@ -172,7 +172,7 @@ async fn fetch_data(
     debug!("Query: {}", status_query);
 
     let statuses = match influxdb_client
-        .fetch_tagged_dataframes(&status_query, "vm_name")
+        .fetch_tagged_string_dataframes(&status_query, "vm_name")
         .await
     {
         Ok(statuses) => Ok(statuses),
@@ -182,9 +182,9 @@ async fn fetch_data(
     .into_diagnostic()
     .wrap_err("cannot fetch status for Proxmox VMs")?;
 
-    let statuses: HashMap<String, f64> = statuses
+    let statuses: HashMap<String, String> = statuses
         .into_iter()
-        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, *value)))
+        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, value.clone())))
         .collect();
 
     Ok((hosts, statuses, loads))
