@@ -24,4 +24,7 @@ pub struct ProxmoxSummaryConfiguration {
 
     /// Vertical space between hostnames
     pub vertical_step: Option<i32>,
+
+    /// Proxmox node fully-qualified domain name
+    pub node_fqdn: String,
 }

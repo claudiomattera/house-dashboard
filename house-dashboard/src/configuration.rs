@@ -111,7 +111,7 @@ impl Chart {
 
             #[cfg(feature = "proxmox-summary-chart")]
             Self::ProxmoxSummary(configuration) => {
-                let bytes = process_proxmox_summary(&configuration, style, index)
+                let bytes = process_proxmox_summary(&influxdb_client, &configuration, style, index)
                     .await
                     .wrap_err("cannot process proxmox summary chart")?;
                 Ok((index, bytes))

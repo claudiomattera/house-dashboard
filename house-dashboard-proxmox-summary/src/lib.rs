@@ -44,10 +44,17 @@
 #![allow(clippy::module_name_repetitions)]
 
 use std::collections::{HashMap, HashSet};
+use std::fmt::Error as FmtError;
+use std::fmt::Write;
 
-use tracing::instrument;
+use time::Duration;
 
-use miette::{Report, WrapErr};
+use tracing::{debug, instrument};
+
+use miette::{IntoDiagnostic, Report, WrapErr};
+
+use house_dashboard_influxdb::Error as InfluxDBError;
+use house_dashboard_influxdb::InfluxDBClient;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
@@ -69,16 +76,21 @@ pub use self::error::Error;
 #[allow(clippy::unreachable)]
 #[instrument(
     name = "proxmox_summary",
-    skip(proxmox_summary_configuration, style_configuration)
+    skip(influxdb_client, proxmox_summary_configuration, style_configuration)
 )]
 pub async fn process_proxmox_summary(
+    influxdb_client: &InfluxDBClient,
     proxmox_summary_configuration: &ProxmoxSummaryConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let (hosts, loads) = fetch_data()
-        .await
-        .wrap_err("cannot fetch data for Proxmox summary")?;
+    let (hosts, statuses, loads) = fetch_data(
+        influxdb_client,
+        &proxmox_summary_configuration.node_fqdn,
+        &proxmox_summary_configuration.how_long_ago.duration,
+    )
+    .await
+    .wrap_err("cannot fetch data for Proxmox summary")?;
 
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;
@@ -87,6 +99,7 @@ pub async fn process_proxmox_summary(
     draw_proxmox_summary(
         proxmox_summary_configuration,
         &hosts,
+        &statuses,
         &loads,
         style_configuration,
         backend,
@@ -101,50 +114,90 @@ pub async fn process_proxmox_summary(
 /// # Errors
 ///
 /// Return and error when data could not be fetched
-#[allow(clippy::unused_async)]
-async fn fetch_data() -> Result<(HashSet<String>, HashMap<String, f64>), Report> {
-    let mut hosts: HashSet<String> = HashSet::new();
-    hosts.insert("ntp.claudiomattera.it".to_owned());
-    hosts.insert("dns.claudiomattera.it".to_owned());
-    hosts.insert("dhcp.claudiomattera.it".to_owned());
-    hosts.insert("ca.claudiomattera.it".to_owned());
-    hosts.insert("ldap.claudiomattera.it".to_owned());
-    hosts.insert("gotify.claudiomattera.it".to_owned());
-    hosts.insert("mqtt.claudiomattera.it".to_owned());
-    hosts.insert("nexus.claudiomattera.it".to_owned());
-    hosts.insert("internal.claudiomattera.it".to_owned());
-    hosts.insert("backup.claudiomattera.it".to_owned());
-    hosts.insert("influxdb.claudiomattera.it".to_owned());
-    hosts.insert("kapacitor.claudiomattera.it".to_owned());
-    hosts.insert("chronograf.claudiomattera.it".to_owned());
-    hosts.insert("git.claudiomattera.it".to_owned());
-    hosts.insert("minio.claudiomattera.it".to_owned());
-    hosts.insert("drone.claudiomattera.it".to_owned());
-    hosts.insert("drone-runner-1.claudiomattera.it".to_owned());
-    hosts.insert("torrent.claudiomattera.it".to_owned());
-    hosts.insert("test.claudiomattera.it".to_owned());
-    hosts.insert("matrix.claudiomattera.it".to_owned());
-    hosts.insert("jellyfin.claudiomattera.it".to_owned());
-    hosts.insert("photoprism.claudiomattera.it".to_owned());
+async fn fetch_data(
+    influxdb_client: &InfluxDBClient,
+    node_fqdn: &str,
+    how_long_ago: &Duration,
+) -> Result<(HashSet<String>, HashMap<String, f64>, HashMap<String, f64>), Report> {
+    let hosts: HashSet<String> = influxdb_client
+        .fetch_tag_values("telegraf", "proxmox", "vm_name", "node_fqdn", node_fqdn)
+        .await
+        .into_diagnostic()
+        .wrap_err("cannot fetch existing hosts")?;
 
-    let mut loads: HashMap<String, f64> = HashMap::new();
-    loads.insert("ntp.claudiomattera.it".to_owned(), 0.2);
-    loads.insert("dns.claudiomattera.it".to_owned(), 0.9);
-    loads.insert("dhcp.claudiomattera.it".to_owned(), 0.1);
-    loads.insert("ca.claudiomattera.it".to_owned(), 0.16);
-    loads.insert("ldap.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("gotify.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("mqtt.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("nexus.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("internal.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("backup.claudiomattera.it".to_owned(), 0.43);
-    loads.insert("influxdb.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("kapacitor.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("chronograf.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("git.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("minio.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("drone.claudiomattera.it".to_owned(), 0.3);
-    loads.insert("drone-runner-1.claudiomattera.it".to_owned(), 0.3);
+    let load_query = format!(
+        "SELECT last({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        field = "cpuload",
+        database = "telegraf",
+        measurement = "proxmox",
+        tag = "vm_name",
+        filter_tag_name = "node_fqdn",
+        filter_tag_value = node_fqdn,
+        how_long_ago = duration_to_query(how_long_ago).into_diagnostic()?,
+    );
 
-    Ok((hosts, loads))
+    debug!("Query: {}", load_query);
+
+    let loads = match influxdb_client
+        .fetch_tagged_dataframes(&load_query, "vm_name")
+        .await
+    {
+        Ok(loads) => Ok(loads),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch loads for Proxmox VMs")?;
+
+    let loads: HashMap<String, f64> = loads
+        .into_iter()
+        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, *value)))
+        .collect();
+
+    let status_query = format!(
+        "SELECT last({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND \"{filter_tag_name}\" = '{filter_tag_value}'
+        GROUP BY {tag}",
+        field = "status",
+        database = "telegraf",
+        measurement = "proxmox",
+        tag = "vm_name",
+        filter_tag_name = "node_fqdn",
+        filter_tag_value = node_fqdn,
+        how_long_ago = duration_to_query(how_long_ago).into_diagnostic()?,
+    );
+
+    debug!("Query: {}", status_query);
+
+    let statuses = match influxdb_client
+        .fetch_tagged_dataframes(&status_query, "vm_name")
+        .await
+    {
+        Ok(statuses) => Ok(statuses),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch status for Proxmox VMs")?;
+
+    let statuses: HashMap<String, f64> = statuses
+        .into_iter()
+        .filter_map(|(name, series)| series.last().map(|&(_instant, ref value)| (name, *value)))
+        .collect();
+
+    Ok((hosts, statuses, loads))
+}
+
+/// Convert a duration to a duration string
+fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
+    let mut string = String::new();
+
+    let seconds = duration.whole_seconds();
+    if seconds > 0 {
+        write!(&mut string, "{seconds}s")?;
+    }
+
+    Ok(string)
 }
