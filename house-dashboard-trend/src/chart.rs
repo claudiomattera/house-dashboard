@@ -247,7 +247,7 @@ fn plot_time_series<'a, DB: DrawingBackend + 'a>(
     let index = if let Some(index) = indices.get(name) {
         *index
     } else {
-        warn!("Unexpected tag value {}", name);
+        debug!("Unexpected tag value {}", name);
         return Ok(());
     };
 
