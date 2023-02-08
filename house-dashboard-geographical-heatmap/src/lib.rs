@@ -44,10 +44,17 @@
 #![allow(clippy::module_name_repetitions)]
 
 use std::collections::HashMap;
+use std::fmt::Error as FmtError;
+use std::fmt::Write;
 
-use tracing::instrument;
+use time::Duration;
 
-use miette::{Report, WrapErr};
+use tracing::{debug, instrument};
+
+use miette::{IntoDiagnostic, Report, WrapErr};
+
+use house_dashboard_influxdb::Error as InfluxDBError;
+use house_dashboard_influxdb::InfluxDBClient;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
@@ -69,14 +76,19 @@ pub use self::error::Error;
 #[allow(clippy::unreachable)]
 #[instrument(
     name = "geographical_heatmap",
-    skip(geographical_heatmap_configuration, style_configuration)
+    skip(
+        influxdb_client,
+        geographical_heatmap_configuration,
+        style_configuration
+    )
 )]
 pub async fn process_geographical_heatmap(
+    influxdb_client: &InfluxDBClient,
     geographical_heatmap_configuration: &GeographicalHeatMapConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let values = fetch_data()
+    let values = fetch_data(influxdb_client, geographical_heatmap_configuration)
         .await
         .wrap_err("cannot fetch data for geographical heatmap")?;
 
@@ -100,14 +112,52 @@ pub async fn process_geographical_heatmap(
 /// # Errors
 ///
 /// Return and error when data could not be fetched
-#[allow(clippy::unused_async)]
-async fn fetch_data() -> Result<HashMap<String, Option<f64>>, Report> {
-    let mut values: HashMap<String, Option<f64>> = HashMap::new();
-    values.insert("living room".to_owned(), Some(22.0));
-    values.insert("bedroom".to_owned(), Some(20.0));
-    values.insert("bathroom".to_owned(), Some(26.0));
-    values.insert("kitchen".to_owned(), None);
-    values.insert("entrance".to_owned(), None);
+async fn fetch_data(
+    influxdb_client: &InfluxDBClient,
+    geographical_heatmap_configuration: &GeographicalHeatMapConfiguration,
+) -> Result<HashMap<String, Option<f64>>, Report> {
+    let query = format!(
+        "SELECT {scale} * last({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago}
+        GROUP BY {tag} FILL(none)",
+        database = geographical_heatmap_configuration.database,
+        scale = geographical_heatmap_configuration.scale.unwrap_or(1.0),
+        field = geographical_heatmap_configuration.field,
+        measurement = geographical_heatmap_configuration.measurement,
+        tag = geographical_heatmap_configuration.tag,
+        how_long_ago = duration_to_query(&geographical_heatmap_configuration.how_long_ago.duration)
+            .into_diagnostic()?,
+    );
+
+    debug!("Query: {}", query);
+
+    let time_seriess = match influxdb_client
+        .fetch_tagged_dataframes(&query, &geographical_heatmap_configuration.tag)
+        .await
+    {
+        Ok(time_seriess) => Ok(time_seriess),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch time-series")?;
+
+    let values = time_seriess
+        .into_iter()
+        .map(|(region, ts)| (region, ts.last().map(|&(ref _instant, ref value)| value).copied()))
+        .collect::<HashMap<String, Option<f64>>>();
 
     Ok(values)
+}
+
+/// Convert a duration to a duration string
+fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
+    let mut string = String::new();
+
+    let seconds = duration.whole_seconds();
+    if seconds > 0 {
+        write!(&mut string, "{seconds}s")?;
+    }
+
+    Ok(string)
 }

@@ -127,9 +127,10 @@ impl Chart {
 
             #[cfg(feature = "geographical-heatmap-chart")]
             Self::GeographicalHeatMap(configuration) => {
-                let bytes = process_geographical_heatmap(&configuration, style, index)
-                    .await
-                    .wrap_err("cannot process geographical heatmap chart")?;
+                let bytes =
+                    process_geographical_heatmap(&influxdb_client, &configuration, style, index)
+                        .await
+                        .wrap_err("cannot process geographical heatmap chart")?;
                 Ok((index, bytes))
             }
 
