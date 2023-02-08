@@ -97,9 +97,9 @@ where
 }
 
 /// Prepare sorted pairs (host, load)
-fn prepare_sorted_loads<'a, 'b, S>(
+fn prepare_sorted_loads<'a, S>(
     hosts: &'a HashSet<String, S>,
-    loads: &'b HashMap<String, f64, S>,
+    loads: &HashMap<String, f64, S>,
 ) -> Vec<(&'a String, Option<f64>)>
 where
     S: BuildHasher,
