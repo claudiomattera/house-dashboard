@@ -51,7 +51,7 @@ const LOAD_X: i32 = 280;
 const MAX_LOAD: f64 = 1.0;
 
 /// Header height
-const HEADER_HEIGHT: i32 = 35;
+const HEADER_HEIGHT: i32 = 32;
 
 /// Draw an infrastructure summary chart
 ///
@@ -150,7 +150,7 @@ fn draw_header<DB: DrawingBackend>(
     let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     root.draw(&Text::new(text, (HOST_X, 10), &header_font))?;
     root.draw(&Rectangle::new(
-        [(HOST_X - half_width, 19), (HOST_X + half_width, 19)],
+        [(HOST_X - half_width - 1, 17), (HOST_X + half_width - 2, 17)],
         style.system_palette.pick(SystemColor::Foreground),
     ))?;
 
@@ -158,7 +158,7 @@ fn draw_header<DB: DrawingBackend>(
     let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     root.draw(&Text::new(text, (STATUS_X, 10), &header_font))?;
     root.draw(&Rectangle::new(
-        [(STATUS_X - half_width, 19), (STATUS_X + half_width, 19)],
+        [(STATUS_X - half_width - 1, 17), (STATUS_X + half_width - 2, 17)],
         style.system_palette.pick(SystemColor::Foreground),
     ))?;
 
@@ -166,7 +166,7 @@ fn draw_header<DB: DrawingBackend>(
     let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     root.draw(&Text::new(text, (LOAD_X, 10), &header_font))?;
     root.draw(&Rectangle::new(
-        [(LOAD_X - half_width, 19), (LOAD_X + half_width, 19)],
+        [(LOAD_X - half_width - 1, 17), (LOAD_X + half_width - 2, 17)],
         style.system_palette.pick(SystemColor::Foreground),
     ))?;
 
