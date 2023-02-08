@@ -51,9 +51,10 @@ use time::Duration;
 
 use tracing::{debug, instrument};
 
+use miette::miette;
 use miette::{IntoDiagnostic, Report, WrapErr};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local, Utc};
 
 use plotters::backend::BitMapBackend;
 
@@ -91,12 +92,23 @@ pub async fn process_trend(
         .await
         .wrap_err("cannot fetch data for trend")?;
 
+    let duration =
+        chrono::Duration::from_std(trend_configuration.how_long_ago.duration.unsigned_abs())
+            .into_diagnostic()?;
+    let x_range: (DateTime<Local>, DateTime<Local>) = (
+        Local::now()
+            .checked_sub_signed(duration)
+            .ok_or(miette!("Invalid duration"))?,
+        Local::now(),
+    );
+
     let area = style_configuration.resolution.0 * style_configuration.resolution.1;
     let area_in_bytes = area as usize * 3;
     let mut buffer: Vec<u8> = vec![0; area_in_bytes];
     let backend = BitMapBackend::with_buffer(&mut buffer, style_configuration.resolution);
     draw_trend(
         trend_configuration,
+        x_range,
         &time_seriess,
         style_configuration,
         backend,

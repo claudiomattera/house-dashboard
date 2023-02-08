@@ -11,9 +11,7 @@ use std::hash::BuildHasher;
 
 use tracing::{debug, info, warn};
 
-use std::cmp::Ord;
-
-use chrono::{DateTime, Duration, Local, Timelike, Utc};
+use chrono::{DateTime, Local, Utc};
 
 use plotters::{
     backend::{BitMapBackend, DrawingBackend},
@@ -48,6 +46,7 @@ type ChartContextAlias<'a, DB> =
 /// Return and error when chart generation failed
 pub fn draw_trend<S>(
     trend: &TrendConfiguration,
+    x_range: (DateTime<Local>, DateTime<Local>),
     time_seriess: &HashMap<String, Vec<(DateTime<Utc>, f64)>, S>,
     style: &StyleConfiguration,
     backend: BitMapBackend,
@@ -68,7 +67,13 @@ where
 
     let time_seriess = convert_time_seriess_to_local_time(time_seriess);
 
-    let mut chart = create_chart_context(trend.top_padding, &indices, &new_root, &time_seriess)?;
+    let mut chart = create_chart_context(
+        trend.top_padding,
+        x_range,
+        &indices,
+        &new_root,
+        &time_seriess,
+    )?;
 
     debug!("Drawing axis");
     draw_axes(trend, style, &mut chart)?;
@@ -147,14 +152,13 @@ fn compute_range<S>(
     top_padding: Option<f64>,
     indices: &HashMap<String, usize>,
     time_seriess: &HashMap<String, Vec<(DateTime<Local>, f64)>, S>,
-) -> (DateTime<Local>, DateTime<Local>, f64, f64)
+) -> (f64, f64)
 where
     S: BuildHasher,
 {
-    let mut min_x: DateTime<Local> = DateTime::<Utc>::MAX_UTC.with_timezone(&Local);
-    let mut max_x: DateTime<Local> = DateTime::<Utc>::MIN_UTC.with_timezone(&Local);
     let mut min_y = std::f64::MAX;
     let mut max_y = std::f64::MIN;
+
     for (name, time_series) in time_seriess.iter() {
         if !indices.contains_key(name) {
             debug!(
@@ -163,9 +167,7 @@ where
             );
             continue;
         }
-        for &(date, value) in time_series {
-            min_x = min_x.min(date);
-            max_x = max_x.max(date);
+        for &(_date, value) in time_series {
             min_y = min_y.min(value);
             max_y = max_y.max(value);
         }
@@ -175,21 +177,9 @@ where
     let top_padding = top_padding.unwrap_or(0.0);
     max_y += top_padding * (max_y - min_y);
 
-    let padded_min_x = min_x
-        .with_minute(0)
-        .and_then(|dt| dt.with_second(0))
-        .and_then(|dt| dt.checked_sub_signed(Duration::hours(1)))
-        .unwrap_or(min_x);
-    let padded_max_x = max_x
-        .with_minute(0)
-        .and_then(|dt| dt.with_second(0))
-        .and_then(|dt| dt.checked_add_signed(Duration::hours(1)))
-        .unwrap_or(max_x);
-
-    debug!("Plot X range: [{}, {}]", padded_min_x, padded_max_x);
     debug!("Plot Y range: [{}, {}]", min_y, max_y);
 
-    (padded_min_x, padded_max_x, min_y, max_y)
+    (min_y, max_y)
 }
 
 /// Convert time-series to local time
@@ -218,6 +208,7 @@ fn convert_time_series_to_local_time(
 /// Create a chart context
 fn create_chart_context<'a, DB: DrawingBackend + 'a, S>(
     top_padding: Option<f64>,
+    (min_x, max_x): (DateTime<Local>, DateTime<Local>),
     indices: &HashMap<String, usize>,
     root: &'a DrawingArea<DB, Shift>,
     time_seriess: &HashMap<String, Vec<(DateTime<Local>, f64)>, S>,
@@ -227,7 +218,7 @@ where
 {
     debug!("Creating chart");
 
-    let (min_x, max_x, min_y, max_y) = compute_range(top_padding, indices, time_seriess);
+    let (min_y, max_y) = compute_range(top_padding, indices, time_seriess);
 
     let chart = ChartBuilder::on(root)
         .margin(5)
