@@ -105,7 +105,11 @@ impl Colormap {
     /// Map value to RGB array
     #[must_use]
     pub fn get_color_array(&self, value: f64) -> [u8; 3] {
-        let value = (value - self.min) / (self.max - self.min);
+        let value = if value.is_nan() {
+            self.min
+        } else {
+            (value - self.min) / (self.max - self.min)
+        };
         let color = self.gradient.get(value);
         let pixel: [u8; 3] = Srgb::from_linear(color).into_format().into_raw();
         pixel
