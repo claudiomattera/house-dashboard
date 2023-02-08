@@ -127,7 +127,7 @@ async fn fetch_data(
     how_long_ago: &Duration,
 ) -> Result<(HashSet<String>, HashMap<String, f64>), Report> {
     let hosts: HashSet<String> = influxdb_client
-        .fetch_tag_values("telegraf", "system", "host")
+        .fetch_tag_values("telegraf", "system", "host", "always-on", "true")
         .await
         .into_diagnostic()
         .wrap_err("cannot fetch existing hosts")?;

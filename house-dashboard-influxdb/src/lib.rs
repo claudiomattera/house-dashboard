@@ -96,9 +96,12 @@ impl InfluxDBClient {
         database: &str,
         measurement: &str,
         key: &str,
+        filter_tag_name: &str,
+        filter_tag_value: &str,
     ) -> Result<HashSet<String>, Error> {
-        let query =
-            format!(r#"SHOW TAG VALUES ON "{database}" FROM {measurement} WITH KEY = "{key}""#);
+        let query = format!(
+            r#"SHOW TAG VALUES ON "{database}" FROM {measurement} WITH KEY = "{key}" WHERE "{filter_tag_name}" = '{filter_tag_value}'"#
+        );
         let results = self.request(&query).await?;
         let tags: HashSet<String> = (&results).try_into()?;
         debug!("Fetched {} tags", tags.len());
