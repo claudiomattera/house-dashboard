@@ -48,7 +48,10 @@ pub fn draw_temporal_heatmap(
     style: &StyleConfiguration,
     backend: BitMapBackend,
 ) -> Result<(), Error> {
-    info!("Drawing temporal heatmap");
+    info!(
+        "Drawing temporal heatmap '{}'",
+        temporal_heatmap.title.to_lowercase()
+    );
 
     let root = backend.into_drawing_area();
     root.fill(&style.system_palette.pick(SystemColor::Background))?;

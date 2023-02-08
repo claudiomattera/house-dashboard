@@ -47,7 +47,10 @@ pub fn draw_geographical_heatmap<S>(
 where
     S: BuildHasher,
 {
-    info!("Drawing geographical heatmap");
+    info!(
+        "Drawing geographical heatmap '{}'",
+        geographical_heatmap.title.to_lowercase()
+    );
 
     let root = backend.into_drawing_area();
     root.fill(&style.system_palette.pick(SystemColor::Background))?;
