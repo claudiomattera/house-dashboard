@@ -46,6 +46,9 @@ pub struct TrendConfiguration {
     /// Maximal number of Y ticks
     pub max_y_ticks: Option<usize>,
 
+    /// InfluxDB database
+    pub database: String,
+
     /// InfluxDB measurement
     pub measurement: String,
 

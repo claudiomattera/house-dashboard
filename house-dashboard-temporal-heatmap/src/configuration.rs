@@ -24,6 +24,9 @@ pub struct TemporalHeatMapConfiguration {
     /// Unit
     pub unit: String,
 
+    /// InfluxDB database
+    pub database: String,
+
     /// InfluxDB measurement
     pub measurement: String,
 
