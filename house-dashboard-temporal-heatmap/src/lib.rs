@@ -43,11 +43,17 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 
-use tracing::instrument;
+use std::collections::HashMap;
 
-use miette::{Report, WrapErr};
+use tracing::{debug, instrument};
 
-use chrono::{DateTime, TimeZone, Utc};
+use miette::miette;
+use miette::{IntoDiagnostic, Report, WrapErr};
+
+use chrono::{DateTime, Utc};
+
+use house_dashboard_influxdb::Error as InfluxDBError;
+use house_dashboard_influxdb::InfluxDBClient;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 use plotters::backend::BitMapBackend;
@@ -69,14 +75,15 @@ pub use self::error::Error;
 #[allow(clippy::unreachable)]
 #[instrument(
     name = "temporal_heatmap",
-    skip(temporal_heatmap_configuration, style_configuration)
+    skip(influxdb_client, temporal_heatmap_configuration, style_configuration)
 )]
 pub async fn process_temporal_heatmap(
+    influxdb_client: &InfluxDBClient,
     temporal_heatmap_configuration: &TemporalHeatMapConfiguration,
     style_configuration: &StyleConfiguration,
     index: usize,
 ) -> Result<Vec<u8>, Report> {
-    let time_series = fetch_data()
+    let time_series = fetch_data(influxdb_client, temporal_heatmap_configuration)
         .await
         .wrap_err("cannot fetch data for temporal heatmap")?;
 
@@ -100,102 +107,53 @@ pub async fn process_temporal_heatmap(
 /// # Errors
 ///
 /// Return and error when data could not be fetched
-#[allow(clippy::unused_async)]
-async fn fetch_data() -> Result<Vec<(DateTime<Utc>, f64)>, Report> {
-    let time_series = vec![
-        (Utc.with_ymd_and_hms(2014, 7, 1, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 2, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 3, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 4, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 5, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 6, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 7, 9, 10, 11).unwrap(), 2.0),
-        (Utc.with_ymd_and_hms(2014, 7, 8, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 9, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 10, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 11, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 12, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 13, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 14, 10, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 7, 15, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 16, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 17, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 18, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 19, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 20, 11, 10, 11).unwrap(), 12.0),
-        (Utc.with_ymd_and_hms(2014, 7, 21, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 22, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 23, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 24, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 25, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 26, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 27, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 28, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 29, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 30, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 7, 31, 12, 10, 11).unwrap(), 20.0),
-        (Utc.with_ymd_and_hms(2014, 8, 1, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 2, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 3, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 4, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 5, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 6, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 7, 9, 10, 11).unwrap(), 1.0),
-        (Utc.with_ymd_and_hms(2014, 8, 8, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 9, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 10, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 11, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 12, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 13, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 14, 10, 10, 11).unwrap(), 3.0),
-        (Utc.with_ymd_and_hms(2014, 8, 15, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 16, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 17, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 18, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 19, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 20, 11, 10, 11).unwrap(), 4.0),
-        (Utc.with_ymd_and_hms(2014, 8, 21, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 22, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 23, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 24, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 25, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 26, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 27, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 28, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 29, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 30, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 8, 31, 12, 10, 11).unwrap(), 6.0),
-        (Utc.with_ymd_and_hms(2014, 9, 1, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 2, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 3, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 4, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 5, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 6, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 7, 9, 10, 11).unwrap(), 7.0),
-        (Utc.with_ymd_and_hms(2014, 9, 8, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 9, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 10, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 11, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 12, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 13, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 14, 10, 10, 11).unwrap(), 18.0),
-        (Utc.with_ymd_and_hms(2014, 9, 15, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 16, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 17, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 18, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 19, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 20, 11, 10, 11).unwrap(), 31.0),
-        (Utc.with_ymd_and_hms(2014, 9, 21, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 22, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 23, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 24, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 25, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 26, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 27, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 28, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 29, 12, 10, 11).unwrap(), 38.0),
-        (Utc.with_ymd_and_hms(2014, 9, 30, 12, 10, 11).unwrap(), 38.0),
-    ];
+async fn fetch_data(
+    influxdb_client: &InfluxDBClient,
+    temporal_heatmap_configuration: &TemporalHeatMapConfiguration,
+) -> Result<Vec<(DateTime<Utc>, f64)>, Report> {
+    let query = format!(
+        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
+        WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
+        GROUP BY time({period}),{tag} FILL(previous)",
+        scale = temporal_heatmap_configuration.scale.unwrap_or(1.0),
+        aggregator = temporal_heatmap_configuration
+            .aggregator
+            .clone()
+            .unwrap_or_else(|| "mean".to_owned()),
+        field = temporal_heatmap_configuration.field,
+        database = temporal_heatmap_configuration.database,
+        measurement = temporal_heatmap_configuration.measurement,
+        tag = temporal_heatmap_configuration.tag,
+        tag_value = &temporal_heatmap_configuration.tag_value,
+        period = temporal_heatmap_configuration.period.to_query_group(),
+        how_long_ago = temporal_heatmap_configuration.period.how_long_ago(),
+    );
+
+    debug!("Query: {}", query);
+
+    let mut time_seriess = match influxdb_client
+        .fetch_tagged_dataframes(&query, &temporal_heatmap_configuration.tag)
+        .await
+    {
+        Ok(time_seriess) => Ok(time_seriess),
+        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
+        other => other,
+    }
+    .into_diagnostic()
+    .wrap_err("cannot fetch time-series")?;
+
+    let time_series = time_seriess
+        .remove(&temporal_heatmap_configuration.tag_value)
+        .ok_or(miette!(
+            "Missing data for {} = '{}'",
+            temporal_heatmap_configuration.tag,
+            temporal_heatmap_configuration.tag_value
+        ))?;
+
+    let time_series = time_series
+        .into_iter()
+        .filter(|&(ref _instant, ref value)| !value.is_nan())
+        .collect();
 
     Ok(time_series)
 }

@@ -136,9 +136,10 @@ impl Chart {
 
             #[cfg(feature = "temporal-heatmap-chart")]
             Self::TemporalHeatMap(configuration) => {
-                let bytes = process_temporal_heatmap(&configuration, style, index)
-                    .await
-                    .wrap_err("cannot process temporal heatmap chart")?;
+                let bytes =
+                    process_temporal_heatmap(&influxdb_client, &configuration, style, index)
+                        .await
+                        .wrap_err("cannot process temporal heatmap chart")?;
                 Ok((index, bytes))
             }
 

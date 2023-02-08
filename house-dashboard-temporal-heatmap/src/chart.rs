@@ -63,10 +63,12 @@ pub fn draw_temporal_heatmap(
 
     draw_axes(temporal_heatmap, style, &mut chart)?;
 
+    let (min_y, max_y) = temporal_heatmap.bounds.unwrap_or_else(|| compute_value_range(&time_series));
+
     let colormap = Colormap::new_with_bounds_and_direction(
         temporal_heatmap.colormap.as_ref(),
-        temporal_heatmap.bounds.0,
-        temporal_heatmap.bounds.1,
+        min_y,
+        max_y,
         temporal_heatmap.reversed,
     );
 
@@ -74,7 +76,7 @@ pub fn draw_temporal_heatmap(
 
     chart.draw_series(fragments)?;
 
-    draw_colorbar(temporal_heatmap, style, colormap, &root)?;
+    draw_colorbar(temporal_heatmap, style, (min_y, max_y), colormap, &root)?;
 
     Ok(())
 }
@@ -151,6 +153,18 @@ fn compute_range(
     (padded_min_x, padded_max_x, min_y, max_y)
 }
 
+/// Compute value range
+fn compute_value_range(time_series: &[(DateTime<Local>, f64)]) -> (f64, f64) {
+    let mut min_y: f64 = f64::MAX;
+    let mut max_y: f64 = f64::MIN;
+    for &(_date, value) in time_series.iter() {
+        min_y = min_y.min(value);
+        max_y = max_y.max(value);
+    }
+
+    (min_y, max_y)
+}
+
 /// Draw chart axes
 fn draw_axes<'a, DB: DrawingBackend + 'a>(
     temporal_heatmap: &TemporalHeatMapConfiguration,
@@ -210,6 +224,7 @@ fn create_fragments(
 fn draw_colorbar<DB>(
     temporal_heatmap: &TemporalHeatMapConfiguration,
     style: &StyleConfiguration,
+    bounds: (f64, f64),
     colormap: Colormap,
     root: &DrawingArea<DB, Shift>,
 ) -> Result<(), Error>
@@ -224,7 +239,7 @@ where
     let colorbar = Colorbar::new(
         (i32::try_from(width)? - 55, 40),
         (10, i32::try_from(height)? - 60),
-        temporal_heatmap.bounds,
+        bounds,
         temporal_heatmap.precision.unwrap_or(0),
         temporal_heatmap.unit.clone(),
         label_font,

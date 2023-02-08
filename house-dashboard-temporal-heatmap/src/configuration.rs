@@ -49,7 +49,7 @@ pub struct TemporalHeatMapConfiguration {
     pub period: Period,
 
     /// Heatmap bounds
-    pub bounds: (f64, f64),
+    pub bounds: Option<(f64, f64)>,
 
     /// Colormap
     pub colormap: Option<ColormapType>,
