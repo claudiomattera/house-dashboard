@@ -131,7 +131,7 @@ async fn fetch_data(
         "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
         WHERE time < now() AND time > now() - {how_long_ago}
         GROUP BY time({period}),{tag} FILL(none)",
-        database = "telegraf",
+        database = trend_configuration.database,
         scale = trend_configuration.scale.unwrap_or(1.0),
         aggregator = trend_configuration
             .aggregator
