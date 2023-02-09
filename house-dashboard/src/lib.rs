@@ -62,6 +62,7 @@ use futures::{stream::FuturesUnordered, StreamExt};
 
 use image::{ImageFormat, RgbImage};
 
+#[cfg(feature = "extrasafe")]
 use extrasafe::{
     builtins::{danger_zone::ForkAndExec, BasicCapabilities, Networking, SystemIO},
     SafetyContext,
@@ -96,6 +97,7 @@ pub async fn main() -> Result<(), Report> {
     let arguments = parse_command_line();
     setup_logging(arguments.verbosity.try_into().into_diagnostic()?)?;
 
+    #[cfg(feature = "extrasafe")]
     setup_allowed_syscalls()?;
 
     let (style_configuration, influxdb_configuration) =
@@ -144,6 +146,7 @@ pub async fn main() -> Result<(), Report> {
 }
 
 /// Setup allowed syscalls
+#[cfg(feature = "extrasafe")]
 fn setup_allowed_syscalls() -> Result<(), Report> {
     let safety_context = SafetyContext::new();
 

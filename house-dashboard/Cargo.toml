@@ -18,6 +18,7 @@ publish = false
 
 [features]
 default = []
+extrasafe = ["dep:extrasafe"]
 trend-chart = ["house-dashboard-trend"]
 temporal-heatmap-chart = ["house-dashboard-temporal-heatmap"]
 geographical-heatmap-chart = ["house-dashboard-geographical-heatmap"]
@@ -57,7 +58,7 @@ toml = { version = "0.5" }
 
 isahc = { version = "1.7", default-features = false }
 
-extrasafe = { version = "0.1" }
+extrasafe = { version = "0.1", optional = true }
 
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"
