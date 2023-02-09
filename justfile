@@ -49,6 +49,18 @@ test +args='--all-features': (build-tests args)
 build-release $RUST_WRAPPER="" +args='--all-features': fetch
     @just cargo auditable build --frozen {{args}} --release
 
+# Clean
+clean:
+    @just cargo clean
+
+# Clean release
+clean-release:
+    @just cargo clean --release
+
+# Create DEB archive
+deb:
+    @just cargo deb --no-build
+
 # Audit dependencies
 audit:
     @just cargo audit --deny unsound --deny yanked

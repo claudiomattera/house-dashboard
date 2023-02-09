@@ -43,19 +43,19 @@ steps:
 - name: download dependencies
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates fetch
+  - just fetch
 
 - name: check format
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates check-format
+  - just check-format
 
 - name: run linter
   failure: ignore
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates lint
+  - just lint
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1
@@ -122,22 +122,22 @@ steps:
 - name: download dependencies
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates fetch
+  - just fetch
 
 - name: remove build artifacts
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates clean-release
+  - just clean-release
 
 - name: build
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates build-release
+  - just build-release
 
 - name: package deb
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates deb
+  - just deb
 
 - name: publish deb
   image: alpine:3.15
@@ -263,7 +263,7 @@ steps:
 - name: check security advisories
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
-  - cargo make --disable-check-for-updates audit
+  - just audit
 
 - name: notification
   depends_on:
