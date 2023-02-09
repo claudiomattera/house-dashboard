@@ -46,9 +46,6 @@ pub struct Influxdb {
     /// URL to InfluxDB instance
     pub url: Url,
 
-    /// Database name
-    pub database: String,
-
     /// Username
     pub username: String,
 
