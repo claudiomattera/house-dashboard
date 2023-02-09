@@ -267,15 +267,18 @@ fn draw_host_loadbar<DB: DrawingBackend>(
     root: &DrawingArea<DB, Shift>,
 ) -> Result<(), Error> {
     trace!("Drawing loadbar");
-    let loadbar = Loadbar::new(
-        (LOAD_X, centered_y),
-        (40, 10),
-        MAX_LOAD,
-        load.unwrap_or(0.0),
-        &style.system_palette,
-        colormap,
-    );
-    root.draw(&loadbar)?;
+
+    if let Some(load) = load {
+        let loadbar = Loadbar::new(
+            (LOAD_X, centered_y),
+            (40, 10),
+            MAX_LOAD,
+            load,
+            &style.system_palette,
+            colormap,
+        );
+        root.draw(&loadbar)?;
+    }
 
     Ok(())
 }
