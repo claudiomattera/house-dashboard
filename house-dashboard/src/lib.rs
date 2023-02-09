@@ -130,9 +130,14 @@ pub async fn main() -> Result<(), Report> {
 
     while let Some(result) = tasks.next().await {
         let (index, bytes) = result?;
-        save_chart(index, bytes, style_configuration.resolution)
-            .await
-            .wrap_err("cannot save image")?;
+        save_chart(
+            index,
+            bytes,
+            style_configuration.resolution,
+            &arguments.output_directory_path,
+        )
+        .await
+        .wrap_err("cannot save image")?;
     }
 
     Ok(())
@@ -303,9 +308,10 @@ async fn save_chart(
     index: usize,
     bytes: Vec<u8>,
     (width, height): (u32, u32),
+    output_directory_path: &Path,
 ) -> Result<(), Report> {
     let filename = format!("{:02}.bmp", index + 1);
-    let path = Path::new(&filename);
+    let path = output_directory_path.join(&filename);
 
     let image =
         RgbImage::from_raw(width, height, bytes).ok_or_else(|| miette!("invalid image data"))?;

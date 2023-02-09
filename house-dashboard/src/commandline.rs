@@ -6,7 +6,7 @@
 
 //! Data structures for parsing command-line arguments
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use bpaf::{construct, short, Parser};
 
@@ -18,6 +18,9 @@ pub struct Arguments {
 
     /// Path to configuration directory
     pub configuration_directory_path: PathBuf,
+
+    /// Path to output directory
+    pub output_directory_path: PathBuf,
 }
 
 /// Parse command-line arguments
@@ -35,9 +38,16 @@ pub fn parse_command_line() -> Arguments {
         .help("Path to configuration directory")
         .argument::<PathBuf>("PATH");
 
+    let output_directory_path = short('o')
+        .long("output-directory")
+        .help("Path to output directory (default: .)")
+        .argument::<PathBuf>("PATH")
+        .fallback(Path::new(".").to_owned());
+
     let parser = construct!(Arguments {
         verbosity,
-        configuration_directory_path
+        configuration_directory_path,
+        output_directory_path
     })
     .to_options()
     .descr("Create dashboard images");
