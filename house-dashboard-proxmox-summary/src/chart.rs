@@ -164,7 +164,10 @@ fn draw_header<DB: DrawingBackend>(
     let half_width: i32 = (i32::try_from(text.len())? * 8) / 2;
     root.draw(&Text::new(text, (STATUS_X, 10), &header_font))?;
     root.draw(&Rectangle::new(
-        [(STATUS_X - half_width - 1, 17), (STATUS_X + half_width - 2, 17)],
+        [
+            (STATUS_X - half_width - 1, 17),
+            (STATUS_X + half_width - 2, 17),
+        ],
         style.system_palette.pick(SystemColor::Foreground),
     ))?;
 
