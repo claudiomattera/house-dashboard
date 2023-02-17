@@ -7,4 +7,6 @@ After=network-online.target
 [Service]
 Type=oneshot
 TimeoutStartSec=5m
-ExecStart=/usr/bin/house-dashboard -v --configuration /etc/house-dashboard/ --output-directory /var/lib/house-dashboard/charts/
+Environment=DASHBOARD_CONFIGURATION=/etc/house-dashboard/
+Environment=DASHBOARD_OUTPUT_DIRECTORY=/var/lib/house-dashboard/charts/
+Environment=RUST_LOG=warn,house_dashboard=info

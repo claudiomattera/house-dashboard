@@ -36,11 +36,13 @@ pub fn parse_command_line() -> Arguments {
     let configuration_directory_path = short('c')
         .long("configuration-directory")
         .help("Path to configuration directory")
+        .env("DASHBOARD_CONFIGURATION")
         .argument::<PathBuf>("PATH");
 
     let output_directory_path = short('o')
         .long("output-directory")
         .help("Path to output directory (default: .)")
+        .env("DASHBOARD_OUTPUT_DIRECTORY")
         .argument::<PathBuf>("PATH")
         .fallback(Path::new(".").to_owned());
 
