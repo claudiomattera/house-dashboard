@@ -267,7 +267,7 @@ License
 
 Copyright Claudio Mattera 2023
 
-You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`License.txt`](./License.txt) file for details.
+You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`License.md`](./License.md) file for details.
 
 
 [MPL 2.0 license]: https://opensource.org/licenses/MPL-2.0
