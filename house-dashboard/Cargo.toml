@@ -67,8 +67,21 @@ default-features = false
 features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
 
 [package.metadata.deb]
+maintainer = "Claudio Mattera <dev@claudiomattera.it>"
+copyright = "2023, Claudio Mattera <dev@claudiomattera.it>"
 extended-description = """\
 This application generates charts for a house dashboard.
-Charts are dynamically configured through a TOML file, and their data is
+Charts are dynamically configured through TOML files, and their data is
 fetched from an InfluxDB instance."""
 section = "utility"
+depends = "$auto"
+priority = "optional"
+assets = [
+    ["target/release/house-dashboard", "usr/bin/", "755"],
+    ["../Readme.md", "usr/share/doc/house-dashboard/Readme.md", "644"],
+    ["../License.md", "usr/share/doc/house-dashboard/License.md", "644"],
+]
+maintainer-scripts = "debian/"
+systemd-units = [
+    { unit-name = "house-dashboard-generation", enable = false },
+]

@@ -58,8 +58,8 @@ clean-release:
     @just cargo clean --release
 
 # Create DEB archive
-deb:
-    @just cargo deb --no-build
+deb +args='--all-features': (build-release args)
+    @just cargo deb -v --no-build --no-strip --package house-dashboard
 
 # Audit dependencies
 audit:

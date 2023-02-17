@@ -1,0 +1,10 @@
+[Unit]
+Description=Create charts for the house dashboard
+Documentation=https://gitlab.com/claudiomattera/house-dashboard/
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=5m
+ExecStart=/usr/bin/house-dashboard -v --configuration /etc/house-dashboard/ --output-directory /var/lib/house-dashboard/charts/
