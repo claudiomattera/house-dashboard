@@ -43,24 +43,17 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 
-use std::collections::HashMap;
-use std::fmt::Error as FmtError;
-use std::fmt::Write;
-
-use time::Duration;
-
-use tracing::{debug, instrument};
+use tracing::instrument;
 
 use miette::miette;
 use miette::{IntoDiagnostic, Report, WrapErr};
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local};
 
 use plotters::backend::BitMapBackend;
 
 use house_dashboard_common::configuration::StyleConfiguration;
 
-use house_dashboard_influxdb::Error as InfluxDBError;
 use house_dashboard_influxdb::InfluxDBClient;
 
 mod chart;
@@ -71,6 +64,9 @@ pub use self::configuration::TrendConfiguration;
 
 mod error;
 pub use self::error::Error;
+
+mod influxdb;
+use self::influxdb::fetch_data;
 
 /// Fetch data and draw chart for trend
 ///
@@ -116,63 +112,4 @@ pub async fn process_trend(
     .wrap_err("cannot draw trend")?;
 
     Ok(buffer)
-}
-
-/// Fetch data for trend
-///
-/// # Errors
-///
-/// Return and error when data could not be fetched
-async fn fetch_data(
-    influxdb_client: &InfluxDBClient,
-    trend_configuration: &TrendConfiguration,
-) -> Result<HashMap<String, Vec<(DateTime<Utc>, f64)>>, Report> {
-    let query = format!(
-        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago}
-        GROUP BY time({period}),{tag} FILL(none)",
-        database = trend_configuration.database,
-        scale = trend_configuration.scale.unwrap_or(1.0),
-        aggregator = trend_configuration
-            .aggregator
-            .clone()
-            .unwrap_or_else(|| "mean".to_owned()),
-        field = trend_configuration.field,
-        measurement = trend_configuration.measurement,
-        tag = trend_configuration.tag,
-        period = trend_configuration
-            .how_often
-            .as_ref()
-            .map_or_else(|| Ok("1h".to_owned()), |d| duration_to_query(&d.duration),)
-            .into_diagnostic()?,
-        how_long_ago =
-            duration_to_query(&trend_configuration.how_long_ago.duration).into_diagnostic()?,
-    );
-
-    debug!("Query: {}", query);
-
-    let time_seriess = match influxdb_client
-        .fetch_tagged_dataframes(&query, &trend_configuration.tag)
-        .await
-    {
-        Ok(time_seriess) => Ok(time_seriess),
-        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
-        other => other,
-    }
-    .into_diagnostic()
-    .wrap_err("cannot fetch time-series")?;
-
-    Ok(time_seriess)
-}
-
-/// Convert a duration to a duration string
-fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
-    let mut string = String::new();
-
-    let seconds = duration.whole_seconds();
-    if seconds > 0 {
-        write!(&mut string, "{seconds}s")?;
-    }
-
-    Ok(string)
 }

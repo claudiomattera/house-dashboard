@@ -43,16 +43,10 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 
-use std::collections::HashMap;
+use tracing::instrument;
 
-use tracing::{debug, instrument};
+use miette::{Report, WrapErr};
 
-use miette::miette;
-use miette::{IntoDiagnostic, Report, WrapErr};
-
-use chrono::{DateTime, Utc};
-
-use house_dashboard_influxdb::Error as InfluxDBError;
 use house_dashboard_influxdb::InfluxDBClient;
 
 use house_dashboard_common::configuration::StyleConfiguration;
@@ -66,6 +60,9 @@ pub use self::configuration::TemporalHeatMapConfiguration;
 
 mod error;
 pub use self::error::Error;
+
+mod influxdb;
+use self::influxdb::fetch_data;
 
 /// Fetch data and draw chart for temporal heatmap
 ///
@@ -100,60 +97,4 @@ pub async fn process_temporal_heatmap(
     .wrap_err("cannot draw temporal heatmap")?;
 
     Ok(buffer)
-}
-
-/// Fetch data for temporal heatmap
-///
-/// # Errors
-///
-/// Return and error when data could not be fetched
-async fn fetch_data(
-    influxdb_client: &InfluxDBClient,
-    temporal_heatmap_configuration: &TemporalHeatMapConfiguration,
-) -> Result<Vec<(DateTime<Utc>, f64)>, Report> {
-    let query = format!(
-        "SELECT {scale} * {aggregator}({field}) FROM {database}.autogen.{measurement}
-        WHERE time < now() AND time > now() - {how_long_ago} AND {tag} = '{tag_value}'
-        GROUP BY time({period}),{tag} FILL(previous)",
-        scale = temporal_heatmap_configuration.scale.unwrap_or(1.0),
-        aggregator = temporal_heatmap_configuration
-            .aggregator
-            .clone()
-            .unwrap_or_else(|| "mean".to_owned()),
-        field = temporal_heatmap_configuration.field,
-        database = temporal_heatmap_configuration.database,
-        measurement = temporal_heatmap_configuration.measurement,
-        tag = temporal_heatmap_configuration.tag,
-        tag_value = &temporal_heatmap_configuration.tag_value,
-        period = temporal_heatmap_configuration.period.to_query_group(),
-        how_long_ago = temporal_heatmap_configuration.period.how_long_ago(),
-    );
-
-    debug!("Query: {}", query);
-
-    let mut time_seriess = match influxdb_client
-        .fetch_tagged_dataframes(&query, &temporal_heatmap_configuration.tag)
-        .await
-    {
-        Ok(time_seriess) => Ok(time_seriess),
-        Err(InfluxDBError::EmptySeries) => Ok(HashMap::new()),
-        other => other,
-    }
-    .into_diagnostic()
-    .wrap_err("cannot fetch time-series")?;
-
-    let time_series = time_seriess
-        .remove(&temporal_heatmap_configuration.tag_value)
-        .ok_or(miette!(
-            "Missing data for {} = '{}'",
-            temporal_heatmap_configuration.tag,
-            temporal_heatmap_configuration.tag_value
-        ))?;
-
-    let time_series = time_series
-        .into_iter()
-        .filter(|&(ref _instant, ref value)| !value.is_nan())
-        .collect();
-
-    Ok(time_series)
 }
