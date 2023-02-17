@@ -65,6 +65,9 @@ pub struct Influxdb {
     pub dangerously_accept_invalid_certs: Option<bool>,
 }
 
+/// Maximum attempts for processing the chart
+const MAX_ATTEMPTS: u32 = 4;
+
 /// Chart configuration
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind")]
@@ -96,14 +99,17 @@ pub enum Chart {
 
 impl Chart {
     /// Process a chart
+    ///
+    /// # Errors
+    ///
+    /// Return an error if the operation fails more than [`MAX_ATTEMPTS`] times
+    /// in a row.
     pub async fn process(
         self,
         influxdb_client: InfluxDBClient,
         style: &StyleConfiguration,
         index: usize,
     ) -> Result<(usize, Vec<u8>), Report> {
-        const MAX_ATTEMPTS: u32 = 4;
-
         for attempt in 0..MAX_ATTEMPTS {
             match self
                 .process_inner(influxdb_client.clone(), style, index)
@@ -133,51 +139,50 @@ impl Chart {
     ) -> Result<(usize, Vec<u8>), Report> {
         match self {
             #[cfg(feature = "infrastructure-summary-chart")]
-            Self::InfrastructureSummary(configuration) => {
+            Self::InfrastructureSummary(ref configuration) => {
                 let bytes =
-                    process_infrastructure_summary(&influxdb_client, &configuration, style, index)
+                    process_infrastructure_summary(&influxdb_client, configuration, style, index)
                         .await
                         .wrap_err("cannot process infrastructure summary chart")?;
                 Ok((index, bytes))
             }
 
             #[cfg(feature = "proxmox-summary-chart")]
-            Self::ProxmoxSummary(configuration) => {
-                let bytes = process_proxmox_summary(&influxdb_client, &configuration, style, index)
+            Self::ProxmoxSummary(ref configuration) => {
+                let bytes = process_proxmox_summary(&influxdb_client, configuration, style, index)
                     .await
                     .wrap_err("cannot process proxmox summary chart")?;
                 Ok((index, bytes))
             }
 
             #[cfg(feature = "trend-chart")]
-            Self::Trend(configuration) => {
-                let bytes = process_trend(&influxdb_client, &configuration, style, index)
+            Self::Trend(ref configuration) => {
+                let bytes = process_trend(&influxdb_client, configuration, style, index)
                     .await
                     .wrap_err("cannot process trend chart")?;
                 Ok((index, bytes))
             }
 
             #[cfg(feature = "geographical-heatmap-chart")]
-            Self::GeographicalHeatMap(configuration) => {
+            Self::GeographicalHeatMap(ref configuration) => {
                 let bytes =
-                    process_geographical_heatmap(&influxdb_client, &configuration, style, index)
+                    process_geographical_heatmap(&influxdb_client, configuration, style, index)
                         .await
                         .wrap_err("cannot process geographical heatmap chart")?;
                 Ok((index, bytes))
             }
 
             #[cfg(feature = "temporal-heatmap-chart")]
-            Self::TemporalHeatMap(configuration) => {
-                let bytes =
-                    process_temporal_heatmap(&influxdb_client, &configuration, style, index)
-                        .await
-                        .wrap_err("cannot process temporal heatmap chart")?;
+            Self::TemporalHeatMap(ref configuration) => {
+                let bytes = process_temporal_heatmap(&influxdb_client, configuration, style, index)
+                    .await
+                    .wrap_err("cannot process temporal heatmap chart")?;
                 Ok((index, bytes))
             }
 
             #[cfg(feature = "image-chart")]
-            Self::Image(configuration) => {
-                let bytes = process_image(&configuration, style, index)
+            Self::Image(ref configuration) => {
+                let bytes = process_image(configuration, style, index)
                     .await
                     .wrap_err("cannot process image chart")?;
                 Ok((index, bytes))

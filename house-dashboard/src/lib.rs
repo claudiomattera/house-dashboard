@@ -26,7 +26,6 @@
     clippy::lossy_float_literal,
     clippy::panic,
     clippy::panic_in_result_fn,
-    clippy::pattern_type_mismatch,
     clippy::rc_buffer,
     clippy::rc_mutex,
     clippy::rest_pat_in_fully_bound_structs,

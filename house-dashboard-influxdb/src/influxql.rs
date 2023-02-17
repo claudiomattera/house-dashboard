@@ -97,11 +97,11 @@ impl TryFrom<(&str, &InfluxDBResponse)> for TaggedDataFrame {
                     .series
                     .iter()
                     .map(|series| {
-                        if let &Series::TimeSeries(ref series) = series {
+                        if let Series::TimeSeries(series) = series {
                             let values = series
                                 .values
                                 .iter()
-                                .map(|&(ref instant, ref value)| {
+                                .map(|(instant, value)| {
                                     (*instant, value.as_f64().unwrap_or(f64::NAN))
                                 })
                                 .collect();
@@ -133,11 +133,11 @@ impl TryFrom<(&str, &InfluxDBResponse)> for TaggedStringDataFrame {
                     .series
                     .iter()
                     .map(|series| {
-                        if let &Series::TimeSeries(ref series) = series {
+                        if let Series::TimeSeries(series) = series {
                             let values = series
                                 .values
                                 .iter()
-                                .map(|&(ref instant, ref value)| {
+                                .map(|(instant, value)| {
                                     (*instant, value.as_str().unwrap_or("").to_owned())
                                 })
                                 .collect();
@@ -167,11 +167,9 @@ impl TryFrom<&InfluxDBResponse> for HashSet<String> {
             InfluxDBResult::Error(ref result) => Err(Error::InfluxDBError(result.error.clone())),
             InfluxDBResult::Success(ref result) => {
                 let series: &Series = result.series.first().ok_or(Error::EmptySeries)?;
-                if let &Series::TagSeries(ref series) = series {
+                if let Series::TagSeries(series) = series {
                     let iterator: std::slice::Iter<(String, String)> = series.values.iter();
-                    let values = iterator
-                        .map(|&(ref _key, ref value)| value.clone())
-                        .collect();
+                    let values = iterator.map(|(_key, value)| value.clone()).collect();
                     Ok(values)
                 } else {
                     Err(Error::NotATagSeries)

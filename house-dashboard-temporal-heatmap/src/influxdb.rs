@@ -70,7 +70,7 @@ pub async fn fetch_data(
 
     let time_series = time_series
         .into_iter()
-        .filter(|&(ref _instant, ref value)| !value.is_nan())
+        .filter(|(_instant, value)| !value.is_nan())
         .collect();
 
     Ok(time_series)
