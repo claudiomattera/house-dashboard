@@ -17,5 +17,5 @@ members = [
 # https://github.com/rust-lang/rust/issues/62896
 codegen-units = 1
 
-lto = "fat"
+lto = "thin"
 strip = "debuginfo"
