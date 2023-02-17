@@ -7,7 +7,13 @@
 //! Data structures for parsing configuration
 
 use std::path::PathBuf;
+use std::time::Duration;
 
+use async_std::task::sleep;
+
+use tracing::{info, warn};
+
+use miette::miette;
 use miette::{Report, WrapErr};
 
 use serde::Deserialize;
@@ -92,6 +98,35 @@ impl Chart {
     /// Process a chart
     pub async fn process(
         self,
+        influxdb_client: InfluxDBClient,
+        style: &StyleConfiguration,
+        index: usize,
+    ) -> Result<(usize, Vec<u8>), Report> {
+        const MAX_ATTEMPTS: u32 = 4;
+
+        for attempt in 0..MAX_ATTEMPTS {
+            match self
+                .process_inner(influxdb_client.clone(), style, index)
+                .await
+            {
+                ok @ Ok(_) => return ok,
+                Err(error) => {
+                    warn!("Attempt {} failed: {:?}", attempt + 1, error);
+
+                    let delay = Duration::from_secs(2_u64.checked_pow(attempt + 3).unwrap_or(10));
+                    info!("Trying again in {}s", delay.as_secs());
+                    sleep(delay).await;
+                    continue;
+                }
+            }
+        }
+
+        Err(miette!("Operation failed more than {} times", MAX_ATTEMPTS))
+    }
+
+    /// Process a chart
+    async fn process_inner(
+        &self,
         influxdb_client: InfluxDBClient,
         style: &StyleConfiguration,
         index: usize,
