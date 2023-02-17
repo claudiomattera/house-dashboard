@@ -7,14 +7,12 @@
 //! Data types and functions for fetching data for geographical heatmap charts
 
 use std::collections::HashMap;
-use std::fmt::Error as FmtError;
-use std::fmt::Write;
 
 use tracing::debug;
 
 use miette::{IntoDiagnostic, Report, WrapErr};
 
-use time::Duration;
+use house_dashboard_common::duration::duration_to_query;
 
 use house_dashboard_influxdb::Error as InfluxDBError;
 use house_dashboard_influxdb::InfluxDBClient;
@@ -67,16 +65,4 @@ pub async fn fetch_data(
         .collect::<HashMap<String, Option<f64>>>();
 
     Ok(values)
-}
-
-/// Convert a duration to a duration string
-fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
-    let mut string = String::new();
-
-    let seconds = duration.whole_seconds();
-    if seconds > 0 {
-        write!(&mut string, "{seconds}s")?;
-    }
-
-    Ok(string)
 }

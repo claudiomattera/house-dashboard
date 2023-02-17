@@ -6,6 +6,9 @@
 
 //! Data types for parsing ISO8601 durations
 
+use std::fmt::Error as FmtError;
+use std::fmt::Write;
+
 use time::Duration;
 
 use serde::de::Error;
@@ -81,6 +84,22 @@ fn parse_iso8601_duration(string: &str) -> Option<Duration> {
             None => None,
         }
     })
+}
+
+/// Convert a duration to a duration string
+///
+/// # Errors
+///
+/// Return an error if formatting to a string fails.
+pub fn duration_to_query(duration: &Duration) -> Result<String, FmtError> {
+    let mut string = String::new();
+
+    let seconds = duration.whole_seconds();
+    if seconds > 0 {
+        write!(&mut string, "{seconds}s")?;
+    }
+
+    Ok(string)
 }
 
 #[cfg(test)]

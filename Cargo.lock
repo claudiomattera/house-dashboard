@@ -700,7 +700,6 @@ dependencies = [
  "plotters",
  "serde",
  "thiserror",
- "time 0.3.17",
  "tracing",
 ]
 
@@ -789,7 +788,6 @@ dependencies = [
  "plotters",
  "serde",
  "thiserror",
- "time 0.3.17",
  "tracing",
 ]
 

@@ -29,8 +29,6 @@ serde = { version = "1", features = ["derive"] }
 
 chrono = { version = "0.4" }
 
-time = { version = "0.3" }
-
 [dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"
 branch = "master"
