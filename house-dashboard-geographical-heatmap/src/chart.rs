@@ -416,8 +416,10 @@ where
 
     let (width, height) = root.dim_in_pixel();
 
+    let right_margin = geographical_heatmap.right_margin.unwrap_or(55);
+
     let colorbar = Colorbar::new(
-        (i32::try_from(width)? - 55, 40),
+        (i32::try_from(width)? - right_margin, 40),
         (10, i32::try_from(height)? - 60),
         geographical_heatmap.bounds,
         geographical_heatmap.precision.unwrap_or(0),

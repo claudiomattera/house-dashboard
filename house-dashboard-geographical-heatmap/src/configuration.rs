@@ -58,6 +58,9 @@ pub struct GeographicalHeatMapConfiguration {
 
     /// Use isometric projection
     pub isometric: Option<bool>,
+
+    /// Right margin for color bar
+    pub right_margin: Option<i32>,
 }
 
 /// Region configuration
