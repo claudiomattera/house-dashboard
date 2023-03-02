@@ -60,7 +60,11 @@ where
     let new_root = root.margin(30, 0, 0, 60);
     let (width, height) = new_root.dim_in_pixel();
 
-    let projected_regions = project_regions(&geographical_heatmap.regions);
+    let projected_regions = if geographical_heatmap.isometric.unwrap_or(false) {
+        project_regions_to_isometric(&geographical_heatmap.regions)
+    } else {
+        project_regions(&geographical_heatmap.regions)
+    };
 
     let normalized_projected_regions = normalize_regions(
         &projected_regions,
@@ -116,8 +120,8 @@ fn draw_title<DB: DrawingBackend>(
     Ok(())
 }
 
-/// Project regions
-fn project_regions(
+/// Project regions to isometric view
+fn project_regions_to_isometric(
     regions: &[GeographicalRegionConfiguration],
 ) -> HashMap<String, Vec<(f64, f64)>> {
     debug!("Computing projected regions");
@@ -132,6 +136,20 @@ fn project_regions(
                     (new_x, new_y)
                 })
                 .collect();
+            (region.name.clone(), true_isometric_path)
+        })
+        .collect()
+}
+
+/// Project regions
+fn project_regions(
+    regions: &[GeographicalRegionConfiguration],
+) -> HashMap<String, Vec<(f64, f64)>> {
+    debug!("Computing projected regions");
+    regions
+        .iter()
+        .map(|region| {
+            let true_isometric_path: Vec<(f64, f64)> = region.coordinates.clone();
             (region.name.clone(), true_isometric_path)
         })
         .collect()

@@ -55,6 +55,9 @@ pub struct GeographicalHeatMapConfiguration {
 
     /// Regions
     pub regions: Vec<GeographicalRegionConfiguration>,
+
+    /// Use isometric projection
+    pub isometric: Option<bool>,
 }
 
 /// Region configuration
