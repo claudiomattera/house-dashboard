@@ -29,6 +29,10 @@ pub enum Error {
     #[error("invalid layout")]
     Layout,
 
+    /// Font error
+    #[error("font error")]
+    Font,
+
     /// Integer conversion failed
     #[error(transparent)]
     TryFromInt(#[from] TryFromIntError),

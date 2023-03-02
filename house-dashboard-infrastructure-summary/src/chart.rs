@@ -75,8 +75,8 @@ where
     root.fill(&style.system_palette.pick(SystemColor::Background))?;
 
     // Draw the title manually and create a new margin area
-    draw_title(infrastructure_summary.title.as_str(), style, &root)?;
-    let new_root = root.margin(30, 0, 0, 0);
+    let title_height = draw_title(infrastructure_summary.title.as_str(), style, &root)?;
+    let new_root = root.margin(title_height, 0, 0, 0);
 
     draw_header(style, &new_root)?;
 
@@ -118,21 +118,24 @@ fn draw_title<DB: DrawingBackend>(
     title: &str,
     style: &StyleConfiguration,
     root: &DrawingArea<DB, Shift>,
-) -> Result<(), Error> {
+) -> Result<i32, Error> {
     let title_font = (style.font_name.as_str(), 16.0 * style.font_scale).into_font();
     let pos = Pos::new(HPos::Center, VPos::Top);
 
     let (width, _height) = root.dim_in_pixel();
 
+    let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
+    let box_height = i32::try_from(box_height)?;
+
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, 10),
+        (i32::try_from(width)? / 2, box_height),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
     ))?;
 
-    Ok(())
+    Ok(box_height * 2)
 }
 
 /// Draw header
