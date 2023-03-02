@@ -56,6 +56,9 @@ pub struct TemporalHeatMapConfiguration {
 
     /// Setting to reverse colormap
     pub reversed: Option<bool>,
+
+    /// Right margin for color bar
+    pub right_margin: Option<i32>,
 }
 
 /// Period
