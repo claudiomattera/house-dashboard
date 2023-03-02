@@ -11,7 +11,7 @@ use tracing::{debug, info};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 
-use num_traits::{Bounded, FromPrimitive, Num, Zero};
+use num_traits::{Bounded, FromPrimitive, Num, SaturatingAdd, SaturatingMul, Zero};
 
 use plotters::{
     backend::{BitMapBackend, DrawingBackend},
@@ -261,7 +261,9 @@ pub fn bounds_of<T: Copy + Bounded + PartialOrd>(elements: &[T]) -> (T, T) {
 }
 
 /// Compute the centroid of a list of coordinates
-pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) -> (T, T) {
+pub fn centroid_of<T: Copy + Zero + Num + SaturatingMul + SaturatingAdd + FromPrimitive>(
+    elements: &[(T, T)],
+) -> (T, T) {
     let mut cx = T::zero();
     let mut cy = T::zero();
     let closed_elements: Vec<(T, T)> = elements
@@ -271,8 +273,8 @@ pub fn centroid_of<T: Copy + Zero + Num + FromPrimitive>(elements: &[(T, T)]) ->
         .collect();
     let paired = closed_elements.iter().skip(1).zip(elements.iter());
     for (&(x1, y1), &(x2, y2)) in paired {
-        cx = cx + (x1 + x2) * (x1 * y2 - x2 * y1);
-        cy = cy + (y1 + y2) * (x1 * y2 - x2 * y1);
+        cx = cx.saturating_add(&(x1 + x2).saturating_mul(&(x1 * y2 - x2 * y1)));
+        cy = cy.saturating_add(&(y1 + y2).saturating_mul(&(x1 * y2 - x2 * y1)));
     }
     let area = area_of(elements);
 
@@ -458,18 +460,18 @@ mod tests {
 
     #[test]
     fn centroid_of_triangle() {
-        let path = vec![(0.0, 0.0), (1.0, 1.0), (2.0, 0.0)];
+        let path = vec![(0, 0), (1, 1), (2, 0)];
         let actual = centroid_of(&path);
-        let expected = (1.0, 1.0 / 3.0);
+        let expected = (1, 1 / 3);
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn centroid_of_path() {
         #[rustfmt::skip]
-        let path = vec![(0.0, 0.0), (0.0, 2.0), (1.0, 2.0), (1.0, 1.0), (2.0, 1.0), (2.0, 0.0)];
+        let path = vec![(0, 0), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0)];
         let actual = centroid_of(&path);
-        let expected = (5.0 / 6.0, 5.0 / 6.0);
+        let expected = (5 / 6, 5 / 6);
         assert_eq!(actual, expected);
     }
 }
