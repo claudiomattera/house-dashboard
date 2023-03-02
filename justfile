@@ -46,7 +46,8 @@ test +args='--all-features': (build-tests args)
     @just cargo test --frozen {{args}}
 
 # Build release
-build-release $RUST_WRAPPER="" +args='--all-features': fetch
+build-release +args='--all-features': fetch
+    export RUST_WRAPPER=""
     @just cargo auditable build --frozen {{args}} --release
 
 # Clean
