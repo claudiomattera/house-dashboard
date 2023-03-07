@@ -421,8 +421,10 @@ where
 
     let right_margin = geographical_heatmap.right_margin.unwrap_or(55);
 
+    #[allow(clippy::cast_possible_truncation)]
     let colorbar_width = (10.0 * style.font_scale) as i32;
     info!("Color bar width {}", colorbar_width);
+    #[allow(clippy::cast_possible_truncation)]
     let colorbar_x = i32::try_from(width)?
         - colorbar_width
         - (f64::from(right_margin) * style.font_scale) as i32;
