@@ -9,9 +9,10 @@ An application to display various kinds of charts on a house dashboard.
 ![Proxmox Chart](./docs/proxmox.png)
 ![Trend Chart](./docs/trend.png)
 ![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
 ![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
 
-This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; and any other kind of data available.
+This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; infrastructure summary; and any other kind of data available.
 
 It is designed to run on a [Raspberry Pi 0 W] equipped with a TFT 320×240 display and running [Raspbian Buster], but it should be possible to run it on most platforms.
 The dashboard is implemented in [Rust] and it fetches data from an [InfluxDB]
@@ -46,7 +47,7 @@ Usage
 
 This is a command-line application that saves charts as BMP images.
 
-The charts are defined in a configuration file which is passed to the application through a command-line argument.
+The charts are defined in a configuration directory which is passed to the application through a command-line argument.
 
 ~~~~plain
 house-dashboard -v \
@@ -83,7 +84,7 @@ The configuration directory must contain the following [TOML] files:
 
 #### InfluxDB Configuration
 
-File `influxdb.toml` must contain the following information:
+File `influxdb.toml` is used to specify the connection to the InfluxDB server, and must contain the following information:
 
 ~~~~toml
 url = "https://influxdb.example.com:8086"
@@ -93,10 +94,14 @@ username = "some-user-name"
 password = "some-password"
 ~~~~
 
+Parameters `url`, `username` and `password` should be self-explanatory.
+Parameter `cacert` can be optionally used to specify a custom certification authority.
+Parameter `dangerously_accept_invalid_certs` can be used to disable TLS validation.
+
 
 #### Style Configuration
 
-File `style.toml` must contain the following information:
+File `style.toml` is used to specify charts style, and must contain the following information:
 
 ~~~~toml
 font_name = "FontName"
@@ -106,6 +111,9 @@ system_palette = "Light"
 series_palette = "ColorbrewerSet1"
 resolution = [320, 240]
 ~~~~
+
+A custom font and font file must be specified, and the font name must correspond to the font file.
+There are two system palettes: `Light` and `Dark`, and three series palettes: `ColorbrewerSet1`, `ColorbrewerSet2` and `ColorbrewerSet3`.
 
 Recommendation: font [Print Char 21] works quite well for small displays.
 
@@ -127,6 +135,8 @@ Charts can be of several types:
 
 ##### Infrastructure Chart
 
+Display the status of physical infrastructure, and an optional time of last update.
+
 ![Infrastructure Chart](./docs/infrastructure.png)
 
 The configuration file must contain the following information:
@@ -143,6 +153,8 @@ vertical_step = 18
 
 ##### Proxmox Chart
 
+Display the status of Proxmox infrastructure.
+
 ![Proxmox Chart](./docs/proxmox.png)
 
 The configuration file must contain the following information:
@@ -158,6 +170,8 @@ node_fqdn = "proxmox.example.com"
 
 
 ##### Trend Chart
+
+Display a trend over time.
 
 ![Trend Chart](./docs/trend.png)
 
@@ -185,7 +199,10 @@ draw_horizontal_grid = true
 
 ##### Geographical Heat-map Chart
 
+Display a heatmap over multiple geographical regions.
+
 ![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
 
 The configuration file must contain the following information:
 
@@ -200,6 +217,8 @@ tag = "room"
 how_long_ago = "P1D"
 bounds = [15, 35]
 colormap = "CoolWarm"
+isometric = true
+# right_margin = 55
 
 
 [[regions]]
@@ -242,6 +261,8 @@ coordinates = [
 
 ##### Temporal Heat-map Chart
 
+Display a heatmap over time.
+
 ![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
 
 The configuration file must contain the following information:
@@ -259,7 +280,29 @@ tag_value = "some address"
 period = "HourOverDay"
 # bounds = [-20, 0]
 colormap = "CoolWarm"
+# right_margin = 55
 ~~~~
+
+
+#### Colour Maps
+
+For those charts that use colour maps and colour bars, the following are supported:
+
+* `CoolWarm`
+* `Blues`
+* `Reds`
+* `Greens`
+* `Oranges`
+* `Violets`
+* `Grays`
+* `Status`
+
+
+### Retry on Errors
+
+All charts in the configuration are generated simultaneously.
+If generation for any of them fails, it will be retried four times with exponential backoff, for a total of about one minute.
+This allows to survive short network issues without delaying execution for too long.
 
 
 License
