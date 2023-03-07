@@ -421,9 +421,16 @@ where
 
     let right_margin = geographical_heatmap.right_margin.unwrap_or(55);
 
+    let colorbar_width = (10.0 * style.font_scale) as i32;
+    info!("Color bar width {}", colorbar_width);
+    let colorbar_x = i32::try_from(width)?
+        - colorbar_width
+        - (f64::from(right_margin) * style.font_scale) as i32;
+    info!("Color bar X {}", colorbar_x);
+
     let colorbar = Colorbar::new(
-        (i32::try_from(width)? - right_margin, 40),
-        (10, i32::try_from(height)? - 60),
+        (colorbar_x, 40),
+        (colorbar_width, i32::try_from(height)? - 60),
         geographical_heatmap.bounds,
         geographical_heatmap.precision.unwrap_or(0),
         geographical_heatmap.unit.clone(),
