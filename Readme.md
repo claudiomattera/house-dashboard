@@ -28,18 +28,18 @@ database, which are displayed using [Plotters], a Rust crate for creating charts
 Installation
 ----
 
-Executables for Linux can be found in the [releases page](https://gitlab.com/claudiomattera/house-dashboard/-/releases).
-
-
-### From source
-
 This application can be compiled using the Rust toolchain.
 
 ~~~~shell
-cargo build --release --all-features
-~~~~
+# Install dependencies if building on x86_64
+apt-get install --yes libseccomp-dev
 
-The resulting executable will be created in `target/release/house-dashboard`.
+# Create the binary in `target/release/house-dashboard`
+just build-release
+
+# Create a Debian package in `target/debian/house-dashboard_1.0.0_amd64.deb`
+just deb
+~~~~
 
 
 Usage
