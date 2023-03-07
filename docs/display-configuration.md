@@ -94,7 +94,7 @@ Create a udev rule in `/etc/udev/rules.d/powerbtn.rules` to add a tag to the but
 
     ACTION=="remove", GOTO="powerbtn_end"
 
-    SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_PATH}=="platform-soc:powerbtn", ATTRS{keys}=="*", TAG+="power-switch" 
+    SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_PATH}=="platform-soc:powerbtn", ATTRS{keys}=="*", TAG+="power-switch"
 
     LABEL="powerbtn_end"
 

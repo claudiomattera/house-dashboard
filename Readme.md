@@ -86,7 +86,7 @@ They can be displayed on the framebuffer using an application such as [FBI], inc
 
 ~~~~plain
 > house-dashboard save --help
-house-dashboard-save 
+house-dashboard-save
 Save charts to files
 
 USAGE:
@@ -110,7 +110,7 @@ Charts can be displayed on the framebuffer using the subcommand `display`.
 
 ~~~~plain
 > house-dashboard display --help
-house-dashboard-display 
+house-dashboard-display
 Display charts on the framebuffer
 
 USAGE:

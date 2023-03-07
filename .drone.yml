@@ -6,6 +6,8 @@ environment:
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
   CARGO_HOME: "./.cargo_home/"
+  PRE_COMMIT_HOME: ".cache/pre-commit"
+  VIRTUAL_ENV: ".cache/venv"
 trigger:
   event:
     exclude:
@@ -25,6 +27,18 @@ steps:
       from_secret: s3_secret_key
     root: drone
     restore: true
+
+- name: run pre-commit checks
+  image: python:3-slim
+  environment:
+    SKIP: no-commit-to-branch
+  commands:
+  - python3 -m venv "$${VIRTUAL_ENV}"
+  - . "$${VIRTUAL_ENV}/bin/activate"
+  - apt-get update
+  - apt-get install --no-install-recommends -y git
+  - pip install pre-commit
+  - pre-commit run --all-files
 
 - name: download dependencies
   image: docker.claudiomattera.it/claudiomattera/rust:1
@@ -78,6 +92,7 @@ steps:
     mount:
       - ./target
       - ./.cargo_home
+      - ./.cache
 
 ---
 kind: pipeline
@@ -123,6 +138,21 @@ steps:
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
   - cargo make --disable-check-for-updates deb
+
+- name: publish deb
+  image: alpine:3.15
+  environment:
+    NEXUS_USERNAME:
+      from_secret: nexus_username
+    NEXUS_PASSWORD:
+      from_secret: nexus_password
+    NEXUS_HOST:
+      from_secret: nexus_host
+    NEXUS_REPOSITORY:
+      from_secret: nexus_repository
+  commands:
+  - apk add --no-cache curl
+  - "curl -u \"$${NEXUS_USERNAME}:$${NEXUS_PASSWORD}\" -H \"Content-Type: multipart/form-data\" --data-binary \"@./target/debian/$${DRONE_REPO_NAME}_$${DRONE_TAG}_amd64.deb\" \"$${NEXUS_HOST}/repository/$${NEXUS_REPOSITORY}/\""
 
 - name: create release on gitea
   image: plugins/gitea-release

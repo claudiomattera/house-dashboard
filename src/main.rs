@@ -84,7 +84,7 @@ async fn inner_main() -> Result<()> {
 
     debug!("Parsing configuration");
     let configuration = parse_configuration(&arguments.configuration_path)
-            .context("Could not load configuration")?;
+        .context("Could not load configuration")?;
 
     let now = arguments.now.unwrap_or_else(Utc::now);
 
@@ -105,7 +105,10 @@ async fn inner_main() -> Result<()> {
 
     debug!("Matching subcommand");
     match arguments.subcommand {
-        SubCommand::Save { directory_path, clear } => {
+        SubCommand::Save {
+            directory_path,
+            clear,
+        } => {
             debug!("Creating directory path");
             info!("Saving chart to directory {}", directory_path.display());
             if clear {
