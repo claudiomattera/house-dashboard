@@ -1,4 +1,17 @@
+# Exclude files when exporting
 .gitattributes export-ignore
-.gitignore export-ignore
-.gitlab-ci.yml export-ignore
-.gitjournal.toml export-ignore
+.gitignore     export-ignore
+
+# Autodetect text files for normalizing line endings
+* text=auto
+
+# Set explicit diff drivers
+*.md       text diff=markdown
+*.rs       text diff=rust
+*.toml     text diff=toml
+
+# Set explicit binary files
+*.png binary
+
+# Set explicit text files
+Cargo.lock text

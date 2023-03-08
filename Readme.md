@@ -6,11 +6,13 @@ An application to display various kinds of charts on a house dashboard.
 <https://gitlab.com/claudiomattera/house-dashboard/>
 
 ![Infrastructure Chart](./docs/infrastructure.png)
+![Proxmox Chart](./docs/proxmox.png)
 ![Trend Chart](./docs/trend.png)
 ![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
 ![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
 
-This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; and any other kinds of data available.
+This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; infrastructure summary; and any other kind of data available.
 
 It is designed to run on a [Raspberry Pi 0 W] equipped with a TFT 320×240 display and running [Raspbian Buster], but it should be possible to run it on most platforms.
 The dashboard is implemented in [Rust] and it fetches data from an [InfluxDB]
@@ -26,209 +28,289 @@ database, which are displayed using [Plotters], a Rust crate for creating charts
 Installation
 ----
 
-Executables for Linux can be found in the [releases page](https://gitlab.com/claudiomattera/house-dashboard/-/releases).
-
-
-### From source
-
 This application can be compiled using the Rust toolchain.
 
 ~~~~shell
-cargo build --release
-~~~~
+# Install dependencies if building on x86_64
+apt-get install --yes libseccomp-dev
 
-The resulting executable will be created in `target/release/house-dashboard`.
+# Create the binary in `target/release/house-dashboard`
+just build-release
+
+# Create a Debian package in `target/debian/house-dashboard_1.0.0_amd64.deb`
+just deb
+~~~~
 
 
 Usage
 ----
 
-This is a command-line application.
-Charts can be either be saved as BMP file or displayed directly on the framebuffer, depending on which command is used.
-The charts are defined in a configuration file which is passed to the application through a command-line argument.
+This is a command-line application that saves charts as BMP images.
+
+The charts are defined in a configuration directory which is passed to the application through a command-line argument.
 
 ~~~~plain
-house-dashboard -v --configuration /path/to/conf.toml \
-    save --path /path/to/generated/charts
+house-dashboard -v \
+    --configuration-directory /path/to/configuration/ \
+    --output-directory /path/to/generated/charts
 ~~~~
 
 The `--help` argument describes the command-line interface in details.
 
 ~~~~plain
 > house-dashboard --help
-house-dashboard 0.1.0
-Claudio Mattera <claudio@mattera.it>
-An application to generate and display charts for a house dashboard
+Create dashboard images
 
-USAGE:
-    house-dashboard [FLAGS] --configuration <configuration-path> [SUBCOMMAND]
+Usage: -v... -c PATH [-o PATH]
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-    -v, --verbose    Sets the level of verbosity
-
-OPTIONS:
-    -c, --configuration <configuration-path>    Path to configuration file
-
-SUBCOMMANDS:
-    display    Display charts on the framebuffer
-    help       Prints this message or the help of the given subcommand(s)
-    save       Save charts to files
-
-~~~~
-
-
-### Saving Charts
-
-Charts can be saved as BMP images using the subcommand `save`.
-They can be displayed on the framebuffer using an application such as [FBI], included in webpages, sent by email...
-
-~~~~plain
-> house-dashboard save --help
-house-dashboard-save
-Save charts to files
-
-USAGE:
-    house-dashboard --configuration <configuration-path> save [FLAGS] --path <path>
-
-FLAGS:
-        --clear      Clears all .bmp files in charts directory
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-    -p, --path <path>    Path to charts directory
-~~~~
-
-[FBI]: https://linux.die.net/man/1/fbi
-
-
-### Displaying Charts on the Framebuffer
-
-Charts can be displayed on the framebuffer using the subcommand `display`.
-
-~~~~plain
-> house-dashboard display --help
-house-dashboard-display
-Display charts on the framebuffer
-
-USAGE:
-    house-dashboard --configuration <configuration-path> display --device <device>
-
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-    -d, --device <device>    Path to framebuffer device
+Available options:
+    -v, --verbose                         Verbosity level
+    -c, --configuration-directory <PATH>  Path to configuration directory
+    -o, --output-directory <PATH>         Path to output directory (default: .)
+    -h, --help                            Prints help information
 ~~~~
 
 
 ### Configuration
 
-A [TOML] configuration file is used to define what charts to generate, how to fetch data, and other generic options.
+The configuration directory must contain the following [TOML] files:
+
+- `influxdb.toml`: configures the address and credentials of the InfluxDB server.
+- `style.toml`: configures the appearance of generated charts.
+- `*.toml`: each of those files configures an individual chart.
+
+[TOML]: https://github.com/toml-lang/toml
+
+
+#### InfluxDB Configuration
+
+File `influxdb.toml` is used to specify the connection to the InfluxDB server, and must contain the following information:
 
 ~~~~toml
-# Options related to all charts style
-[style]
-# Font settings (must be available as system font)
-font = "Apple ]["
+url = "https://influxdb.example.com:8086"
+# cacert = "/path/to/custom/certification/authority/root.crt"
+# dangerously_accept_invalid_certs = false
+username = "some-user-name"
+password = "some-password"
+~~~~
+
+Parameters `url`, `username` and `password` should be self-explanatory.
+Parameter `cacert` can be optionally used to specify a custom certification authority.
+Parameter `dangerously_accept_invalid_certs` can be used to disable TLS validation.
+
+
+#### Style Configuration
+
+File `style.toml` is used to specify charts style, and must contain the following information:
+
+~~~~toml
+font_name = "FontName"
+font_path = "FontName.ttf" # Relative to the configuration directory
 font_scale = 1
-
-# Colour palette for charts (Dark/Light)
-system_palette = "Dark"
+system_palette = "Light"
 series_palette = "ColorbrewerSet1"
-
-# Resolution of generated images (should be the same as the screen)
 resolution = [320, 240]
+~~~~
+
+A custom font and font file must be specified, and the font name must correspond to the font file.
+There are two system palettes: `Light` and `Dark`, and three series palettes: `ColorbrewerSet1`, `ColorbrewerSet2` and `ColorbrewerSet3`.
+
+Recommendation: font [Print Char 21] works quite well for small displays.
+
+[Print Char 21]: https://www.kreativekorp.com/software/fonts/apple2/
 
 
-# Options related to the InfluxDB server
-[influxdb]
-# URL of the InfluxDB server
-url = "https://influxdb_hostname:8086"
+#### Chart Configuration
 
-# Optional path to certificate (necessary if using HTTPS with a self-signed certificate)
-cacert = "/path/to/certificate.pem"
+Each of the other `.toml` files defines a specific chart.
 
-# Optional flag to accept invalid certificates
-dangerously_accept_invalid_certs = false
+Charts can be of several types:
 
-# Database name
-database = "longterm"
-
-# Username
-username = "dashboard"
-
-# Password
-password = "[REDACTED]"
+* Infrastructure: Show the status and load of physical servers (measurement `system` in database `telegraf`, limited to hosts with tag `always-on` equal to `true`).
+* Proxmox: Show the status and load of virtual machines and containers (measurement `proxmox` in database `telegraf`, limited to hosts with tag `node-fqdn` equal to the value specified).
+* Trend: Show a line chart.
+* Geographical heat-map: Show a geographical heat-map on regions defined in the configuration file.
+* Temporal heat-map: Show a temporal heat-map of a measurement over time.
 
 
-# Multiple [[charts]] sections, each generates a chart
-[[charts]]
-# Chart type
+##### Infrastructure Chart
+
+Display the status of physical infrastructure, and an optional time of last update.
+
+![Infrastructure Chart](./docs/infrastructure.png)
+
+The configuration file must contain the following information:
+
+~~~~toml
+kind = "InfrastructureSummary"
+title = "INFRASTRUCTURE"
+how_long_ago = "PT30M"
+suffix = ".example.com" # This is stripped from hostnames
+last_update_format = "Updated %A at %H:%M"
+vertical_step = 18
+~~~~
+
+
+##### Proxmox Chart
+
+Display the status of Proxmox infrastructure.
+
+![Proxmox Chart](./docs/proxmox.png)
+
+The configuration file must contain the following information:
+
+~~~~toml
+kind = "ProxmoxSummary"
+title = "PROXMOX"
+how_long_ago = "PT30M"
+suffix = ".example.com" # This is stripped from hostnames
+vertical_step = 8
+node_fqdn = "proxmox.example.com"
+~~~~
+
+
+##### Trend Chart
+
+Display a trend over time.
+
+![Trend Chart](./docs/trend.png)
+
+The configuration file must contain the following information:
+
+~~~~toml
 kind = "Trend"
-
-# Optional chart title
-title = "TEMPERATURE"
-
-# Optional chart Y label
+title = "Temperature"
 ylabel = "Temperature"
-
-# Optional chart Y label
 yunit = "C"
-
-# InfluxDB database
 database = "house"
-
-# InfluxDB measurement
 measurement = "indoor_environment"
-
-# InfluxDB field
 field = "temperature"
-
-# Tag used in the GROUP BY $TAG clause
-tag = "room"
-
-# Optional maximal age of readings
+tag = "room" # Show one line per tag value
+scale = 1
 how_long_ago = "P1D"
-
-# Expected tag values
-tag_values = ["living room", "bedroom", "bathroom", "entrance", "kitchen"]
-
-# Format for x label
+how_often = "PT1H" # Resample to this period
 xlabel_format = "%H:%M"
+draw_last_value = true
+hide_legend = false
+max_x_ticks = 6
+draw_horizontal_grid = true
+~~~~
 
 
-# Multiple [[regions]] sections, each defines a region in geographical
-# heatmap charts
+##### Geographical Heat-map Chart
+
+Display a heatmap over multiple geographical regions.
+
+![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
+
+The configuration file must contain the following information:
+
+~~~~toml
+kind = "GeographicalHeatMap"
+title = "TEMPERATURE"
+unit = "C"
+database = "house"
+measurement = "indoor_environment"
+field = "temperature"
+tag = "room"
+how_long_ago = "P1D"
+bounds = [15, 35]
+colormap = "CoolWarm"
+isometric = true
+# right_margin = 55
+
+
 [[regions]]
 name = "living room"
 coordinates = [
+  [0.0, 0.0],
+  [0.0, 1.0],
+  [1.0, 1.0],
+  [1.0, 0.0],
+]
+
+[[regions]]
+name = "bedroom"
+coordinates = [
+  [1.0, 0.0],
+  [1.0, 1.0],
   [2.0, 1.0],
-  [4.75, 1.0],
-  [4.75, 1.8],
-  [5.5, 1.8],
-  [5.5, 5.8],
-  [4.75, 5.8],
-  [4.75, 6.5],
-  [1.9, 6.5],
-  [1.9, 8.4],
-  [0.8, 8.4],
-  [0.8, 4.1],
-  [2.0, 4.1],
+  [2.0, 0.0],
+]
+
+[[regions]]
+name = "kitchen"
+coordinates = [
+  [0.0, 1.0],
+  [0.0, 2.0],
+  [1.0, 2.0],
+  [1.0, 1.0],
+]
+
+[[regions]]
+name = "bathroom"
+coordinates = [
+  [1.0, 1.0],
+  [1.0, 2.0],
+  [2.0, 2.0],
+  [2.0, 1.0],
 ]
 ~~~~
 
-[TOML]: https://github.com/toml-lang/toml
+
+##### Temporal Heat-map Chart
+
+Display a heatmap over time.
+
+![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
+
+The configuration file must contain the following information:
+
+~~~~toml
+kind = "TemporalHeatMap"
+title = "OUTDOOR TEMPERATURE"
+unit = "C"
+database = "house"
+measurement = "outdoor_environment"
+field = "temperature"
+aggregator = "mean"
+tag = "address"
+tag_value = "some address"
+period = "HourOverDay"
+# bounds = [-20, 0]
+colormap = "CoolWarm"
+# right_margin = 55
+~~~~
+
+
+#### Colour Maps
+
+For those charts that use colour maps and colour bars, the following are supported:
+
+* `CoolWarm`
+* `Blues`
+* `Reds`
+* `Greens`
+* `Oranges`
+* `Violets`
+* `Grays`
+* `Status`
+
+
+### Retry on Errors
+
+All charts in the configuration are generated simultaneously.
+If generation for any of them fails, it will be retried four times with exponential backoff, for a total of about one minute.
+This allows to survive short network issues without delaying execution for too long.
 
 
 License
 ----
 
-Copyright Claudio Mattera 2020
+Copyright Claudio Mattera 2023
 
-You are free to copy, modify, and distribute this application with attribution under the terms of the [MIT license]. See the [`License.txt`](./License.txt) file for details.
+You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`License.md`](./License.md) file for details.
 
-[MIT license]: https://opensource.org/licenses/MIT
+
+[MPL 2.0 license]: https://opensource.org/licenses/MPL-2.0

@@ -1,0 +1,70 @@
+[Unit]
+Description=Create charts for the house dashboard
+Documentation=https://gitlab.com/claudiomattera/house-dashboard/
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=5m
+Environment=DASHBOARD_CONFIGURATION=/etc/house-dashboard/
+Environment=DASHBOARD_OUTPUT_DIRECTORY=/var/lib/private/house-dashboard/charts/
+Environment=RUST_LOG=warn,house_dashboard=info
+
+#RuntimeDirectory=house-dashboard
+StateDirectory=house-dashboard
+#LogsDirectory=house-dashboard
+#CacheDirectory=house-dashboard
+
+# Enforce various restrictions
+NoNewPrivileges=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RemoveIPC=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+UMask=0077
+
+# Enable restricted subset of devices (/dev/null, /dev/random...)
+PrivateDevices=true
+DevicePolicy=closed
+DeviceAllow=
+
+# Restrict access to /proc
+ProtectProc=invisible
+ProcSubset=pid
+
+# # Restrict users
+# DynamicUser=true
+# PrivateUsers=true
+# User=www-data
+# Group=www-data
+
+# Revoke capabilities
+AmbientCapabilities=
+CapabilityBoundingSet=
+
+# Grant access to socket (necessary for socket activation)
+RestrictAddressFamilies=AF_INET AF_INET6
+PrivateNetwork=false
+
+# Restrict system calls
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+SystemCallFilter=~@resources
+
+[Install]
+WantedBy=multi-user.target

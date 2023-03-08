@@ -1,0 +1,36 @@
+[package]
+name = "house-dashboard-influxdb"
+version = "1.0.0"
+authors = ["Claudio Mattera <dev@claudiomattera.it>"]
+edition = "2021"
+description = "An application to generate and display charts for a house dashboard"
+readme = "Readme.md"
+homepage = "https://gitlab.com/claudiomattera/house-dashboard"
+repository = "https://gitlab.com/claudiomattera/house-dashboard"
+license = "MPL-2.0"
+keywords = [
+    "dashboard",
+]
+categories = [
+    "command-line-utilities",
+]
+publish = false
+
+[dependencies]
+house-dashboard-common = { path = "../house-dashboard-common" }
+
+async-std = { version = "1" }
+
+isahc = { version = "1.7", default-features = false }
+
+url = { version = "2" }
+serde_html_form = { version = "0.2" }
+
+chrono = { version = "0.4", features = ["serde"] }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+
+thiserror = { version = "1" }
+
+tracing = { version = "0.1" }
