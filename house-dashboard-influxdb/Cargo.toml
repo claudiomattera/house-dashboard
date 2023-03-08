@@ -1,6 +1,6 @@
 [package]
 name = "house-dashboard-influxdb"
-version = "1.0.0-dev"
+version = "1.0.0"
 authors = ["Claudio Mattera <dev@claudiomattera.it>"]
 edition = "2021"
 description = "An application to generate and display charts for a house dashboard"

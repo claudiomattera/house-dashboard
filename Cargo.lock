@@ -643,7 +643,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "async-std",
  "bpaf",
@@ -674,7 +674,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-common"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "miette",
@@ -690,7 +690,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-geographical-heatmap"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -704,7 +704,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-image"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "house-dashboard-common",
  "image",
@@ -718,7 +718,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-influxdb"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "async-std",
  "chrono",
@@ -734,7 +734,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-infrastructure-summary"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -750,7 +750,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-proxmox-summary"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-temporal-heatmap"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "house-dashboard-common",
@@ -778,7 +778,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-trend"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "house-dashboard-common",
