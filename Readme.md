@@ -47,6 +47,8 @@ Usage
 
 This is a command-line application that saves charts as BMP images.
 
+Watch a [screen cast of running the application](./docs/run.cast).
+
 The charts are defined in a configuration directory which is passed to the application through a command-line argument.
 
 ~~~~plain
