@@ -24,7 +24,7 @@ pub enum DashboardError {
     #[error("Empty time-series")]
     EmptyTimeSeries,
 
-    /// InfluxDB server returned an unexpected tage value
+    /// InfluxDB server returned an unexpected tag value
     #[error("Unexpected tag value '{0}'")]
     UnexpectedTagValue(String),
 
