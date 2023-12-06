@@ -13,20 +13,20 @@ categories.workspace = true
 publish.workspace = true
 
 [dependencies]
-house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-common = { workspace = true }
 
-async-std = { version = "1" }
+async-std = { workspace = true }
 
-isahc = { version = "1.7", default-features = false }
+isahc = { workspace = true }
 
-url = { version = "2" }
-serde_html_form = { version = "0.2" }
+url = { workspace = true }
+serde_html_form = { workspace = true }
 
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { workspace = true, features = ["serde"] }
 
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
-thiserror = { version = "1" }
+thiserror = { workspace = true }
 
-tracing = { version = "0.1" }
+tracing = { workspace = true }

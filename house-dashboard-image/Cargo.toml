@@ -13,23 +13,16 @@ categories.workspace = true
 publish.workspace = true
 
 [dependencies]
-house-dashboard-common = { path = "../house-dashboard-common" }
+house-dashboard-common = { workspace = true }
 
-thiserror = { version = "1" }
-miette = { version = "5", features = ["fancy"] }
+thiserror = { workspace = true }
+miette = { workspace = true, features = ["fancy"] }
 
-tracing = { version = "0.1" }
+tracing = { workspace = true }
 
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 
-image = { version = "0.24", default-features = false, features = ["bmp"] }
+image = { workspace = true, features = ["bmp"] }
 
-[dependencies.plotters]
-git = "https://github.com/plotters-rs/plotters/"
-branch = "master"
-default-features = false
-features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
-
-[dependencies.plotters-backend]
-git = "https://github.com/plotters-rs/plotters/"
-branch = "master"
+plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
+plotters-backend = { workspace = true }

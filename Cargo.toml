@@ -28,6 +28,64 @@ categories = [
 ]
 publish = false
 
+[workspace.dependencies]
+# Workspace
+house-dashboard-common = { version = "=1.0.0", path = "./house-dashboard-common" }
+house-dashboard-influxdb = { version = "=1.0.0", path = "./house-dashboard-influxdb" }
+house-dashboard-infrastructure-summary = { version = "=1.0.0", path = "./house-dashboard-infrastructure-summary" }
+house-dashboard-proxmox-summary = { version = "=1.0.0", path = "./house-dashboard-proxmox-summary" }
+house-dashboard-trend = { version = "=1.0.0", path = "./house-dashboard-trend" }
+house-dashboard-geographical-heatmap = { version = "=1.0.0", path = "./house-dashboard-geographical-heatmap" }
+house-dashboard-temporal-heatmap = { version = "=1.0.0", path = "./house-dashboard-temporal-heatmap" }
+house-dashboard-image = { version = "=1.0.0", path = "./house-dashboard-image" }
+
+thiserror = { version = "1" }
+miette = { version = "5" }
+
+async-std = { version = "1" }
+futures = { version = "0.3" }
+image = { version = "0.24", default-features = false }
+
+bpaf = { version = "0.7" }
+
+url = { version = "2" }
+
+tracing = { version = "0.1" }
+tracing-futures = { version = "0.2" }
+tracing-subscriber = { version = "0.3" }
+tracing-log = { version = "0.1" }
+tracing-journald = { version = "0.3" }
+
+serde = { version = "1" }
+serde_json = { version = "1" }
+serde_html_form = { version = "0.2" }
+toml = { version = "0.5" }
+
+isahc = { version = "1.7", default-features = false }
+
+extrasafe = { version = "0.1" }
+
+palette = { version = "0.5", default-features = false }
+
+regex = { version = "1" }
+
+time = { version = "0.3" }
+time-tz = { version = "1" }
+time-fmt = { version = "0.3" }
+chrono = { version = "0.4" }
+
+num-traits = { version = "0.2" }
+
+[workspace.dependencies.plotters]
+git = "https://github.com/plotters-rs/plotters/"
+branch = "master"
+default-features = false
+features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
+
+[workspace.dependencies.plotters-backend]
+git = "https://github.com/plotters-rs/plotters/"
+branch = "master"
+
 [profile.release]
 # Necessary for release builds on Raspberry Pi
 # https://github.com/rust-lang/cargo/issues/6489

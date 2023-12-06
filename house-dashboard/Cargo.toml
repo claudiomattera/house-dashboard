@@ -22,45 +22,41 @@ infrastructure-summary-chart = ["house-dashboard-infrastructure-summary"]
 proxmox-summary-chart = ["house-dashboard-proxmox-summary"]
 
 [dependencies]
-house-dashboard-common = { path = "../house-dashboard-common" }
-house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
-house-dashboard-infrastructure-summary = { path = "../house-dashboard-infrastructure-summary", optional = true }
-house-dashboard-proxmox-summary = { path = "../house-dashboard-proxmox-summary", optional = true }
-house-dashboard-trend = { path = "../house-dashboard-trend", optional = true }
-house-dashboard-geographical-heatmap = { path = "../house-dashboard-geographical-heatmap", optional = true }
-house-dashboard-temporal-heatmap = { path = "../house-dashboard-temporal-heatmap", optional = true }
-house-dashboard-image = { path = "../house-dashboard-image", optional = true }
+house-dashboard-common = { workspace = true }
+house-dashboard-influxdb = { workspace = true }
+house-dashboard-infrastructure-summary = { workspace = true, optional = true }
+house-dashboard-proxmox-summary = { workspace = true, optional = true }
+house-dashboard-trend = { workspace = true, optional = true }
+house-dashboard-geographical-heatmap = { workspace = true, optional = true }
+house-dashboard-temporal-heatmap = { workspace = true, optional = true }
+house-dashboard-image = { workspace = true, optional = true }
 
-thiserror = { version = "1" }
-miette = { version = "5", features = ["fancy"] }
+thiserror = { workspace = true }
+miette = { workspace = true, features = ["fancy"] }
 
-async-std = { version = "1", features = ["attributes"] }
-futures = { version = "0.3" }
-image = { version = "0.24", default-features = false, features = ["bmp"] }
+async-std = { workspace = true, features = ["attributes"] }
+futures = { workspace = true }
+image = { workspace = true, features = ["bmp"] }
 
-bpaf = { version = "0.7" }
+bpaf = { workspace = true }
 
-url = { version = "2", features = ["serde"] }
+url = { workspace = true, features = ["serde"] }
 
-tracing = { version = "0.1" }
-tracing-futures = { version = "0.2" }
-tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
-tracing-log = { version = "0.1" }
-tracing-journald = { version = "0.3" }
+tracing = { workspace = true }
+tracing-futures = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["registry", "env-filter"] }
+tracing-log = { workspace = true }
+tracing-journald = { workspace = true }
 
-serde = { version = "1", features = ["derive"] }
-toml = { version = "0.5" }
+serde = { workspace = true, features = ["derive"] }
+toml = { workspace = true }
 
-isahc = { version = "1.7", default-features = false }
+isahc = { workspace = true }
+
+plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
-extrasafe = { version = "0.1" }
-
-[dependencies.plotters]
-git = "https://github.com/plotters-rs/plotters/"
-branch = "master"
-default-features = false
-features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
+extrasafe = { workspace = true }
 
 [package.metadata.deb]
 maintainer = "Claudio Mattera <dev@claudiomattera.it>"
