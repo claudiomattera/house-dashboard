@@ -54,24 +54,24 @@ url = { version = "2", default-features = false }
 tracing = { version = "0.1", default-features = false }
 tracing-futures = { version = "0.2", default-features = false }
 tracing-subscriber = { version = "0.3", default-features = false }
-tracing-log = { version = "0.1", default-features = false }
+tracing-log = { version = "0.2", default-features = false }
 tracing-journald = { version = "0.3", default-features = false }
 
 serde = { version = "1", default-features = false }
 serde_json = { version = "1", default-features = false }
 serde_html_form = { version = "0.2", default-features = false }
-toml = { version = "0.5", default-features = false }
+toml = { version = "0.8", default-features = false }
 
 isahc = { version = "1.7", default-features = false }
 
 extrasafe = { version = "0.1", default-features = false }
 
-palette = { version = "0.5", default-features = false }
+palette = { version = "0.6", default-features = false }
 
 regex = { version = "1", default-features = false }
 
 time = { version = "0.3", default-features = false }
-time-tz = { version = "1", default-features = false }
+time-tz = { version = "2", default-features = false }
 time-fmt = { version = "0.3", default-features = false }
 chrono = { version = "0.4", default-features = false }
 

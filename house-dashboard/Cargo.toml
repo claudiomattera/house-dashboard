@@ -49,7 +49,7 @@ tracing-log = { workspace = true }
 tracing-journald = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
-toml = { workspace = true }
+toml = { workspace = true, features = ["parse"] }
 
 isahc = { workspace = true }
 
