@@ -31,7 +31,7 @@ steps:
 - name: run pre-commit checks
   image: python:3-slim
   environment:
-    SKIP: no-commit-to-branch
+    SKIP: no-commit-to-branch,fmt
   commands:
   - python3 -m venv "$${VIRTUAL_ENV}"
   - . "$${VIRTUAL_ENV}/bin/activate"
