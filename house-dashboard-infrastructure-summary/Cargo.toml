@@ -1,20 +1,16 @@
 [package]
 name = "house-dashboard-infrastructure-summary"
-version = "1.0.0"
-authors = ["Claudio Mattera <dev@claudiomattera.it>"]
-edition = "2021"
-description = "An application to generate and display charts for a house dashboard"
-readme = "Readme.md"
-homepage = "https://gitlab.com/claudiomattera/house-dashboard"
-repository = "https://gitlab.com/claudiomattera/house-dashboard"
-license = "MPL-2.0"
-keywords = [
-    "dashboard",
-]
-categories = [
-    "command-line-utilities",
-]
-publish = false
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish.workspace = true
 
 [dependencies]
 house-dashboard-common = { path = "../house-dashboard-common" }

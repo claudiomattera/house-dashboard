@@ -11,6 +11,23 @@ members = [
     "house-dashboard-image",
 ]
 
+[workspace.package]
+version = "1.0.0"
+authors = ["Claudio Mattera <dev@claudiomattera.it>"]
+edition = "2021"
+description = "An application to generate and display charts for a house dashboard"
+readme = "Readme.md"
+homepage = "https://gitlab.com/claudiomattera/house-dashboard"
+repository = "https://gitlab.com/claudiomattera/house-dashboard"
+license = "MPL-2.0"
+keywords = [
+    "dashboard",
+]
+categories = [
+    "command-line-utilities",
+]
+publish = false
+
 [profile.release]
 # Necessary for release builds on Raspberry Pi
 # https://github.com/rust-lang/cargo/issues/6489
