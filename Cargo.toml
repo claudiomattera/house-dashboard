@@ -39,42 +39,42 @@ house-dashboard-geographical-heatmap = { version = "=1.0.0", path = "./house-das
 house-dashboard-temporal-heatmap = { version = "=1.0.0", path = "./house-dashboard-temporal-heatmap" }
 house-dashboard-image = { version = "=1.0.0", path = "./house-dashboard-image" }
 
-thiserror = { version = "1" }
-miette = { version = "5" }
+thiserror = { version = "1", default-features = false }
+miette = { version = "5", default-features = false }
 
-async-std = { version = "1" }
-futures = { version = "0.3" }
+async-std = { version = "1", default-features = false }
+futures = { version = "0.3", default-features = false }
 image = { version = "0.24", default-features = false }
 
-bpaf = { version = "0.7" }
+bpaf = { version = "0.7", default-features = false }
 
-url = { version = "2" }
+url = { version = "2", default-features = false }
 
-tracing = { version = "0.1" }
-tracing-futures = { version = "0.2" }
-tracing-subscriber = { version = "0.3" }
-tracing-log = { version = "0.1" }
-tracing-journald = { version = "0.3" }
+tracing = { version = "0.1", default-features = false }
+tracing-futures = { version = "0.2", default-features = false }
+tracing-subscriber = { version = "0.3", default-features = false }
+tracing-log = { version = "0.1", default-features = false }
+tracing-journald = { version = "0.3", default-features = false }
 
-serde = { version = "1" }
-serde_json = { version = "1" }
-serde_html_form = { version = "0.2" }
-toml = { version = "0.5" }
+serde = { version = "1", default-features = false }
+serde_json = { version = "1", default-features = false }
+serde_html_form = { version = "0.2", default-features = false }
+toml = { version = "0.5", default-features = false }
 
 isahc = { version = "1.7", default-features = false }
 
-extrasafe = { version = "0.1" }
+extrasafe = { version = "0.1", default-features = false }
 
 palette = { version = "0.5", default-features = false }
 
-regex = { version = "1" }
+regex = { version = "1", default-features = false }
 
-time = { version = "0.3" }
-time-tz = { version = "1" }
-time-fmt = { version = "0.3" }
-chrono = { version = "0.4" }
+time = { version = "0.3", default-features = false }
+time-tz = { version = "1", default-features = false }
+time-fmt = { version = "0.3", default-features = false }
+chrono = { version = "0.4", default-features = false }
 
-num-traits = { version = "0.2" }
+num-traits = { version = "0.2", default-features = false }
 
 [workspace.dependencies.plotters]
 git = "https://github.com/plotters-rs/plotters/"

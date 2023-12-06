@@ -15,7 +15,7 @@ publish.workspace = true
 [dependencies]
 house-dashboard-common = { workspace = true }
 
-async-std = { workspace = true }
+async-std = { workspace = true, features = ["std"] }
 
 isahc = { workspace = true }
 
@@ -25,7 +25,7 @@ serde_html_form = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["std"] }
 
 thiserror = { workspace = true }
 
