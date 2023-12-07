@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 use palette::{Gradient, LinSrgb, Pixel, Srgb};
 
-use plotters::style::RGBColor;
+use plotters::style::{Color, RGBAColor, RGBColor};
 
 /// Type of color maps
 #[derive(Debug, Deserialize)]
@@ -309,3 +309,15 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
 /// 2. `#ffff33` <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAPCAIAAAApuQuVAAAAMUlEQVR4nGP8/9+YYfABpoF2AHYw6ixSwKizSAGjziIFjDqLFDDqLFLAqLNIAYPUWQDuoAJPB8UZggAAAABJRU5ErkJggg==">
 /// 3. `#e41a1c` <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAPCAIAAAApuQuVAAAAMUlEQVR4nGN8IiXDMPgA00A7ADsYdRYpYNRZpIBRZ5ECRp1FChh1Filg1FmkgEHqLABLxAE4DctCAAAAAABJRU5ErkJggg==">
 const PALETTE_STATUS: &[[u8; 3]] = &[[77, 175, 74], [255, 255, 51], [228, 26, 28]];
+
+/// Interpolate two colors
+pub fn interpolate_colors(c1: RGBAColor, c2: RGBColor) -> RGBAColor {
+    let (r1, g1, b1) = c1.rgb();
+    let (r2, g2, b2) = c2.rgb();
+
+    let r = (r1 as f32 * 0.5 + r2 as f32 * 0.5) as u8;
+    let g = (g1 as f32 * 0.5 + g2 as f32 * 0.5) as u8;
+    let b = (b1 as f32 * 0.5 + b2 as f32 * 0.5) as u8;
+
+    RGBAColor(r, g, b, c1.alpha())
+}

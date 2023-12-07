@@ -23,7 +23,7 @@ use plotters::{
 };
 
 use house_dashboard_common::{
-    colormap::{Colormap, ColormapType},
+    colormap::{interpolate_colors, Colormap, ColormapType},
     configuration::StyleConfiguration,
     element::Loadbar,
     palette::SystemColor,
@@ -260,12 +260,16 @@ fn draw_host_status<DB: DrawingBackend>(
         filled: true,
         stroke_width: 0,
     };
+    let border_style: ShapeStyle = ShapeStyle {
+        color: interpolate_colors(
+            color,
+            style.system_palette.pick(SystemColor::LightForeground),
+        ),
+        filled: false,
+        stroke_width: 1,
+    };
     root.draw(&Circle::new((STATUS_X, centered_y), 2, shape_style))?;
-    root.draw(&Circle::new(
-        (STATUS_X, centered_y),
-        3,
-        style.system_palette.pick(SystemColor::LightForeground),
-    ))?;
+    root.draw(&Circle::new((STATUS_X, centered_y), 3, border_style))?;
 
     Ok(())
 }
