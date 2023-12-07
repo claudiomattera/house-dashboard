@@ -196,6 +196,7 @@ draw_last_value = true
 hide_legend = false
 max_x_ticks = 6
 draw_horizontal_grid = true
+# min_y_range = 12
 ~~~~
 
 

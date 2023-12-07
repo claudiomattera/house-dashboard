@@ -69,6 +69,7 @@ where
 
     let mut chart = create_chart_context(
         trend.top_padding,
+        trend.min_y_range,
         x_range,
         &indices,
         &new_root,
@@ -211,6 +212,7 @@ fn convert_time_series_to_local_time(
 /// Create a chart context
 fn create_chart_context<'a, DB: DrawingBackend + 'a, S>(
     top_padding: Option<f64>,
+    min_y_range: Option<f64>,
     (min_x, max_x): (DateTime<Local>, DateTime<Local>),
     indices: &HashMap<String, usize>,
     root: &'a DrawingArea<DB, Shift>,
@@ -221,7 +223,15 @@ where
 {
     debug!("Creating chart");
 
-    let (min_y, max_y) = compute_range(top_padding, indices, time_seriess);
+    let (mut min_y, mut max_y) = compute_range(top_padding, indices, time_seriess);
+
+    if let Some(min_y_range) = min_y_range {
+        let increment = min_y_range / 10.0;
+        while max_y - min_y < min_y_range {
+            min_y -= increment;
+            max_y += increment;
+        }
+    }
 
     let chart = ChartBuilder::on(root)
         .margin(5)
