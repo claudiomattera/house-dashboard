@@ -244,11 +244,13 @@ where
 
     let (width, height) = root.dim_in_pixel();
 
+    let colorbar_width = (10.0 * style.font_scale) as i32;
+
     let right_margin = temporal_heatmap.right_margin.unwrap_or(55);
 
     let colorbar = Colorbar::new(
         (i32::try_from(width)? - right_margin, 40),
-        (10, i32::try_from(height)? - 60),
+        (colorbar_width, i32::try_from(height)? - 60),
         bounds,
         temporal_heatmap.precision.unwrap_or(0),
         temporal_heatmap.unit.clone(),
