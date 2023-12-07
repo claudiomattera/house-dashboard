@@ -264,7 +264,10 @@ fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, 
 
 /// Load custom font from a TTF or OTF file
 fn load_font(name: &str, path: &Path) -> Result<(), Report> {
-    let font_bytes = read(path).into_diagnostic()?.into_boxed_slice();
+    let font_bytes = read(path)
+        .into_diagnostic()
+        .wrap_err("cannot read font file")?
+        .into_boxed_slice();
     let font_bytes: &'static [u8] = Box::leak(font_bytes);
     register_font(name, FontStyle::Normal, font_bytes).map_err(|_| miette!("Cannot load font"))?;
     Ok(())
