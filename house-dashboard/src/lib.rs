@@ -43,10 +43,11 @@
 )]
 
 use std::ffi::OsStr;
-use std::fs::{read, read_dir, read_to_string};
+use std::fs::{read_dir, read_to_string};
 use std::io::{BufWriter, Cursor};
 use std::path::Path;
 
+use async_std::fs::read as read_file;
 use async_std::fs::write;
 
 use tracing::{debug, info, trace, warn};
@@ -111,7 +112,8 @@ pub async fn main() -> Result<(), Report> {
         &arguments
             .configuration_directory_path
             .join(&style_configuration.font_path),
-    )?;
+    )
+    .await?;
 
     let charts_configurations =
         parse_charts_configurations(&arguments.configuration_directory_path)
@@ -263,8 +265,9 @@ fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, 
 }
 
 /// Load custom font from a TTF or OTF file
-fn load_font(name: &str, path: &Path) -> Result<(), Report> {
-    let font_bytes = read(path)
+async fn load_font(name: &str, path: &Path) -> Result<(), Report> {
+    let font_bytes = read_file(path)
+        .await
         .into_diagnostic()
         .wrap_err("cannot read font file")?
         .into_boxed_slice();
