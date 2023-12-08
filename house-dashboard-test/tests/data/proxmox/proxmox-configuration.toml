@@ -1,0 +1,6 @@
+kind = "ProxmoxSummary"
+title = "PROXMOX"
+how_long_ago = "PT30M"
+suffix = ".example.com"
+vertical_step = 12
+node_fqdn = "proxmox.example.com"

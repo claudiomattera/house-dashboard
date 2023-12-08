@@ -1,0 +1,6 @@
+font_name = "PrintChar21"
+font_path = "../../../../fonts/PrintChar21.ttf"
+font_scale = 1
+system_palette = "Dark"
+series_palette = "ColorbrewerSet1"
+resolution = [320, 240]

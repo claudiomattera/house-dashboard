@@ -1,0 +1,5 @@
+{
+    "balancer1.example.com": 0.9,
+    "git.example.com": 0.3,
+    "vpn.example.com": 0.1
+}

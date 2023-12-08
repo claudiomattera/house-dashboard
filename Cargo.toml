@@ -9,6 +9,7 @@ members = [
     "house-dashboard-geographical-heatmap",
     "house-dashboard-temporal-heatmap",
     "house-dashboard-image",
+    "house-dashboard-test",
 ]
 resolver = "2"
 
@@ -81,6 +82,8 @@ plotters = { version = "0.3.5", default-features = false }
 plotters-backend = { version = "0.3.5", default-features = false }
 
 itertools = { version = "0.12", default-features = false }
+
+cucumber = { version = "0.20", default-features = false }
 
 [profile.release]
 # Necessary for release builds on Raspberry Pi
