@@ -26,3 +26,5 @@ serde = { workspace = true, features = ["derive"] }
 chrono = { workspace = true }
 
 plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
+
+itertools = { workspace = true, features = ["use_alloc"] }

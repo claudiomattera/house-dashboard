@@ -9,6 +9,8 @@
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 
+use itertools::Itertools;
+
 use tracing::{debug, info, warn};
 
 use chrono::{DateTime, Local, Utc};
@@ -80,7 +82,7 @@ where
     draw_axes(trend, style, &mut chart)?;
 
     debug!("Plotting time-series");
-    for (name, time_series) in &time_seriess {
+    for (name, time_series) in time_seriess.iter().sorted_by_key(|pair| pair.0) {
         plot_time_series(
             trend,
             &indices,

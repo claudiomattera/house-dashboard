@@ -11,6 +11,8 @@ use tracing::{debug, info};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 
+use itertools::Itertools;
+
 use num_traits::{Bounded, FromPrimitive, Num, SaturatingAdd, SaturatingMul, Zero};
 
 use plotters::{
@@ -81,7 +83,10 @@ where
     );
 
     debug!("Drawing regions");
-    for (name, path) in normalized_projected_regions {
+    for (name, path) in normalized_projected_regions
+        .iter()
+        .sorted_by_key(|pair| pair.0)
+    {
         draw_region(
             geographical_heatmap,
             style,
