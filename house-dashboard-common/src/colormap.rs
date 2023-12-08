@@ -311,13 +311,17 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
 const PALETTE_STATUS: &[[u8; 3]] = &[[77, 175, 74], [255, 255, 51], [228, 26, 28]];
 
 /// Interpolate two colors
+#[must_use]
 pub fn interpolate_colors(c1: RGBAColor, c2: RGBColor) -> RGBAColor {
     let (r1, g1, b1) = c1.rgb();
     let (r2, g2, b2) = c2.rgb();
 
-    let r = (r1 as f32 * 0.5 + r2 as f32 * 0.5) as u8;
-    let g = (g1 as f32 * 0.5 + g2 as f32 * 0.5) as u8;
-    let b = (b1 as f32 * 0.5 + b2 as f32 * 0.5) as u8;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let r = (f32::from(r1) * 0.5 + f32::from(r2) * 0.5) as u8;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let g = (f32::from(g1) * 0.5 + f32::from(g2) * 0.5) as u8;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let b = (f32::from(b1) * 0.5 + f32::from(b2) * 0.5) as u8;
 
     RGBAColor(r, g, b, c1.alpha())
 }

@@ -137,7 +137,7 @@ fn compute_range(
 ) -> (DateTime<Local>, DateTime<Local>, f64, f64) {
     let mut min_x: DateTime<Local> = DateTime::<Utc>::MAX_UTC.with_timezone(&Local);
     let mut max_x: DateTime<Local> = DateTime::<Utc>::MIN_UTC.with_timezone(&Local);
-    for &(date, _value) in time_series.iter() {
+    for &(date, _value) in time_series {
         min_x = min_x.min(date);
         max_x = max_x.max(date);
     }
@@ -165,7 +165,7 @@ fn compute_range(
 fn compute_value_range(time_series: &[(DateTime<Local>, f64)]) -> (f64, f64) {
     let mut min_y: f64 = f64::MAX;
     let mut max_y: f64 = f64::MIN;
-    for &(_date, value) in time_series.iter() {
+    for &(_date, value) in time_series {
         min_y = min_y.min(value);
         max_y = max_y.max(value);
     }
@@ -244,6 +244,7 @@ where
 
     let (width, height) = root.dim_in_pixel();
 
+    #[allow(clippy::cast_possible_truncation)]
     let colorbar_width = (10.0 * style.font_scale) as i32;
 
     let right_margin = temporal_heatmap.right_margin.unwrap_or(55);

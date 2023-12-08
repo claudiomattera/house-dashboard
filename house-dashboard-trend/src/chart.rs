@@ -165,7 +165,7 @@ where
     let mut min_y = std::f64::MAX;
     let mut max_y = std::f64::MIN;
 
-    for (name, time_series) in time_seriess.iter() {
+    for (name, time_series) in time_seriess {
         if !indices.contains_key(name) {
             debug!(
                 "Skipping unexpected time-series '{}' for range computation",

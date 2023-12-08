@@ -92,7 +92,7 @@ where
             style,
             &colormap,
             values,
-            &name,
+            name,
             path.as_slice(),
             &new_root,
         )?;
@@ -258,7 +258,7 @@ fn compute_all_regions_bounds(regions: &HashMap<String, Vec<(f64, f64)>>) -> (f6
     let mut min_x = std::f64::MAX;
     let mut max_y = std::f64::MIN;
     let mut min_y = std::f64::MAX;
-    for (_, path) in regions.iter() {
+    for path in regions.values() {
         let xs: Vec<f64> = path.iter().map(|p| p.0).collect();
         let ys: Vec<f64> = path.iter().map(|p| p.1).collect();
         let (local_min_x, local_max_x) = bounds_of(&xs);
