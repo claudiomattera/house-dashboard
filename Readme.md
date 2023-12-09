@@ -308,6 +308,12 @@ If generation for any of them fails, it will be retried four times with exponent
 This allows to survive short network issues without delaying execution for too long.
 
 
+Changes
+----
+
+See the [Changelog](./Changelog.md) for a list of changes.
+
+
 License
 ----
 
