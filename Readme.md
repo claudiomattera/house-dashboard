@@ -291,14 +291,14 @@ colormap = "CoolWarm"
 
 For those charts that use colour maps and colour bars, the following are supported:
 
-* `CoolWarm`
-* `Blues`
-* `Reds`
-* `Greens`
-* `Oranges`
-* `Violets`
-* `Grays`
-* `Status`
+* `CoolWarm` (`#053061`, `#2166ac`, `#0571b0`, `#4393c3`, `#67a9cf`, `#92c5de`, `#d1e5f0`, `#f7f7f7`, `#fddbc7`, `#f4a582`, `#ef8a62`, `#d6604d`, `#ca0020`, `#b2182b`, `#67001f`)
+* `Blues` (`#f7fbff`, `#deebf7`, `#c6dbef`, `#9ecae1`, `#6baed6`, `#4292c6`, `#2171b5`, `#08519c`, `#08306b`)
+* `Reds` (`#fff5f0`, `#fee0d2`, `#fcbba1`, `#fc9272`, `#fb6a4a`, `#ef3b2c`, `#cb181d`, `#a50f15`, `#67000d`)
+* `Greens` (`#f7fcf5`, `#e5f5e0`, `#c7e9c0`, `#a1d99b`, `#74c476`, `#41ab5d`, `#238b45`, `#006d2c`, `#00441b`)
+* `Oranges` (`#fff5eb`, `#fee6ce`, `#fdd0a2`, `#fdae6b`, `#fd8d3c`, `#f16913`, `#d94801`, `#a63603`, `#7f2704`)
+* `Violets` (`#fcfbfd`, `#efedf5`, `#dadaeb`, `#bcbddc`, `#9e9ac8`, `#807dba`, `#6a51a3`, `#54278f`, `#3f007d`)
+* `Grays` (`#ffffff`, `#f0f0f0`, `#d9d9d9`, `#bdbdbd`, `#969696`, `#737373`, `#525252`, `#252525`, `#000000`)
+* `Status` (`#4daf4a`, `#ffff33`, `#e41a1c`)
 
 
 ### Retry on Errors
