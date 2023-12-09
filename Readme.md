@@ -115,7 +115,17 @@ resolution = [320, 240]
 ~~~~
 
 A custom font and font file must be specified, and the font name must correspond to the font file.
-There are two system palettes: `Light` and `Dark`, and three series palettes: `ColorbrewerSet1`, `ColorbrewerSet2` and `ColorbrewerSet3`.
+There are two system palettes: `Light` and `Dark`, and three series palettes:
+
+`ColorBrewerSet1`
+: ![ColorBrewerSet1 palette](docs/palettes/colorbrewerset1.png)
+
+`ColorBrewerSet2`
+: ![ColorBrewerSet2 palette](docs/palettes/colorbrewerset2.png)
+
+`ColorBrewerSet3`
+: ![ColorBrewerSet3 palette](docs/palettes/colorbrewerset3.png)
+
 
 Recommendation: font [Print Char 21] works quite well for small displays.
 
@@ -289,7 +299,7 @@ colormap = "CoolWarm"
 
 #### Colour Maps
 
-For those charts that use colour maps and colour bars, the following are supported:
+For those charts that use colour maps and colour bars, the following palettes are supported:
 
 `CoolWarm`
 : ![CoolWarm palette](docs/palettes/coolwarm.png)
@@ -314,7 +324,6 @@ For those charts that use colour maps and colour bars, the following are support
 
 `Status`
 : ![Status palette](docs/palettes/status.png)
-
 
 
 ### Retry on Errors
