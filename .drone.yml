@@ -76,6 +76,10 @@ steps:
 - name: test
   image: docker.claudiomattera.it/claudiomattera/rust:1
   commands:
+  # Integration tests assume that localtime is Europe/Copenhagen
+  - rm -rf /etc/localtime
+  - ln -s /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
+
   - apt-get update
   - apt-get install --yes libseccomp-dev
   - cargo test --all-features --frozen
