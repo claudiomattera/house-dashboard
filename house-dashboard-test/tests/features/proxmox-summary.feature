@@ -7,8 +7,8 @@ Feature: Proxmox summary charts
         And the statuses "proxmox/statuses.json"
         And the loads "proxmox/loads.json"
         When drawing a Proxmox summary chart
+        Then the bitmap is saved to "proxmox/actual.bmp"
         Then the bitmap is the same as "proxmox/expected.bmp"
-        # Then the bitmap is saved to "actual.bmp"
 
     Scenario: Drawing a dark Proxmox summary chart
         Given the Proxmox summary configuration "proxmox/proxmox-configuration.toml"
@@ -17,5 +17,5 @@ Feature: Proxmox summary charts
         And the statuses "proxmox/statuses.json"
         And the loads "proxmox/loads.json"
         When drawing a Proxmox summary chart
+        Then the bitmap is saved to "proxmox/dark-actual.bmp"
         Then the bitmap is the same as "proxmox/dark-expected.bmp"
-        # Then the bitmap is saved to "actual.bmp"
