@@ -43,12 +43,13 @@
 )]
 
 use std::ffi::OsStr;
-use std::fs::{read_dir, read_to_string};
 use std::io::{BufWriter, Cursor};
 use std::path::Path;
 
 use async_std::fs::read as read_file;
-use async_std::fs::write;
+use async_std::fs::read_dir;
+use async_std::fs::read_to_string as read_file_to_string;
+use async_std::fs::write as write_file;
 
 use tracing::{debug, info, trace, warn};
 
@@ -58,7 +59,8 @@ use toml::from_str as from_toml_str;
 
 use plotters::style::{register_font, FontStyle};
 
-use futures::{stream::FuturesUnordered, StreamExt};
+use futures::stream::iter as future_from_iter;
+use futures::{future::ready, stream::FuturesUnordered, StreamExt};
 
 use image::{ImageFormat, RgbImage};
 
@@ -102,6 +104,7 @@ pub async fn main() -> Result<(), Report> {
 
     let (style_configuration, influxdb_configuration) =
         parse_configuration(&arguments.configuration_directory_path)
+            .await
             .wrap_err("cannot parse configuration")?;
 
     trace!("Style configuration: {:?}", style_configuration);
@@ -117,6 +120,7 @@ pub async fn main() -> Result<(), Report> {
 
     let charts_configurations =
         parse_charts_configurations(&arguments.configuration_directory_path)
+            .await
             .wrap_err("cannot parse charts configurations")?;
 
     trace!("Charts configurations: {:?}", charts_configurations);
@@ -189,11 +193,12 @@ fn setup_allowed_syscalls() -> Result<(), Report> {
 }
 
 /// Parse common configuration from configuration directory
-fn parse_configuration(
+async fn parse_configuration(
     configuration_directory_path: &Path,
 ) -> Result<(StyleConfiguration, InfluxdbConfiguration), Report> {
     let style_configuration_path = configuration_directory_path.join("style.toml");
-    let raw_style_configuration = read_to_string(style_configuration_path)
+    let raw_style_configuration = read_file_to_string(style_configuration_path)
+        .await
         .into_diagnostic()
         .wrap_err("cannot read style configuration file")?;
     let style_configuration: StyleConfiguration = from_toml_str(&raw_style_configuration)
@@ -201,7 +206,8 @@ fn parse_configuration(
         .wrap_err("cannot parse style configuration file")?;
 
     let influxdb_configuration_path = configuration_directory_path.join("influxdb.toml");
-    let raw_influxdb_configuration = read_to_string(influxdb_configuration_path)
+    let raw_influxdb_configuration = read_file_to_string(influxdb_configuration_path)
+        .await
         .into_diagnostic()
         .wrap_err("cannot read InfluxDB configuration file")?;
     let influxdb_configuration: InfluxdbConfiguration = from_toml_str(&raw_influxdb_configuration)
@@ -212,38 +218,41 @@ fn parse_configuration(
 }
 
 /// Parse charts configuration from configuration directory
-fn parse_charts_configurations(
+async fn parse_charts_configurations(
     configuration_directory_path: &Path,
 ) -> Result<Vec<ChartConfiguration>, Report> {
-    let mut paths = read_dir(configuration_directory_path)
-        .into_diagnostic()
-        .wrap_err("cannot iterate over files in configuration directory")?
-        .flat_map(|result| result.map(|dir_entry| dir_entry.path()))
-        .filter(|path| path.extension() == Some(OsStr::new("toml")))
-        .filter(|path| path.file_name() != Some(OsStr::new("influxdb.toml")))
-        .filter(|path| path.file_name() != Some(OsStr::new("style.toml")))
-        .collect::<Vec<std::path::PathBuf>>();
+    let results: Vec<Result<Option<ChartConfiguration>, Report>> =
+        read_dir(configuration_directory_path)
+            .await
+            .into_diagnostic()
+            .wrap_err("cannot iterate over files in configuration directory")?
+            .map(|result| result.map(|dir_entry| dir_entry.path()))
+            .flat_map(future_from_iter)
+            .filter(|path| ready(path.extension() == Some(OsStr::new("toml"))))
+            .filter(|path| ready(path.file_name() != Some(OsStr::new("influxdb.toml"))))
+            .filter(|path| ready(path.file_name() != Some(OsStr::new("style.toml"))))
+            .then(|path| async move {
+                parse_chart_configuration(path.as_ref())
+                    .await
+                    .wrap_err(format!("cannot parse file {}", path.display()))
+            })
+            .collect::<Vec<Result<Option<ChartConfiguration>, Report>>>()
+            .await;
 
-    paths.sort_unstable();
-
-    debug!("Collected configuration paths: {:?}", paths);
-
-    let entries = paths
+    let result: Vec<Option<ChartConfiguration>> = results
         .into_iter()
-        .map(|path: std::path::PathBuf| {
-            parse_chart_configuration(&path)
-                .wrap_err(format!("cannot parse file {}", path.display()))
-        })
-        .collect::<Result<Vec<Option<ChartConfiguration>>, Report>>()?
+        .collect::<Result<Vec<Option<ChartConfiguration>>, Report>>()?;
+
+    let entries: Vec<ChartConfiguration> = result
         .into_iter()
         .flatten()
-        .collect();
+        .collect::<Vec<ChartConfiguration>>();
 
     Ok(entries)
 }
 
 /// Parse individual chart configuration from file
-fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, Report> {
+async fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, Report> {
     if path
         .file_stem()
         .map_or(Some(""), OsStr::to_str)
@@ -252,7 +261,8 @@ fn parse_chart_configuration(path: &Path) -> Result<Option<ChartConfiguration>, 
         && path.extension().map(OsStr::to_str) == Some(Some("toml"))
     {
         debug!("Processing path {}", path.display());
-        let raw_configuration = read_to_string(path)
+        let raw_configuration = read_file_to_string(path)
+            .await
             .into_diagnostic()
             .wrap_err("cannot read chart configuration file")?;
         let configuration: ChartConfiguration = from_toml_str(&raw_configuration)
@@ -330,6 +340,6 @@ async fn save_chart(
         .into_diagnostic()?;
 
     let buffer = buffer.into_inner().into_diagnostic()?.into_inner();
-    write(path, &buffer).await.into_diagnostic()?;
+    write_file(path, &buffer).await.into_diagnostic()?;
     Ok(())
 }
