@@ -6,6 +6,16 @@
 
 //! Gherkin behaviour-driven development tests
 
+#![allow(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    clippy::ignored_unit_patterns,
+    clippy::unwrap_used,
+    clippy::needless_pass_by_value,
+    clippy::panic_in_result_fn,
+    clippy::unused_async
+)]
+
 use std::collections::{HashMap, HashSet};
 use std::io::{BufWriter, Cursor};
 use std::path::Path;

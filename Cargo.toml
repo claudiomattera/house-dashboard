@@ -30,6 +30,41 @@ categories = [
 ]
 publish = false
 
+[workspace.lints.rust]
+missing_docs = "deny"
+
+[workspace.lints.clippy]
+cargo = "deny"
+pedantic = "deny"
+missing_docs_in_private_items = "deny"
+missing_errors_doc = "deny"
+missing_panics_doc = "deny"
+
+allow_attributes_without_reason = "deny"
+clone_on_ref_ptr = "deny"
+else_if_without_else = "deny"
+expect_used = "deny"
+format_push_string = "deny"
+if_then_some_else_none = "deny"
+let_underscore_must_use = "deny"
+lossy_float_literal = "deny"
+panic = "deny"
+panic_in_result_fn = "deny"
+rc_buffer = "deny"
+rc_mutex = "deny"
+rest_pat_in_fully_bound_structs = "deny"
+self_named_module_files = "deny"
+str_to_string = "deny"
+string_slice = "deny"
+string_to_string = "deny"
+todo = "deny"
+undocumented_unsafe_blocks = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+unseparated_literal_suffix = "deny"
+unwrap_used = "deny"
+verbose_file_reads = "deny"
+
 [workspace.dependencies]
 # Workspace
 house-dashboard-common = { version = "=1.1.0-dev", path = "./house-dashboard-common" }

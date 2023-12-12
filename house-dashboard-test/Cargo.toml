@@ -12,6 +12,9 @@ keywords.workspace = true
 categories.workspace = true
 publish.workspace = true
 
+[lints]
+workspace = true
+
 [[test]]
 # Cucumber tests cannot use default harness
 name = "behaviour"

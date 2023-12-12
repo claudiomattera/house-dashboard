@@ -12,6 +12,9 @@ keywords.workspace = true
 categories.workspace = true
 publish.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 thiserror = { workspace = true }
 miette = { workspace = true, features = ["fancy"] }

@@ -21,6 +21,9 @@ image-chart = ["house-dashboard-image"]
 infrastructure-summary-chart = ["house-dashboard-infrastructure-summary"]
 proxmox-summary-chart = ["house-dashboard-proxmox-summary"]
 
+[lints]
+workspace = true
+
 [dependencies]
 house-dashboard-common = { workspace = true }
 house-dashboard-influxdb = { workspace = true }
