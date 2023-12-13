@@ -16,6 +16,8 @@ pub mod duration;
 
 pub mod element;
 
+pub mod error;
+
 pub mod palette;
 
 pub mod types;

@@ -80,7 +80,7 @@ where
         geographical_heatmap.bounds.0,
         geographical_heatmap.bounds.1,
         geographical_heatmap.reversed,
-    );
+    )?;
 
     debug!("Drawing regions");
     for (name, path) in normalized_projected_regions

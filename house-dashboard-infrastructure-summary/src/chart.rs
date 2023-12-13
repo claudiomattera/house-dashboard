@@ -190,7 +190,7 @@ fn draw_hosts<DB>(
 where
     DB: DrawingBackend,
 {
-    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD);
+    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD)?;
 
     for (i, &(host, load)) in (0..).zip(loads) {
         debug!(

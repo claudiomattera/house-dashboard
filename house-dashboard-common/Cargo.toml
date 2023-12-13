@@ -16,12 +16,12 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-thiserror = { workspace = true }
 miette = { workspace = true, features = ["fancy"] }
 
 tracing = { workspace = true }
 
 palette = { workspace = true, features = ["std"] }
+enterpolation = { workspace = true, features = ["linear", "std"] }
 
 regex = { workspace = true }
 

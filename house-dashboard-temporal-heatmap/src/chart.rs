@@ -75,7 +75,7 @@ pub fn draw_temporal_heatmap(
         min_y,
         max_y,
         temporal_heatmap.reversed,
-    );
+    )?;
 
     let fragments = create_fragments(temporal_heatmap, &colormap, &time_series);
 

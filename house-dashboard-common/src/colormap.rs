@@ -8,9 +8,13 @@
 
 use serde::Deserialize;
 
-use palette::{Gradient, LinSrgb, Pixel, Srgb};
+use palette::{LinSrgb, Srgb};
+
+use enterpolation::{easing::Identity, linear::Linear, Equidistant, Generator};
 
 use plotters::style::{Color, RGBAColor, RGBColor};
+
+use crate::error::ColormapCreationError;
 
 /// Type of color maps
 #[derive(Debug, Deserialize)]
@@ -44,7 +48,7 @@ pub enum ColormapType {
 #[derive(Debug)]
 pub struct Colormap {
     /// Color map gradient
-    gradient: Gradient<LinSrgb<f64>>,
+    gradient: Linear<Equidistant, Vec<LinSrgb<f64>>, Identity>,
 
     /// Gradient lower bound
     min: f64,
@@ -61,7 +65,7 @@ impl Colormap {
         min: f64,
         max: f64,
         reversed: Option<bool>,
-    ) -> Self {
+    ) -> Result<Self, ColormapCreationError> {
         let base_palette = match *colormap_type.unwrap_or(&ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
@@ -77,21 +81,34 @@ impl Colormap {
         } else {
             base_palette.to_vec()
         };
-        let linear_palette = palette.iter().map(|&[r, g, b]| {
-            Srgb::new(
-                f64::from(r) / 255.0,
-                f64::from(g) / 255.0,
-                f64::from(b) / 255.0,
-            )
-            .into_linear()
-        });
-        let gradient = Gradient::new(linear_palette);
-        Colormap { gradient, min, max }
+        let linear_palette = palette
+            .iter()
+            .map(|&[r, g, b]| {
+                Srgb::new(
+                    f64::from(r) / 255.0,
+                    f64::from(g) / 255.0,
+                    f64::from(b) / 255.0,
+                )
+                .into_linear()
+            })
+            .collect::<Vec<_>>();
+
+        let gradient = Linear::builder()
+            .elements(linear_palette)
+            .equidistant::<f64>()
+            .normalized()
+            .build()?;
+
+        Ok(Colormap { gradient, min, max })
     }
 
     /// Create a new colormap with bounds
     #[must_use]
-    pub fn new_with_bounds(colormap_type: Option<&ColormapType>, min: f64, max: f64) -> Self {
+    pub fn new_with_bounds(
+        colormap_type: Option<&ColormapType>,
+        min: f64,
+        max: f64,
+    ) -> Result<Self, ColormapCreationError> {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
@@ -110,8 +127,11 @@ impl Colormap {
         } else {
             (value - self.min) / (self.max - self.min)
         };
-        let color = self.gradient.get(value);
-        let pixel: [u8; 3] = Srgb::from_linear(color).into_format().into_raw();
+        let color: LinSrgb<f64> = self.gradient.gen(value);
+        let color: Srgb<f64> = Srgb::from_linear(color);
+        let color: Srgb<u8> = color.into_format();
+        let (r, g, b): (u8, u8, u8) = color.into_components();
+        let pixel: [u8; 3] = [r, g, b];
         pixel
     }
 }
