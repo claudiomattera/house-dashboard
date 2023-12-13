@@ -54,9 +54,10 @@ use house_dashboard_trend::{draw_trend, TrendConfiguration};
 const TESTS_PATH: &str = "tests";
 const DATA_PATH: &str = "tests/data";
 
-#[async_std::main]
-async fn main() {
-    DashboardWorld::run(Path::new(TESTS_PATH).join("features/")).await;
+fn main() {
+    async_std::task::block_on(async {
+        DashboardWorld::run(Path::new(TESTS_PATH).join("features/")).await
+    });
 }
 
 type TimeSeries = Vec<(DateTime<Utc>, f64)>;

@@ -29,7 +29,7 @@ house-dashboard-geographical-heatmap = { workspace = true }
 house-dashboard-temporal-heatmap = { workspace = true }
 house-dashboard-image = { workspace = true }
 
-async-std = { workspace = true, features = ["attributes", "default"] }
+async-std = { workspace = true, features = ["default"] }
 cucumber = { workspace = true, features = ["macros"] }
 
 serde = { workspace = true, features = ["derive"] }

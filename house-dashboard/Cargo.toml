@@ -37,7 +37,7 @@ house-dashboard-image = { workspace = true, optional = true }
 thiserror = { workspace = true }
 miette = { workspace = true, features = ["fancy"] }
 
-async-std = { workspace = true, features = ["attributes", "default"] }
+async-std = { workspace = true, features = ["default"] }
 futures = { workspace = true, features = ["std"] }
 image = { workspace = true, features = ["bmp"] }
 
