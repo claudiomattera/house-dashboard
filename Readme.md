@@ -8,9 +8,9 @@ An application to display various kinds of charts on a house dashboard.
 ![Infrastructure Chart](./docs/infrastructure.png)
 ![Proxmox Chart](./docs/proxmox.png)
 ![Trend Chart](./docs/trend.png)
-![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
-![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
-![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
+![Geographical Heat-Map Chart](./docs/geographicalheatmap-light.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real-light.png)
+![Temporal Heat-Map Chart](./docs/temporalheatmap-light.png)
 
 This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; infrastructure summary; and any other kind of data available.
 
@@ -150,6 +150,7 @@ Charts can be of several types:
 Display the status of physical infrastructure, and an optional time of last update.
 
 ![Infrastructure Chart](./docs/infrastructure.png)
+![Infrastructure Chart (light theme)](./docs/infrastructure-light.png)
 
 The configuration file must contain the following information:
 
@@ -168,6 +169,7 @@ vertical_step = 18
 Display the status of Proxmox infrastructure.
 
 ![Proxmox Chart](./docs/proxmox.png)
+![Proxmox Chart (light theme)](./docs/proxmox-light.png)
 
 The configuration file must contain the following information:
 
@@ -186,6 +188,7 @@ node_fqdn = "proxmox.example.com"
 Display a trend over time.
 
 ![Trend Chart](./docs/trend.png)
+![Trend Chart (light theme)](./docs/trend-light.png)
 
 The configuration file must contain the following information:
 
@@ -215,7 +218,10 @@ draw_horizontal_grid = true
 Display a heatmap over multiple geographical regions.
 
 ![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Geographical Heat-Map Chart (light theme)](./docs/geographicalheatmap-light.png)
+
 ![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
+![Real Geographical Heat-Map Chart (light theme)](./docs/geographicalheatmap-real-light.png)
 
 The configuration file must contain the following information:
 
@@ -277,6 +283,7 @@ coordinates = [
 Display a heatmap over time.
 
 ![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
+![Temporal Heat-Map Chart (light theme)](./docs/temporalheatmap-light.png)
 
 The configuration file must contain the following information:
 

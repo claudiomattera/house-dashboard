@@ -78,3 +78,10 @@ update-images: (test '--all-features')
     convert house-dashboard-test/tests/data/infrastructure/dark-expected.bmp docs/infrastructure.png
     convert house-dashboard-test/tests/data/geographical-heatmap/apartment-dark-expected.bmp docs/geographicalheatmap.png
     convert house-dashboard-test/tests/data/geographical-heatmap/italy-dark-expected.bmp docs/geographicalheatmap-real.png
+
+    convert house-dashboard-test/tests/data/trend/room-temperature-expected.bmp docs/trend-light.png
+    convert house-dashboard-test/tests/data/temporal-heatmap/outdoor-temperature-expected.bmp docs/temporalheatmap-light.png
+    convert house-dashboard-test/tests/data/proxmox/expected.bmp docs/proxmox-light.png
+    convert house-dashboard-test/tests/data/infrastructure/expected.bmp docs/infrastructure-light.png
+    convert house-dashboard-test/tests/data/geographical-heatmap/apartment-expected.bmp docs/geographicalheatmap-light.png
+    convert house-dashboard-test/tests/data/geographical-heatmap/italy-expected.bmp docs/geographicalheatmap-real-light.png
