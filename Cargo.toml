@@ -100,8 +100,6 @@ toml = { version = "0.8", default-features = false }
 
 isahc = { version = "1.7", default-features = false }
 
-extrasafe = { version = "0.1", default-features = false }
-
 palette = { version = "0.7", default-features = false }
 enterpolation = { version = "0.2", default-features = false }
 

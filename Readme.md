@@ -31,9 +31,6 @@ Installation
 This application can be compiled using the Rust toolchain.
 
 ~~~~shell
-# Install dependencies if building on x86_64
-apt-get install --yes libseccomp-dev
-
 # Create the binary in `target/release/house-dashboard`
 just build-release
 

@@ -58,9 +58,6 @@ isahc = { workspace = true }
 
 plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
 
-[target.'cfg(target_arch = "x86_64")'.dependencies]
-extrasafe = { workspace = true }
-
 [package.metadata.deb]
 maintainer = "Claudio Mattera <dev@claudiomattera.it>"
 copyright = "2023, Claudio Mattera <dev@claudiomattera.it>"
