@@ -1,0 +1,10 @@
+[
+    "backup.example.com",
+    "dns1.example.com",
+    "dns2.example.com",
+    "http1.example.com",
+    "http2.example.com",
+    "http3.example.com",
+    "influxdb.example.com",
+    "ntp.example.com"
+]

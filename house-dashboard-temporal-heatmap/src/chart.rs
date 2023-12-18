@@ -75,7 +75,7 @@ pub fn draw_temporal_heatmap(
         min_y,
         max_y,
         temporal_heatmap.reversed,
-    );
+    )?;
 
     let fragments = create_fragments(temporal_heatmap, &colormap, &time_series);
 
@@ -99,10 +99,14 @@ fn draw_title<DB: DrawingBackend>(
 
     let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
     let box_height = i32::try_from(box_height)?;
+    let box_x = i32::try_from(width)? / 2;
+    let box_y = box_height / 2;
+
+    let vertical_skip = 5;
 
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, box_height),
+        (box_x, box_y + vertical_skip),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
@@ -137,7 +141,7 @@ fn compute_range(
 ) -> (DateTime<Local>, DateTime<Local>, f64, f64) {
     let mut min_x: DateTime<Local> = DateTime::<Utc>::MAX_UTC.with_timezone(&Local);
     let mut max_x: DateTime<Local> = DateTime::<Utc>::MIN_UTC.with_timezone(&Local);
-    for &(date, _value) in time_series.iter() {
+    for &(date, _value) in time_series {
         min_x = min_x.min(date);
         max_x = max_x.max(date);
     }
@@ -165,7 +169,7 @@ fn compute_range(
 fn compute_value_range(time_series: &[(DateTime<Local>, f64)]) -> (f64, f64) {
     let mut min_y: f64 = f64::MAX;
     let mut max_y: f64 = f64::MIN;
-    for &(_date, value) in time_series.iter() {
+    for &(_date, value) in time_series {
         min_y = min_y.min(value);
         max_y = max_y.max(value);
     }
@@ -244,11 +248,14 @@ where
 
     let (width, height) = root.dim_in_pixel();
 
+    #[allow(clippy::cast_possible_truncation)]
+    let colorbar_width = (10.0 * style.font_scale) as i32;
+
     let right_margin = temporal_heatmap.right_margin.unwrap_or(55);
 
     let colorbar = Colorbar::new(
         (i32::try_from(width)? - right_margin, 40),
-        (10, i32::try_from(height)? - 60),
+        (colorbar_width, i32::try_from(height)? - 60),
         bounds,
         temporal_heatmap.precision.unwrap_or(0),
         temporal_heatmap.unit.clone(),

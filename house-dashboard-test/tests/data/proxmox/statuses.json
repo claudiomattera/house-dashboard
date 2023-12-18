@@ -1,0 +1,10 @@
+{
+    "backup.example.com": "running",
+    "dns1.example.com": "running",
+    "dns2.example.com": "offline",
+    "http1.example.com": "running",
+    "http2.example.com": "running",
+    "http3.example.com": "offline",
+    "influxdb.example.com": "running",
+    "ntp.example.com": "running"
+}

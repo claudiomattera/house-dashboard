@@ -1,38 +1,33 @@
 [package]
 name = "house-dashboard-infrastructure-summary"
-version = "1.0.0"
-authors = ["Claudio Mattera <dev@claudiomattera.it>"]
-edition = "2021"
-description = "An application to generate and display charts for a house dashboard"
-readme = "Readme.md"
-homepage = "https://gitlab.com/claudiomattera/house-dashboard"
-repository = "https://gitlab.com/claudiomattera/house-dashboard"
-license = "MPL-2.0"
-keywords = [
-    "dashboard",
-]
-categories = [
-    "command-line-utilities",
-]
-publish = false
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
 
 [dependencies]
-house-dashboard-common = { path = "../house-dashboard-common" }
-house-dashboard-influxdb = { path = "../house-dashboard-influxdb" }
+house-dashboard-common = { workspace = true }
+house-dashboard-influxdb = { workspace = true }
 
-thiserror = { version = "1" }
-miette = { version = "5", features = ["fancy"] }
+thiserror = { workspace = true }
+miette = { workspace = true, features = ["fancy"] }
 
-tracing = { version = "0.1" }
+tracing = { workspace = true }
 
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 
-time = { version = "0.3", features = ["formatting"] }
-time-tz = { version = "1", features = ["system"] }
-time-fmt = { version = "0.3" }
+time = { workspace = true, features = ["formatting"] }
+time-tz = { workspace = true, features = ["system"] }
+time-fmt = { workspace = true }
 
-[dependencies.plotters]
-git = "https://github.com/plotters-rs/plotters/"
-branch = "master"
-default-features = false
-features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"]
+plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }

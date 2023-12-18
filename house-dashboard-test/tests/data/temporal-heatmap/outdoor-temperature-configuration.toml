@@ -1,0 +1,13 @@
+kind = "TemporalHeatMap"
+title = "OUTDOOR TEMPERATURE"
+unit = "C"
+database = "telegraf"
+measurement = "weather_other"
+field = "temperature"
+aggregator = "mean"
+tag = "city"
+tag_value = "Odense"
+period = "HourOverDay"
+bounds = [-5, 15]
+colormap = "CoolWarm"
+right_margin = 45

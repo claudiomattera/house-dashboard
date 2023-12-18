@@ -1,0 +1,8 @@
+{
+    "backup.example.com": 0.1,
+    "dns1.example.com": 0.2,
+    "http1.example.com": 0.3,
+    "http2.example.com": 0.4,
+    "influxdb.example.com": 0.5,
+    "ntp.example.com": 0.6
+}

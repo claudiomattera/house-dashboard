@@ -9,6 +9,8 @@
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 
+use itertools::Itertools;
+
 use tracing::{debug, info, warn};
 
 use chrono::{DateTime, Local, Utc};
@@ -69,6 +71,7 @@ where
 
     let mut chart = create_chart_context(
         trend.top_padding,
+        trend.min_y_range,
         x_range,
         &indices,
         &new_root,
@@ -79,7 +82,7 @@ where
     draw_axes(trend, style, &mut chart)?;
 
     debug!("Plotting time-series");
-    for (name, time_series) in &time_seriess {
+    for (name, time_series) in time_seriess.iter().sorted_by_key(|pair| pair.0) {
         plot_time_series(
             trend,
             &indices,
@@ -111,10 +114,14 @@ fn draw_title<DB: DrawingBackend>(
 
     let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
     let box_height = i32::try_from(box_height)?;
+    let box_x = i32::try_from(width)? / 2;
+    let box_y = box_height / 2;
+
+    let vertical_skip = 5;
 
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, box_height),
+        (box_x, box_y + vertical_skip),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
@@ -162,7 +169,7 @@ where
     let mut min_y = std::f64::MAX;
     let mut max_y = std::f64::MIN;
 
-    for (name, time_series) in time_seriess.iter() {
+    for (name, time_series) in time_seriess {
         if !indices.contains_key(name) {
             debug!(
                 "Skipping unexpected time-series '{}' for range computation",
@@ -211,6 +218,7 @@ fn convert_time_series_to_local_time(
 /// Create a chart context
 fn create_chart_context<'a, DB: DrawingBackend + 'a, S>(
     top_padding: Option<f64>,
+    min_y_range: Option<f64>,
     (min_x, max_x): (DateTime<Local>, DateTime<Local>),
     indices: &HashMap<String, usize>,
     root: &'a DrawingArea<DB, Shift>,
@@ -221,7 +229,15 @@ where
 {
     debug!("Creating chart");
 
-    let (min_y, max_y) = compute_range(top_padding, indices, time_seriess);
+    let (mut min_y, mut max_y) = compute_range(top_padding, indices, time_seriess);
+
+    if let Some(min_y_range) = min_y_range {
+        let increment = min_y_range / 10.0;
+        while max_y - min_y < min_y_range {
+            min_y -= increment;
+            max_y += increment;
+        }
+    }
 
     let chart = ChartBuilder::on(root)
         .margin(5)

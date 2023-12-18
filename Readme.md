@@ -8,9 +8,9 @@ An application to display various kinds of charts on a house dashboard.
 ![Infrastructure Chart](./docs/infrastructure.png)
 ![Proxmox Chart](./docs/proxmox.png)
 ![Trend Chart](./docs/trend.png)
-![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
-![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
-![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
+![Geographical Heat-Map Chart](./docs/geographicalheatmap-light.png)
+![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real-light.png)
+![Temporal Heat-Map Chart](./docs/temporalheatmap-light.png)
 
 This application can be used to display room temperature, humidity and air quality; water and heating meters readings; weather forecast; infrastructure summary; and any other kind of data available.
 
@@ -46,6 +46,8 @@ Usage
 ----
 
 This is a command-line application that saves charts as BMP images.
+
+Watch a [screen cast of running the application](./docs/run.cast).
 
 The charts are defined in a configuration directory which is passed to the application through a command-line argument.
 
@@ -113,7 +115,17 @@ resolution = [320, 240]
 ~~~~
 
 A custom font and font file must be specified, and the font name must correspond to the font file.
-There are two system palettes: `Light` and `Dark`, and three series palettes: `ColorbrewerSet1`, `ColorbrewerSet2` and `ColorbrewerSet3`.
+There are two system palettes: `Light` and `Dark`, and three series palettes:
+
+`ColorBrewerSet1`
+: ![ColorBrewerSet1 palette](docs/palettes/colorbrewerset1.png)
+
+`ColorBrewerSet2`
+: ![ColorBrewerSet2 palette](docs/palettes/colorbrewerset2.png)
+
+`ColorBrewerSet3`
+: ![ColorBrewerSet3 palette](docs/palettes/colorbrewerset3.png)
+
 
 Recommendation: font [Print Char 21] works quite well for small displays.
 
@@ -138,6 +150,7 @@ Charts can be of several types:
 Display the status of physical infrastructure, and an optional time of last update.
 
 ![Infrastructure Chart](./docs/infrastructure.png)
+![Infrastructure Chart (light theme)](./docs/infrastructure-light.png)
 
 The configuration file must contain the following information:
 
@@ -156,6 +169,7 @@ vertical_step = 18
 Display the status of Proxmox infrastructure.
 
 ![Proxmox Chart](./docs/proxmox.png)
+![Proxmox Chart (light theme)](./docs/proxmox-light.png)
 
 The configuration file must contain the following information:
 
@@ -174,6 +188,7 @@ node_fqdn = "proxmox.example.com"
 Display a trend over time.
 
 ![Trend Chart](./docs/trend.png)
+![Trend Chart (light theme)](./docs/trend-light.png)
 
 The configuration file must contain the following information:
 
@@ -194,6 +209,7 @@ draw_last_value = true
 hide_legend = false
 max_x_ticks = 6
 draw_horizontal_grid = true
+# min_y_range = 12
 ~~~~
 
 
@@ -202,7 +218,10 @@ draw_horizontal_grid = true
 Display a heatmap over multiple geographical regions.
 
 ![Geographical Heat-Map Chart](./docs/geographicalheatmap.png)
+![Geographical Heat-Map Chart (light theme)](./docs/geographicalheatmap-light.png)
+
 ![Real Geographical Heat-Map Chart](./docs/geographicalheatmap-real.png)
+![Real Geographical Heat-Map Chart (light theme)](./docs/geographicalheatmap-real-light.png)
 
 The configuration file must contain the following information:
 
@@ -264,6 +283,7 @@ coordinates = [
 Display a heatmap over time.
 
 ![Temporal Heat-Map Chart](./docs/temporalheatmap.png)
+![Temporal Heat-Map Chart (light theme)](./docs/temporalheatmap-light.png)
 
 The configuration file must contain the following information:
 
@@ -286,16 +306,31 @@ colormap = "CoolWarm"
 
 #### Colour Maps
 
-For those charts that use colour maps and colour bars, the following are supported:
+For those charts that use colour maps and colour bars, the following palettes are supported:
 
-* `CoolWarm`
-* `Blues`
-* `Reds`
-* `Greens`
-* `Oranges`
-* `Violets`
-* `Grays`
-* `Status`
+`CoolWarm`
+: ![CoolWarm palette](docs/palettes/coolwarm.png)
+
+`Blues`
+: ![Blues palette](docs/palettes/blues.png)
+
+`Reds`
+: ![Reds palette](docs/palettes/reds.png)
+
+`Greens`
+: ![Greens palette](docs/palettes/greens.png)
+
+`Oranges`
+: ![Oranges palette](docs/palettes/oranges.png)
+
+`Violets`
+: ![Violets palette](docs/palettes/violets.png)
+
+`Grays`
+: ![Grays palette](docs/palettes/grays.png)
+
+`Status`
+: ![Status palette](docs/palettes/status.png)
 
 
 ### Retry on Errors
@@ -303,6 +338,12 @@ For those charts that use colour maps and colour bars, the following are support
 All charts in the configuration are generated simultaneously.
 If generation for any of them fails, it will be retried four times with exponential backoff, for a total of about one minute.
 This allows to survive short network issues without delaying execution for too long.
+
+
+Changes
+----
+
+See the [Changelog](./Changelog.md) for a list of changes.
 
 
 License

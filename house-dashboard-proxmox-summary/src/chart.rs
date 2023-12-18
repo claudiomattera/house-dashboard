@@ -23,7 +23,7 @@ use plotters::{
 };
 
 use house_dashboard_common::{
-    colormap::{Colormap, ColormapType},
+    colormap::{interpolate_colors, Colormap, ColormapType},
     configuration::StyleConfiguration,
     element::Loadbar,
     palette::SystemColor,
@@ -132,10 +132,14 @@ fn draw_title<DB: DrawingBackend>(
 
     let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
     let box_height = i32::try_from(box_height)?;
+    let box_x = i32::try_from(width)? / 2;
+    let box_y = box_height / 2;
+
+    let vertical_skip = 5;
 
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, box_height),
+        (box_x, box_y + vertical_skip),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
@@ -196,7 +200,7 @@ fn draw_hosts<DB>(
 where
     DB: DrawingBackend,
 {
-    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD);
+    let colormap = Colormap::new_with_bounds(Some(ColormapType::Status).as_ref(), 0.0, MAX_LOAD)?;
 
     for (i, &(host, load)) in (0..).zip(loads) {
         debug!(
@@ -260,12 +264,16 @@ fn draw_host_status<DB: DrawingBackend>(
         filled: true,
         stroke_width: 0,
     };
+    let border_style: ShapeStyle = ShapeStyle {
+        color: interpolate_colors(
+            color,
+            style.system_palette.pick(SystemColor::LightForeground),
+        ),
+        filled: false,
+        stroke_width: 1,
+    };
     root.draw(&Circle::new((STATUS_X, centered_y), 2, shape_style))?;
-    root.draw(&Circle::new(
-        (STATUS_X, centered_y),
-        3,
-        style.system_palette.pick(SystemColor::LightForeground),
-    ))?;
+    root.draw(&Circle::new((STATUS_X, centered_y), 3, border_style))?;
 
     Ok(())
 }

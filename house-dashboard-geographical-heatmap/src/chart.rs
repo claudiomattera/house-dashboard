@@ -11,6 +11,8 @@ use tracing::{debug, info};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 
+use itertools::Itertools;
+
 use num_traits::{Bounded, FromPrimitive, Num, SaturatingAdd, SaturatingMul, Zero};
 
 use plotters::{
@@ -78,16 +80,19 @@ where
         geographical_heatmap.bounds.0,
         geographical_heatmap.bounds.1,
         geographical_heatmap.reversed,
-    );
+    )?;
 
     debug!("Drawing regions");
-    for (name, path) in normalized_projected_regions {
+    for (name, path) in normalized_projected_regions
+        .iter()
+        .sorted_by_key(|pair| pair.0)
+    {
         draw_region(
             geographical_heatmap,
             style,
             &colormap,
             values,
-            &name,
+            name,
             path.as_slice(),
             &new_root,
         )?;
@@ -111,10 +116,14 @@ fn draw_title<DB: DrawingBackend>(
 
     let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
     let box_height = i32::try_from(box_height)?;
+    let box_x = i32::try_from(width)? / 2;
+    let box_y = box_height / 2;
+
+    let vertical_skip = 5;
 
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, box_height),
+        (box_x, box_y + vertical_skip),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),
@@ -253,7 +262,7 @@ fn compute_all_regions_bounds(regions: &HashMap<String, Vec<(f64, f64)>>) -> (f6
     let mut min_x = std::f64::MAX;
     let mut max_y = std::f64::MIN;
     let mut min_y = std::f64::MAX;
-    for (_, path) in regions.iter() {
+    for path in regions.values() {
         let xs: Vec<f64> = path.iter().map(|p| p.0).collect();
         let ys: Vec<f64> = path.iter().map(|p| p.1).collect();
         let (local_min_x, local_max_x) = bounds_of(&xs);
