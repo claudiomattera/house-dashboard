@@ -59,7 +59,10 @@ pub struct Colormap {
 
 impl Colormap {
     /// Create a new colormap with bounds and direction
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the palette gradient cannot be built.
     pub fn new_with_bounds_and_direction(
         colormap_type: Option<&ColormapType>,
         min: f64,
@@ -103,7 +106,10 @@ impl Colormap {
     }
 
     /// Create a new colormap with bounds
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the palette gradient cannot be built.
     pub fn new_with_bounds(
         colormap_type: Option<&ColormapType>,
         min: f64,

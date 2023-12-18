@@ -56,7 +56,7 @@ const DATA_PATH: &str = "tests/data";
 
 fn main() {
     async_std::task::block_on(async {
-        DashboardWorld::run(Path::new(TESTS_PATH).join("features/")).await
+        DashboardWorld::run(Path::new(TESTS_PATH).join("features/")).await;
     });
 }
 
