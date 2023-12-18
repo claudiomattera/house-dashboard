@@ -187,16 +187,22 @@ async fn parse_configuration(
 async fn parse_charts_configurations(
     configuration_directory_path: &Path,
 ) -> Result<Vec<ChartConfiguration>, Report> {
+    let mut paths: Vec<async_std::path::PathBuf> = read_dir(configuration_directory_path)
+        .await
+        .into_diagnostic()
+        .wrap_err("cannot iterate over files in configuration directory")?
+        .map(|result| result.map(|dir_entry| dir_entry.path()))
+        .flat_map(future_from_iter)
+        .filter(|path| ready(path.extension() == Some(OsStr::new("toml"))))
+        .filter(|path| ready(path.file_name() != Some(OsStr::new("influxdb.toml"))))
+        .filter(|path| ready(path.file_name() != Some(OsStr::new("style.toml"))))
+        .collect()
+        .await;
+
+    paths.sort();
+
     let results: Vec<Result<Option<ChartConfiguration>, Report>> =
-        read_dir(configuration_directory_path)
-            .await
-            .into_diagnostic()
-            .wrap_err("cannot iterate over files in configuration directory")?
-            .map(|result| result.map(|dir_entry| dir_entry.path()))
-            .flat_map(future_from_iter)
-            .filter(|path| ready(path.extension() == Some(OsStr::new("toml"))))
-            .filter(|path| ready(path.file_name() != Some(OsStr::new("influxdb.toml"))))
-            .filter(|path| ready(path.file_name() != Some(OsStr::new("style.toml"))))
+        future_from_iter(paths.into_iter())
             .then(|path| async move {
                 parse_chart_configuration(path.as_ref())
                     .await
