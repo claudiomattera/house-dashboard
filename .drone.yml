@@ -166,7 +166,7 @@ steps:
       from_secret: nexus_repository
   commands:
   - apk add --no-cache curl
-  - "curl -u \"$${NEXUS_USERNAME}:$${NEXUS_PASSWORD}\" -H \"Content-Type: multipart/form-data\" --data-binary \"@./target/debian/$${DRONE_REPO_NAME}_$${DRONE_TAG}_amd64.deb\" \"$${NEXUS_HOST}/repository/$${NEXUS_REPOSITORY}/\""
+  - "curl -u \"$${NEXUS_USERNAME}:$${NEXUS_PASSWORD}\" -H \"Content-Type: multipart/form-data\" --data-binary \"@./target/debian/$${DRONE_REPO_NAME}_$${DRONE_TAG}-1_amd64.deb\" \"$${NEXUS_HOST}/repository/$${NEXUS_REPOSITORY}/\""
 
 - name: create release on gitea
   image: plugins/gitea-release
