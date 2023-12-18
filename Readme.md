@@ -37,7 +37,7 @@ apt-get install --yes libseccomp-dev
 # Create the binary in `target/release/house-dashboard`
 just build-release
 
-# Create a Debian package in `target/debian/house-dashboard_1.0.0_amd64.deb`
+# Create a Debian package in `target/debian/house-dashboard_1.1.1-1_amd64.deb`
 just deb
 ~~~~
 

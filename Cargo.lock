@@ -994,7 +994,7 @@ checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "house-dashboard"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "async-std",
  "bpaf",
@@ -1025,7 +1025,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-common"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "chrono",
  "enterpolation",
@@ -1041,7 +1041,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-geographical-heatmap"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -1056,7 +1056,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-image"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "house-dashboard-common",
  "image",
@@ -1070,7 +1070,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-influxdb"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "async-std",
  "chrono",
@@ -1086,7 +1086,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-infrastructure-summary"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-proxmox-summary"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "house-dashboard-common",
  "house-dashboard-influxdb",
@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-temporal-heatmap"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "chrono",
  "house-dashboard-common",
@@ -1130,7 +1130,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-test"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "async-std",
  "chrono",
@@ -1153,7 +1153,7 @@ dependencies = [
 
 [[package]]
 name = "house-dashboard-trend"
-version = "1.1.0"
+version = "1.1.1-dev"
 dependencies = [
  "chrono",
  "house-dashboard-common",
