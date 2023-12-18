@@ -114,10 +114,14 @@ fn draw_title<DB: DrawingBackend>(
 
     let (_box_width, box_height) = title_font.box_size(title).map_err(|_| Error::Font)?;
     let box_height = i32::try_from(box_height)?;
+    let box_x = i32::try_from(width)? / 2;
+    let box_y = box_height / 2;
+
+    let vertical_skip = 5;
 
     root.draw(&Text::new(
         title,
-        (i32::try_from(width)? / 2, box_height),
+        (box_x, box_y + vertical_skip),
         title_font
             .color(&style.system_palette.pick(SystemColor::Foreground))
             .pos(pos),

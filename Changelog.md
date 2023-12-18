@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interpolate color of status border in Proxmox and infrastructure charts
 - Sort series before plotting them in trend and geographical heatmap charts
 
+### Fixed
+
+- Fix title position for different fonts
+
 
 ## [1.0.0] - 2023-03-08
 
