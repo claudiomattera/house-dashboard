@@ -1,0 +1,5 @@
+kind = "InfrastructureSummary"
+title = "INFRASTRUCTURE"
+how_long_ago = "PT30M"
+last_update_format = "Updated %A at %H:%M"
+vertical_step = 18

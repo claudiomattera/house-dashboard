@@ -1,0 +1,46 @@
+[package]
+name = "house-dashboard-test"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+# Cucumber tests cannot use default harness
+name = "behaviour"
+harness = false
+
+[dev-dependencies]
+house-dashboard-common = { workspace = true }
+house-dashboard-infrastructure-summary = { workspace = true }
+house-dashboard-proxmox-summary = { workspace = true }
+house-dashboard-trend = { workspace = true }
+house-dashboard-geographical-heatmap = { workspace = true }
+house-dashboard-temporal-heatmap = { workspace = true }
+house-dashboard-image = { workspace = true }
+
+async-std = { workspace = true, features = ["default"] }
+cucumber = { workspace = true, features = ["macros"] }
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["std"] }
+toml = { workspace = true, features = ["parse"] }
+
+image = { workspace = true, features = ["bmp"] }
+
+chrono = { workspace = true }
+time = { workspace = true }
+
+plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
+
+itertools = { workspace = true, features = ["use_alloc"] }

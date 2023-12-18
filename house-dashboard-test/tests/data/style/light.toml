@@ -1,0 +1,6 @@
+font_name = "ProFontWindows"
+font_path = "../../../../fonts/ProFontWindows.ttf"
+font_scale = 1.5
+system_palette = "Light"
+series_palette = "ColorbrewerSet1"
+resolution = [320, 240]

@@ -1,3 +1,4 @@
 /target
 /configuration
 /*.bmp
+/*test*/**/*actual.bmp

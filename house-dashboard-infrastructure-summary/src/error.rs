@@ -18,6 +18,8 @@ use time_tz::system::Error as TimeTzError;
 
 use time_fmt::format::FormatError as TimeFormatError;
 
+use house_dashboard_common::error::ColormapCreationError;
+
 /// An error occurred generating a chart
 #[derive(ThisError, Debug, Diagnostic)]
 pub enum Error {
@@ -36,6 +38,10 @@ pub enum Error {
     /// Font error
     #[error("font error")]
     Font,
+
+    /// Colormap creation failed
+    #[error("Colormap creation failed")]
+    ColormapCreation(#[from] ColormapCreationError),
 
     /// Integer conversion failed
     #[error(transparent)]

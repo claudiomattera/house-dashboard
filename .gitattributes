@@ -9,9 +9,16 @@
 *.md       text diff=markdown
 *.rs       text diff=rust
 *.toml     text diff=toml
+*.feature  text
 
 # Set explicit binary files
 *.png binary
+*.bmp binary
+*.ttf binary
+*.otf binary
 
 # Set explicit text files
-Cargo.lock text
+Cargo.lock text linguist-generated
+
+# Set explicit vendored files
+fonts/* linguist-vendored

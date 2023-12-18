@@ -14,6 +14,8 @@ use miette::Diagnostic;
 
 use plotters::drawing::DrawingAreaErrorKind;
 
+use house_dashboard_common::error::ColormapCreationError;
+
 /// An error occurred generating a chart
 #[derive(ThisError, Debug, Diagnostic)]
 pub enum Error {
@@ -32,6 +34,10 @@ pub enum Error {
     /// Font error
     #[error("font error")]
     Font,
+
+    /// Colormap creation failed
+    #[error("Colormap creation failed")]
+    ColormapCreation(#[from] ColormapCreationError),
 
     /// Integer conversion failed
     #[error(transparent)]

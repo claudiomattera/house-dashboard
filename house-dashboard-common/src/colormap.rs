@@ -8,9 +8,13 @@
 
 use serde::Deserialize;
 
-use palette::{Gradient, LinSrgb, Pixel, Srgb};
+use palette::{LinSrgb, Srgb};
 
-use plotters::style::RGBColor;
+use enterpolation::{easing::Identity, linear::Linear, Equidistant, Generator};
+
+use plotters::style::{Color, RGBAColor, RGBColor};
+
+use crate::error::ColormapCreationError;
 
 /// Type of color maps
 #[derive(Debug, Deserialize)]
@@ -44,7 +48,7 @@ pub enum ColormapType {
 #[derive(Debug)]
 pub struct Colormap {
     /// Color map gradient
-    gradient: Gradient<LinSrgb<f64>>,
+    gradient: Linear<Equidistant, Vec<LinSrgb<f64>>, Identity>,
 
     /// Gradient lower bound
     min: f64,
@@ -55,13 +59,16 @@ pub struct Colormap {
 
 impl Colormap {
     /// Create a new colormap with bounds and direction
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the palette gradient cannot be built.
     pub fn new_with_bounds_and_direction(
         colormap_type: Option<&ColormapType>,
         min: f64,
         max: f64,
         reversed: Option<bool>,
-    ) -> Self {
+    ) -> Result<Self, ColormapCreationError> {
         let base_palette = match *colormap_type.unwrap_or(&ColormapType::Blues) {
             ColormapType::CoolWarm => PALETTE_COOLWARM,
             ColormapType::Reds => PALETTE_REDS,
@@ -77,21 +84,37 @@ impl Colormap {
         } else {
             base_palette.to_vec()
         };
-        let linear_palette = palette.iter().map(|&[r, g, b]| {
-            Srgb::new(
-                f64::from(r) / 255.0,
-                f64::from(g) / 255.0,
-                f64::from(b) / 255.0,
-            )
-            .into_linear()
-        });
-        let gradient = Gradient::new(linear_palette);
-        Colormap { gradient, min, max }
+        let linear_palette = palette
+            .iter()
+            .map(|&[r, g, b]| {
+                Srgb::new(
+                    f64::from(r) / 255.0,
+                    f64::from(g) / 255.0,
+                    f64::from(b) / 255.0,
+                )
+                .into_linear()
+            })
+            .collect::<Vec<_>>();
+
+        let gradient = Linear::builder()
+            .elements(linear_palette)
+            .equidistant::<f64>()
+            .normalized()
+            .build()?;
+
+        Ok(Colormap { gradient, min, max })
     }
 
     /// Create a new colormap with bounds
-    #[must_use]
-    pub fn new_with_bounds(colormap_type: Option<&ColormapType>, min: f64, max: f64) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the palette gradient cannot be built.
+    pub fn new_with_bounds(
+        colormap_type: Option<&ColormapType>,
+        min: f64,
+        max: f64,
+    ) -> Result<Self, ColormapCreationError> {
         Self::new_with_bounds_and_direction(colormap_type, min, max, None)
     }
 
@@ -110,8 +133,11 @@ impl Colormap {
         } else {
             (value - self.min) / (self.max - self.min)
         };
-        let color = self.gradient.get(value);
-        let pixel: [u8; 3] = Srgb::from_linear(color).into_format().into_raw();
+        let color: LinSrgb<f64> = self.gradient.gen(value);
+        let color: Srgb<f64> = Srgb::from_linear(color);
+        let color: Srgb<u8> = color.into_format();
+        let (r, g, b): (u8, u8, u8) = color.into_components();
+        let pixel: [u8; 3] = [r, g, b];
         pixel
     }
 }
@@ -309,3 +335,19 @@ const PALETTE_COOLWARM: &[[u8; 3]] = &[
 /// 2. `#ffff33` <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAPCAIAAAApuQuVAAAAMUlEQVR4nGP8/9+YYfABpoF2AHYw6ixSwKizSAGjziIFjDqLFDDqLFLAqLNIAYPUWQDuoAJPB8UZggAAAABJRU5ErkJggg==">
 /// 3. `#e41a1c` <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAPCAIAAAApuQuVAAAAMUlEQVR4nGN8IiXDMPgA00A7ADsYdRYpYNRZpIBRZ5ECRp1FChh1Filg1FmkgEHqLABLxAE4DctCAAAAAABJRU5ErkJggg==">
 const PALETTE_STATUS: &[[u8; 3]] = &[[77, 175, 74], [255, 255, 51], [228, 26, 28]];
+
+/// Interpolate two colors
+#[must_use]
+pub fn interpolate_colors(c1: RGBAColor, c2: RGBColor) -> RGBAColor {
+    let (r1, g1, b1) = c1.rgb();
+    let (r2, g2, b2) = c2.rgb();
+
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let r = (f32::from(r1) * 0.5 + f32::from(r2) * 0.5) as u8;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let g = (f32::from(g1) * 0.5 + f32::from(g2) * 0.5) as u8;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let b = (f32::from(b1) * 0.5 + f32::from(b2) * 0.5) as u8;
+
+    RGBAColor(r, g, b, c1.alpha())
+}

@@ -130,7 +130,10 @@ impl<'a, DB: DrawingBackend> Drawable<DB> for Colorbar<'a> {
 
             if i % label_step == 0 {
                 let pos = Pos::new(HPos::Left, VPos::Center);
-                let position = (self.position.0 + 15, (upper_left.1 + bottom_right.1) / 2);
+                let position = (
+                    self.position.0 + self.size.0 + 5,
+                    (upper_left.1 + bottom_right.1) / 2,
+                );
                 backend.draw_text(
                     &format!("{0:.1$}{2}", value, self.precision, self.unit),
                     &self

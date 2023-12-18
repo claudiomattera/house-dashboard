@@ -1,0 +1,14 @@
+kind = "Trend"
+title = "TEMPERATURE"
+ylabel = "Temperature"
+yunit = "C"
+database = "house"
+measurement = "indoor_environment"
+field = "temperature"
+tag = "room"
+how_long_ago = "P1D"
+tag_values = ["living room", "bedroom", "bathroom", "entrance", "kitchen"]
+draw_horizontal_grid = true
+max_y_ticks = 7
+xlabel_format = "%H:%M"
+min_y_range = 5
