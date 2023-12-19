@@ -58,9 +58,6 @@ isahc = { workspace = true }
 
 plotters = { workspace = true, features = ["bitmap_backend", "bitmap_encoder", "line_series", "datetime", "ab_glyph"] }
 
-[target.'cfg(target_arch = "x86_64")'.dependencies]
-extrasafe = { workspace = true }
-
 [package.metadata.deb]
 maintainer = "Claudio Mattera <dev@claudiomattera.it>"
 copyright = "2023, Claudio Mattera <dev@claudiomattera.it>"
@@ -73,8 +70,8 @@ depends = "$auto"
 priority = "optional"
 assets = [
     ["target/release/house-dashboard", "usr/bin/", "755"],
-    ["../Readme.md", "usr/share/doc/house-dashboard/Readme.md", "644"],
-    ["../License.md", "usr/share/doc/house-dashboard/License.md", "644"],
+    ["../README.md", "usr/share/doc/house-dashboard/README.md", "644"],
+    ["../LICENSE.md", "usr/share/doc/house-dashboard/LICENSE.md", "644"],
 ]
 maintainer-scripts = "debian/"
 systemd-units = [

@@ -28,16 +28,17 @@ database, which are displayed using [Plotters], a Rust crate for creating charts
 Installation
 ----
 
+This application can be downloaded directly as a standalone executable `house-dashboard`, or it can be installed in a Debian-based system from the archive `house-dashboard_1.1.1-1_amd64.deb`.
+
+### Compile from Source
+
 This application can be compiled using the Rust toolchain.
 
 ~~~~shell
-# Install dependencies if building on x86_64
-apt-get install --yes libseccomp-dev
-
-# Create the binary in `target/release/house-dashboard`
+# Create the standalone executable in `target/release/house-dashboard`
 just build-release
 
-# Create a Debian package in `target/debian/house-dashboard_1.0.0_amd64.deb`
+# Create a Debian package in `target/debian/house-dashboard_1.1.1-1_amd64.deb`
 just deb
 ~~~~
 
@@ -343,7 +344,13 @@ This allows to survive short network issues without delaying execution for too l
 Changes
 ----
 
-See the [Changelog](./Changelog.md) for a list of changes.
+See the [changelog](./CHANGELOG.md) for a list of changes.
+
+
+Development
+----
+
+See the [contributing guide](./CONTRIBUTING.md) for more information about development.
 
 
 License
@@ -351,7 +358,7 @@ License
 
 Copyright Claudio Mattera 2023
 
-You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`License.md`](./License.md) file for details.
+You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`LICENSE.md`](./LICENSE.md) file for details.
 
 
 [MPL 2.0 license]: https://opensource.org/licenses/MPL-2.0

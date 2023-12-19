@@ -6,7 +6,7 @@
 
 //! Main module
 
-#![cfg_attr(not(doctest), doc = include_str!("../../Readme.md"))]
+#![cfg_attr(not(doctest), doc = include_str!("../../README.md"))]
 
 use std::ffi::OsStr;
 use std::io::{BufWriter, Cursor};
@@ -29,12 +29,6 @@ use futures::stream::iter as future_from_iter;
 use futures::{future::ready, stream::FuturesUnordered, StreamExt};
 
 use image::{ImageFormat, RgbImage};
-
-#[cfg(target_arch = "x86_64")]
-use extrasafe::{
-    builtins::{danger_zone::ForkAndExec, BasicCapabilities, Networking, SystemIO},
-    SafetyContext,
-};
 
 use isahc::{
     auth::{Authentication, Credentials},
@@ -64,9 +58,6 @@ use self::logging::setup as setup_logging;
 pub async fn main() -> Result<(), Report> {
     let arguments = parse_command_line();
     setup_logging(arguments.verbosity.try_into().into_diagnostic()?)?;
-
-    #[cfg(target_arch = "x86_64")]
-    setup_allowed_syscalls()?;
 
     let (style_configuration, influxdb_configuration) =
         parse_configuration(&arguments.configuration_directory_path)
@@ -116,48 +107,6 @@ pub async fn main() -> Result<(), Report> {
     Ok(())
 }
 
-/// Setup allowed syscalls
-#[cfg(target_arch = "x86_64")]
-fn setup_allowed_syscalls() -> Result<(), Report> {
-    let safety_context = SafetyContext::new();
-
-    let safety_context = safety_context
-        .enable(BasicCapabilities)
-        .into_diagnostic()
-        .wrap_err("cannot enable basic syscalls")?;
-
-    let safety_context = safety_context
-        .enable(
-            SystemIO::nothing()
-                .allow_read()
-                .allow_write()
-                .allow_ioctl()
-                .allow_metadata()
-                .allow_open()
-                .yes_really()
-                .allow_close(),
-        )
-        .into_diagnostic()
-        .wrap_err("cannot enable system IO syscalls")?;
-
-    let safety_context = safety_context
-        .enable(Networking::nothing().allow_start_tcp_clients())
-        .into_diagnostic()
-        .wrap_err("cannot enable networking syscalls")?;
-
-    let safety_context = safety_context
-        .enable(ForkAndExec)
-        .into_diagnostic()
-        .wrap_err("cannot enable fork and exec syscalls")?;
-
-    safety_context
-        .apply_to_all_threads()
-        .into_diagnostic()
-        .wrap_err("cannot apply safety context")?;
-
-    Ok(())
-}
-
 /// Parse common configuration from configuration directory
 async fn parse_configuration(
     configuration_directory_path: &Path,
@@ -187,16 +136,22 @@ async fn parse_configuration(
 async fn parse_charts_configurations(
     configuration_directory_path: &Path,
 ) -> Result<Vec<ChartConfiguration>, Report> {
+    let mut paths: Vec<async_std::path::PathBuf> = read_dir(configuration_directory_path)
+        .await
+        .into_diagnostic()
+        .wrap_err("cannot iterate over files in configuration directory")?
+        .map(|result| result.map(|dir_entry| dir_entry.path()))
+        .flat_map(future_from_iter)
+        .filter(|path| ready(path.extension() == Some(OsStr::new("toml"))))
+        .filter(|path| ready(path.file_name() != Some(OsStr::new("influxdb.toml"))))
+        .filter(|path| ready(path.file_name() != Some(OsStr::new("style.toml"))))
+        .collect()
+        .await;
+
+    paths.sort();
+
     let results: Vec<Result<Option<ChartConfiguration>, Report>> =
-        read_dir(configuration_directory_path)
-            .await
-            .into_diagnostic()
-            .wrap_err("cannot iterate over files in configuration directory")?
-            .map(|result| result.map(|dir_entry| dir_entry.path()))
-            .flat_map(future_from_iter)
-            .filter(|path| ready(path.extension() == Some(OsStr::new("toml"))))
-            .filter(|path| ready(path.file_name() != Some(OsStr::new("influxdb.toml"))))
-            .filter(|path| ready(path.file_name() != Some(OsStr::new("style.toml"))))
+        future_from_iter(paths.into_iter())
             .then(|path| async move {
                 parse_chart_configuration(path.as_ref())
                     .await

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.1.1] - 2023-12-19
+
+### Fixed
+
+- Keep lexicographical order of chart configuration files
+
+### Removed
+
+- Remove syscalls filtering
+
+
 ## [1.1.0] - 2023-12-18
 
 ### Added
@@ -256,6 +268,7 @@ The first stable release come with a large refactoring.
 - Initial implementation
 
 [unreleased]: https://gitlab.com/claudiomattera/house-dashboard/-/compare/1.0.0...v1.1.0-devel
+[1.1.1]: https://gitlab.com/claudiomattera/house-dashboard/-/compare/1.1.0...1.1.1
 [1.1.0]: https://gitlab.com/claudiomattera/house-dashboard/-/compare/1.0.0...1.1.0
 [1.0.0]: https://gitlab.com/claudiomattera/house-dashboard/-/compare/0.16.0...1.0.0
 [0.16.0]: https://gitlab.com/claudiomattera/house-dashboard/-/compare/0.15.0...0.16.0

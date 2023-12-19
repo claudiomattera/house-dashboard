@@ -14,11 +14,11 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "1.1.0"
+version = "1.1.1"
 authors = ["Claudio Mattera <dev@claudiomattera.it>"]
 edition = "2021"
 description = "An application to generate and display charts for a house dashboard"
-readme = "Readme.md"
+readme = "README.md"
 homepage = "https://gitlab.com/claudiomattera/house-dashboard"
 repository = "https://gitlab.com/claudiomattera/house-dashboard"
 license = "MPL-2.0"
@@ -67,14 +67,14 @@ verbose_file_reads = "deny"
 
 [workspace.dependencies]
 # Workspace
-house-dashboard-common = { version = "=1.1.0", path = "./house-dashboard-common" }
-house-dashboard-influxdb = { version = "=1.1.0", path = "./house-dashboard-influxdb" }
-house-dashboard-infrastructure-summary = { version = "=1.1.0", path = "./house-dashboard-infrastructure-summary" }
-house-dashboard-proxmox-summary = { version = "=1.1.0", path = "./house-dashboard-proxmox-summary" }
-house-dashboard-trend = { version = "=1.1.0", path = "./house-dashboard-trend" }
-house-dashboard-geographical-heatmap = { version = "=1.1.0", path = "./house-dashboard-geographical-heatmap" }
-house-dashboard-temporal-heatmap = { version = "=1.1.0", path = "./house-dashboard-temporal-heatmap" }
-house-dashboard-image = { version = "=1.1.0", path = "./house-dashboard-image" }
+house-dashboard-common = { version = "=1.1.1", path = "./house-dashboard-common" }
+house-dashboard-influxdb = { version = "=1.1.1", path = "./house-dashboard-influxdb" }
+house-dashboard-infrastructure-summary = { version = "=1.1.1", path = "./house-dashboard-infrastructure-summary" }
+house-dashboard-proxmox-summary = { version = "=1.1.1", path = "./house-dashboard-proxmox-summary" }
+house-dashboard-trend = { version = "=1.1.1", path = "./house-dashboard-trend" }
+house-dashboard-geographical-heatmap = { version = "=1.1.1", path = "./house-dashboard-geographical-heatmap" }
+house-dashboard-temporal-heatmap = { version = "=1.1.1", path = "./house-dashboard-temporal-heatmap" }
+house-dashboard-image = { version = "=1.1.1", path = "./house-dashboard-image" }
 
 thiserror = { version = "1", default-features = false }
 miette = { version = "5", default-features = false }
@@ -99,8 +99,6 @@ serde_html_form = { version = "0.2", default-features = false }
 toml = { version = "0.8", default-features = false }
 
 isahc = { version = "1.7", default-features = false }
-
-extrasafe = { version = "0.1", default-features = false }
 
 palette = { version = "0.7", default-features = false }
 enterpolation = { version = "0.2", default-features = false }
