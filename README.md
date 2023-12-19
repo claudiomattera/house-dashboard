@@ -340,7 +340,7 @@ This allows to survive short network issues without delaying execution for too l
 Changes
 ----
 
-See the [Changelog](./Changelog.md) for a list of changes.
+See the [changelog](./CHANGELOG.md) for a list of changes.
 
 
 License
@@ -348,7 +348,7 @@ License
 
 Copyright Claudio Mattera 2023
 
-You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`License.md`](./License.md) file for details.
+You are free to copy, modify, and distribute this application with attribution under the terms of the [MPL 2.0 license]. See the [`LICENSE.md`](./LICENSE.md) file for details.
 
 
 [MPL 2.0 license]: https://opensource.org/licenses/MPL-2.0

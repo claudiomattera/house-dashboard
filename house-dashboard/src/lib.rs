@@ -6,7 +6,7 @@
 
 //! Main module
 
-#![cfg_attr(not(doctest), doc = include_str!("../../Readme.md"))]
+#![cfg_attr(not(doctest), doc = include_str!("../../README.md"))]
 
 use std::ffi::OsStr;
 use std::io::{BufWriter, Cursor};
