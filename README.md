@@ -28,10 +28,14 @@ database, which are displayed using [Plotters], a Rust crate for creating charts
 Installation
 ----
 
+This application can be downloaded directly as a standalone executable `house-dashboard`, or it can be installed in a Debian-based system from the archive `house-dashboard_1.1.1-1_amd64.deb`.
+
+### Compile from Source
+
 This application can be compiled using the Rust toolchain.
 
 ~~~~shell
-# Create the binary in `target/release/house-dashboard`
+# Create the standalone executable in `target/release/house-dashboard`
 just build-release
 
 # Create a Debian package in `target/debian/house-dashboard_1.1.1-1_amd64.deb`
