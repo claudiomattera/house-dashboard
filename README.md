@@ -343,6 +343,12 @@ Changes
 See the [changelog](./CHANGELOG.md) for a list of changes.
 
 
+Development
+----
+
+See the [contributing guide](./CONTRIBUTING.md) for more information about development.
+
+
 License
 ----
 
